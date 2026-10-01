@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Sign In & Register - R&R Water Refilling</title>
+
+  <!-- Google Fonts: Plus Jakarta Sans & Playfair Display -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,600;0,700;1,600;1,700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <!-- Shared Design System Stylesheet -->
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body class="auth-wrapper">
+
+  <!-- Fullscreen Animated Fluid Water Waves Canvas -->
+  <canvas id="authWaterCanvas" class="auth-water-canvas"></canvas>
+
+  <!-- Top Controls Bar (Theme Toggle) -->
+  <div class="auth-top-controls">
+    <button class="theme-toggle-btn" id="authThemeToggle">
+      <span id="authThemeIcon">
+        <svg class="mono-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+        </svg>
+      </span>
+      <span id="authThemeLabel">Dark Mode</span>
+    </button>
+  </div>
+
+  <!-- Central Authentication Card -->
+  <div class="auth-card">
+    
+    <!-- Station Brand Badge -->
+    <div class="auth-brand-badge">
+      <svg class="mono-icon fill-only" width="14" height="14" viewBox="0 0 24 24" style="color: var(--color-sky-blue);">
+        <path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/>
+      </svg>
+      <span>R&amp;R Water Refilling</span>
+    </div>
+
+    <!-- Editorial Header -->
+    <h1 class="auth-title">
+      Pure water <span class="serif-italic">for everyone</span>
+    </h1>
+    <p class="auth-subtitle">
+      Sign in with your Gmail or registered email. The system automatically routes you to your customer portal or station management.
+    </p>
+
+    <!-- Active Logged In Session Banner (shown when user is already remembered) -->
+    <div id="authSessionStatus" style="display: none; margin-bottom: 16px; padding: 12px 14px; background: rgba(2, 132, 199, 0.08); border: 1px solid rgba(2, 132, 199, 0.25); border-radius: 16px;">
+      <div style="display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 10px;">
+        <div style="font-size: 0.8125rem; color: var(--text-main);">
+          Logged in as <b id="sessionUserName">Neil</b> <span id="sessionUserRole" style="font-size: 0.6875rem; color: var(--color-sky-blue); font-weight: 700; background: var(--color-sky-light); padding: 2px 6px; border-radius: 999px;">Customer</span>
+        </div>
+      </div>
+      <div style="display: flex; gap: 8px;">
+        <button type="button" id="btnContinueSession" style="flex: 1; background: var(--color-sky-blue); color: #fff; border: none; border-radius: 10px; padding: 7px 12px; font-size: 0.75rem; font-weight: 700; cursor: pointer;">
+          Continue to App &rarr;
+        </button>
+        <button type="button" id="btnSwitchAccount" class="btn-signout" style="padding: 7px 12px; font-size: 0.75rem;">
+          Switch Account
+        </button>
+      </div>
+    </div>
+
+    <!-- Role Segmented Navigation (Only Sign In and Register) -->
+    <div class="auth-segmented-nav">
+      <button class="auth-segment-btn active" data-target="paneLogin">
+        <svg class="mono-icon" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+          <circle cx="12" cy="7" r="4"></circle>
+        </svg>
+        <span>Sign In</span>
+      </button>
+
+      <button class="auth-segment-btn" data-target="paneRegister">
+        <svg class="mono-icon" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <line x1="12" y1="5" x2="12" y2="19"></line>
+          <line x1="5" y1="12" x2="19" y2="12"></line>
+        </svg>
+        <span>Register</span>
+      </button>
+    </div>
+
+    <!-- PANE 1: UNIFIED SIGN IN (AUTOMATIC ROLE DETECTION) -->
+    <form class="auth-form-pane active" id="paneLogin">
+      <div class="form-group">
+        <label class="form-label">Gmail / Email Address</label>
+        <input type="email" id="loginEmail" class="form-control" placeholder="e.g., admin@gmail.com or neil@gmail.com" required />
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Password</label>
+        <input type="password" id="loginPassword" class="form-control" placeholder="••••••••" required />
+      </div>
+
+      <!-- Ready Demo Accounts Box -->
+      <div style="background: var(--bg-surface); border: 1px dashed var(--border-subtle); border-radius: 16px; padding: 14px; margin-top: 16px;">
+        <div style="font-size: 0.75rem; font-weight: 700; color: var(--text-muted); margin-bottom: 8px; display: flex; align-items: center; justify-content: space-between;">
+          <span>Ready Accounts to Enter</span>
+          <span style="font-size: 0.6875rem; font-weight: 500; color: var(--color-sky-blue);">1-Tap Fill</span>
+        </div>
+
+        <div style="display: flex; flex-direction: column; gap: 8px;">
+          <!-- Ready Admin Account -->
+          <div class="auth-demo-box" style="margin-top: 0; padding: 8px 10px; background: var(--bg-card);">
+            <div>
+              <div style="font-weight: 700; color: var(--text-main); font-size: 0.75rem;">Admin Account (Management)</div>
+              <div style="font-size: 0.6875rem; color: var(--text-muted);">admin@gmail.com &bull; admin123</div>
+            </div>
+            <button type="button" class="auth-quick-fill-btn" id="btnQuickFillAdmin">
+              Fill Admin
+            </button>
+          </div>
+
+          <!-- Ready Customer Account -->
+          <div class="auth-demo-box" style="margin-top: 0; padding: 8px 10px; background: var(--bg-card);">
+            <div>
+              <div style="font-weight: 700; color: var(--text-main); font-size: 0.75rem;">Customer Account (Neil)</div>
+              <div style="font-size: 0.6875rem; color: var(--text-muted);">neil@gmail.com &bull; password123</div>
+            </div>
+            <button type="button" class="auth-quick-fill-btn" id="btnQuickFillCustomer">
+              Fill Customer
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <button type="submit" class="auth-submit-btn">
+        <span>Sign In</span>
+        <svg class="mono-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <line x1="5" y1="12" x2="19" y2="12"></line>
+          <polyline points="12 5 19 12 12 19"></polyline>
+        </svg>
+      </button>
+
+      <div style="text-align: center; margin-top: 18px; font-size: 0.75rem; color: var(--text-muted);">
+        New customer? <a href="#" id="linkSwitchToRegister" style="color: var(--color-sky-blue); font-weight: 700; text-decoration: none;">Create an account</a>
+      </div>
+    </form>
+
+    <!-- PANE 2: CUSTOMER REGISTER -->
+    <form class="auth-form-pane" id="paneRegister">
+      <div class="form-group">
+        <label class="form-label">Full Name</label>
+        <input type="text" id="regName" class="form-control" placeholder="e.g., Nanay Tess" required />
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Gmail / Email Address</label>
+        <input type="email" id="regEmail" class="form-control" placeholder="e.g., nanaytess@gmail.com" required />
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Mobile Phone</label>
+        <input type="text" id="regPhone" class="form-control" placeholder="0918 123 4567" required />
+      </div>
+
+      <!-- Address Breakdown: Sitio, Barangay, Municipality -->
+      <div class="form-group">
+        <label class="form-label">Sitio / Purok</label>
+        <input type="text" id="regSitio" class="form-control" placeholder="e.g., Cambarong" required />
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Barangay</label>
+          <input type="text" id="regBarangay" class="form-control" placeholder="e.g., Canhaway" required />
+        </div>
+        <div class="form-group">
+          <label class="form-label">Municipality</label>
+          <input type="text" id="regMunicipality" class="form-control" placeholder="e.g., Guindulman" required />
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Full Gallons at Home</label>
+          <input type="number" id="regFullJugs" class="form-control" min="0" value="0" placeholder="0" />
+        </div>
+        <div class="form-group">
+          <label class="form-label">Empty Gallons for Swap</label>
+          <input type="number" id="regEmptyJugs" class="form-control" min="0" value="0" placeholder="0" />
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Create Password</label>
+        <input type="password" id="regPass" class="form-control" placeholder="••••••••" required />
+      </div>
+
+      <button type="submit" class="auth-submit-btn">
+        <span>Register &amp; Order Refills</span>
+        <svg class="mono-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <line x1="5" y1="12" x2="19" y2="12"></line>
+          <polyline points="12 5 19 12 12 19"></polyline>
+        </svg>
+      </button>
+
+      <div style="text-align: center; margin-top: 18px; font-size: 0.75rem; color: var(--text-muted);">
+        Already registered? <a href="#" id="linkSwitchToLogin" style="color: var(--color-sky-blue); font-weight: 700; text-decoration: none;">Sign in here</a>
+      </div>
+    </form>
+
+    <div style="margin-top: 20px; text-align: center; display: flex; gap: 8px; justify-content: center; flex-wrap: wrap;">
+      <a href="pos.html" style="font-size: 0.75rem; color: #38bdf8; text-decoration: none; background: rgba(56, 189, 248, 0.1); border: 1px solid rgba(56, 189, 248, 0.25); padding: 6px 12px; border-radius: 999px; font-weight: 700; display: inline-flex; align-items: center; gap: 5px;">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect><line x1="8" y1="21" x2="16" y2="21"></line><line x1="12" y1="17" x2="12" y2="21"></line></svg>
+        Station Counter POS
+      </a>
+      <a href="admin.html" style="font-size: 0.75rem; color: var(--text-muted); text-decoration: none; background: rgba(255, 255, 255, 0.05); border: 1px solid var(--border-subtle); padding: 6px 12px; border-radius: 999px; font-weight: 600;">
+        Admin Portal
+      </a>
+      <a href="index.html" style="font-size: 0.75rem; color: var(--text-muted); text-decoration: none; background: rgba(255, 255, 255, 0.05); border: 1px solid var(--border-subtle); padding: 6px 12px; border-radius: 999px; font-weight: 600;">
+        Customer App
+      </a>
+    </div>
+
+  </div>
+
+  <!-- Toast Notification Message -->
+  <div class="toast-msg" id="authToast">
+    <svg class="mono-icon fill-only" width="16" height="16" viewBox="0 0 24 24" style="color: var(--color-sky-blue);">
+      <path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/>
+    </svg>
+    <span id="authToastText">Authentication successful!</span>
+  </div>
+
+  <!-- Auth Controller Script -->
+  <script src="auth.js"></script>
+</body>
+</html>

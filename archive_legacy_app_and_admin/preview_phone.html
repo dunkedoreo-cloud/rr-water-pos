@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>R&amp;R Water Refilling - Live Phone Presentation</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,600;0,700;1,600;1,700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-presentation: #0b1120;
+      --card-presentation: #1e293b;
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+      --sky-blue: #0284c7;
+      --sky-light: #38bdf8;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Plus Jakarta Sans', -apple-system, sans-serif;
+      background: radial-gradient(circle at 50% 20%, #1e293b 0%, #0b1120 70%);
+      color: var(--text-main);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 30px 20px;
+    }
+    .header-banner {
+      text-align: center;
+      max-width: 680px;
+      margin-bottom: 24px;
+    }
+    .brand-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(2, 132, 199, 0.18);
+      border: 1px solid rgba(56, 189, 248, 0.3);
+      color: var(--sky-light);
+      padding: 6px 16px;
+      border-radius: 999px;
+      font-size: 0.8125rem;
+      font-weight: 700;
+      margin-bottom: 12px;
+      letter-spacing: 0.04em;
+    }
+    .title {
+      font-size: 2rem;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      margin-bottom: 8px;
+    }
+    .serif-italic {
+      font-family: 'Playfair Display', serif;
+      font-style: italic;
+      font-weight: 600;
+      color: var(--sky-light);
+    }
+    .subtitle {
+      font-size: 0.9rem;
+      color: var(--text-muted);
+      line-height: 1.5;
+    }
+    /* Controls Bar */
+    .screen-switcher {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(30, 41, 59, 0.8);
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      padding: 6px;
+      border-radius: 999px;
+      margin-bottom: 28px;
+    }
+    .switch-btn {
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      font-family: inherit;
+      font-size: 0.8125rem;
+      font-weight: 700;
+      padding: 8px 18px;
+      border-radius: 999px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .switch-btn:hover {
+      color: #fff;
+    }
+    .switch-btn.active {
+      background: var(--sky-blue);
+      color: #fff;
+      box-shadow: 0 4px 14px rgba(2, 132, 199, 0.4);
+    }
+    /* Realistic Smartphone Frame */
+    .phone-stage {
+      position: relative;
+      perspective: 1200px;
+    }
+    .phone-mockup {
+      width: 390px;
+      height: 820px;
+      background: #000;
+      border-radius: 54px;
+      position: relative;
+      box-shadow:
+        0 0 0 4px #2a2e39,
+        0 0 0 10px #151821,
+        0 25px 60px -15px rgba(0, 0, 0, 0.85),
+        0 0 80px rgba(2, 132, 199, 0.18);
+      padding: 12px;
+      box-sizing: border-box;
+      display: flex;
+      flex-direction: column;
+    }
+    /* Metal bezel rim glare */
+    .phone-mockup::before {
+      content: '';
+      position: absolute;
+      inset: -2px;
+      border-radius: 56px;
+      background: linear-gradient(135deg, rgba(255,255,255,0.2) 0%, rgba(255,255,255,0.02) 40%, rgba(255,255,255,0.15) 100%);
+      pointer-events: none;
+      z-index: 50;
+    }
+    /* Screen Bezel */
+    .phone-screen {
+      width: 100%;
+      height: 100%;
+      border-radius: 42px;
+      overflow: hidden;
+      position: relative;
+      background: #fff;
+    }
+    /* Dynamic Island */
+    .dynamic-island {
+      position: absolute;
+      top: 10px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 118px;
+      height: 32px;
+      background: #000;
+      border-radius: 20px;
+      z-index: 100;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 12px;
+      box-sizing: border-box;
+      pointer-events: none;
+    }
+    .camera-lens {
+      width: 11px;
+      height: 11px;
+      border-radius: 50%;
+      background: #080c14;
+      border: 1px solid #1a2233;
+      box-shadow: inset 0 0 3px #0284c7;
+    }
+    .sensor {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: #0f172a;
+    }
+    /* Status Bar */
+    .status-bar {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 48px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 28px;
+      font-size: 0.8rem;
+      font-weight: 700;
+      color: #0f172a;
+      z-index: 90;
+      pointer-events: none;
+    }
+    .status-icons {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    /* Interactive Iframe */
+    .app-frame {
+      width: 100%;
+      height: 100%;
+      border: none;
+      display: block;
+    }
+    /* Home Indicator */
+    .home-indicator {
+      position: absolute;
+      bottom: 8px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 135px;
+      height: 5px;
+      background: rgba(15, 23, 42, 0.4);
+      border-radius: 999px;
+      z-index: 100;
+      pointer-events: none;
+    }
+    /* Physical Phone Connection Card */
+    .lan-card {
+      margin-top: 36px;
+      background: rgba(30, 41, 59, 0.7);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 20px;
+      padding: 20px 24px;
+      max-width: 520px;
+      text-align: center;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.4);
+    }
+    .lan-card h3 {
+      font-size: 1.1rem;
+      font-weight: 700;
+      margin-bottom: 6px;
+    }
+    .lan-card p {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      margin-bottom: 14px;
+    }
+    .url-pill {
+      background: #0f172a;
+      border: 1px solid #334155;
+      padding: 10px 18px;
+      border-radius: 12px;
+      font-family: monospace;
+      font-size: 0.95rem;
+      color: var(--sky-light);
+      display: inline-block;
+      user-select: all;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Header Banner -->
+  <div class="header-banner">
+    <div class="brand-pill">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+        <path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/>
+      </svg>
+      R&amp;R WATER REFILLING - PHONE PRESENTATION
+    </div>
+    <h1 class="title">Visual Showcase on <span class="serif-italic">Actual Phone</span></h1>
+    <p class="subtitle">Experience the live fluid water background animation, responsive frosted card, and 1-tap role routing exactly as it appears in the palm of your hand.</p>
+  </div>
+
+  <!-- Screen Navigation Controls -->
+  <div class="screen-switcher">
+    <button class="switch-btn active" id="btnShowLogin" onclick="loadScreen('login.html', this)">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"></path>
+        <polyline points="10 17 15 12 10 7"></polyline>
+        <line x1="15" y1="12" x2="3" y2="12"></line>
+      </svg>
+      Sign In &amp; Register
+    </button>
+    <button class="switch-btn" id="btnShowCustomer" onclick="loadScreen('index.html', this)">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+        <polyline points="9 22 9 12 15 12 15 22"></polyline>
+      </svg>
+      Customer Home
+    </button>
+    <button class="switch-btn" id="btnShowAdmin" onclick="loadScreen('admin.html', this)">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+        <line x1="3" y1="9" x2="21" y2="9"></line>
+        <line x1="9" y1="21" x2="9" y2="9"></line>
+      </svg>
+      Station Admin
+    </button>
+  </div>
+
+  <!-- Smartphone Stage -->
+  <div class="phone-stage">
+    <div class="phone-mockup">
+      <div class="phone-screen">
+        <!-- Dynamic Island -->
+        <div class="dynamic-island">
+          <div class="camera-lens"></div>
+          <div class="sensor"></div>
+        </div>
+
+        <!-- Status Bar -->
+        <div class="status-bar" id="statusBar">
+          <span>9:41</span>
+          <div class="status-icons">
+            <svg width="15" height="12" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M12 3c-4.97 0-9 4.03-9 9 0 2.12.74 4.07 1.97 5.61L12 22l7.03-4.39C20.26 16.07 21 14.12 21 12c0-4.97-4.03-9-9-9z"/>
+            </svg>
+            <svg width="18" height="12" viewBox="0 0 24 24" fill="currentColor">
+              <rect x="1" y="6" width="18" height="12" rx="2" ry="2"/>
+              <line x1="23" y1="10" x2="23" y2="14"/>
+            </svg>
+          </div>
+        </div>
+
+        <!-- Live Web App Viewport -->
+        <iframe id="appFrame" class="app-frame" src="login.html"></iframe>
+
+        <!-- Home Bar -->
+        <div class="home-indicator"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Physical Mobile Connection Card -->
+  <div class="lan-card">
+    <h3>Open on your Physical Phone</h3>
+    <p>Connect your phone to the same Wi-Fi network and open this link in Safari or Chrome:</p>
+    <div class="url-pill">http://192.168.1.35:3000/login.html</div>
+  </div>
+
+  <script>
+    function loadScreen(url, btn) {
+      document.getElementById('appFrame').src = url;
+      document.querySelectorAll('.switch-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+    }
+  </script>
+</body>
+</html>

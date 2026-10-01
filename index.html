@@ -1,0 +1,694 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>R&R Water - Station POS</title>
+  <link rel="stylesheet" href="pos.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700;800&display=swap" rel="stylesheet">
+</head>
+<body class="light-mode">
+
+  <div class="pos-app-layout">
+
+    <!-- ====================================================================
+         1. LEFT SIDEBAR NAVIGATION (Simplified Monochrome Black Icons)
+         ==================================================================== -->
+    <aside class="sidebar">
+      <div class="sidebar-brand">
+        <div class="brand-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"></path>
+          </svg>
+        </div>
+        <div class="brand-info">
+          <span class="brand-title">R&amp;R Water</span>
+          <span class="brand-tag">Station POS</span>
+        </div>
+      </div>
+
+      <nav class="sidebar-nav">
+        <!-- POS (Active Highlight) -->
+        <button class="nav-item active" data-view="pos" id="navPos">
+          <svg class="ui-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="9" cy="21" r="1"></circle>
+            <circle cx="20" cy="21" r="1"></circle>
+            <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path>
+          </svg>
+          <span>POS</span>
+        </button>
+
+        <!-- Orders -->
+        <button class="nav-item" data-view="orders" id="navOrders">
+          <svg class="ui-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="16.5 9.4 7.5 4.21"></polyline>
+            <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path>
+            <polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline>
+            <line x1="12" y1="22.08" x2="12" y2="12"></line>
+          </svg>
+          <span>Orders</span>
+          <span class="nav-badge" id="sidebarOrdersBadge">0</span>
+        </button>
+
+      </nav>
+
+      <!-- Droppy Mascot in Sidebar (Mascot Speech Bubble Design) -->
+      <div class="sidebar-droppy-card">
+        <div class="sidebar-droppy-bubble">
+          <span class="sidebar-droppy-name">Droppy</span>
+          <p class="sidebar-droppy-text" id="sidebarDroppyMsg">Station is active &amp; ready for refills!</p>
+        </div>
+        <div class="sidebar-droppy-mascot-row">
+          <img src="assets/droppy_happy.png" alt="Droppy" class="sidebar-droppy-img" id="sidebarDroppy">
+          <div class="sidebar-droppy-status-meta">
+            <span class="status-online-dot">● Station Active</span>
+            <span class="sidebar-droppy-tag">Counter Assistant</span>
+          </div>
+        </div>
+      </div>
+    </aside>
+
+    <!-- ====================================================================
+         2. MAIN STAGE CONTENT
+         ==================================================================== -->
+    <main class="main-content">
+
+      <!-- Top Greeting & Header Bar (With Distinct Divider Line) -->
+      <header class="top-header">
+        <div class="welcome-box">
+          <div class="station-status-pill">
+            <span class="status-live-dot">● Station Terminal Active</span>
+            <span class="station-sub-tag">Counter #1</span>
+          </div>
+          <h2 class="welcome-title">Welcome, Neil</h2>
+        </div>
+
+        <div class="header-right-actions">
+          <!-- Live Clock -->
+          <div class="live-clock-pill" id="liveClock">--:--:-- --</div>
+
+          <!-- Light / Dark Mode Toggle (Simplified SVG Icon) -->
+          <button class="header-icon-btn" id="themeToggleBtn" title="Toggle Light / Dark Mode" aria-label="Toggle Theme">
+            <svg class="ui-icon" id="themeSvg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="5"></circle>
+              <line x1="12" y1="1" x2="12" y2="3"></line>
+              <line x1="12" y1="21" x2="12" y2="23"></line>
+              <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+              <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+              <line x1="1" y1="12" x2="3" y2="12"></line>
+              <line x1="21" y1="12" x2="23" y2="12"></line>
+              <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+              <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+            </svg>
+          </button>
+
+          <!-- Sound Effects Toggle (Simplified SVG Icon) -->
+          <button class="header-icon-btn" id="soundToggleBtn" title="Sound Effects (On/Off)">
+            <svg class="ui-icon" id="soundSvg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
+              <path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"></path>
+            </svg>
+          </button>
+
+          <!-- Notification Bell (Simplified SVG Icon) -->
+          <button class="header-icon-btn" id="btnNotifications" title="Station Alerts">
+            <svg class="ui-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
+              <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+            </svg>
+          </button>
+
+
+          <!-- Cashier Avatar -->
+          <div class="cashier-avatar" title="Cashier: Neil (Station Manager)">N</div>
+        </div>
+      </header>
+
+      <!-- ================================================================
+           VIEW STAGE 1: POS (PURE POS: Product Selection & Calculator)
+           ================================================================ -->
+      <div class="view-stage active" id="stagePos">
+        <div class="pos-workspace-grid">
+
+          <!-- Left / Center: "Choose Products" (THE GALLON - PURIFIED ONLY) -->
+          <div class="products-section">
+            <div class="section-heading-row">
+              <div class="section-title-wrap">
+                <span class="section-step-badge">Step 1 • Tap Gallon to Dispense</span>
+                <h3>Choose Product</h3>
+              </div>
+              <div class="gallon-type-pills">
+                <button class="type-pill active" data-prod="purified" id="pillProdPurified">
+                  <svg class="ui-icon-xs" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"></path></svg>
+                  <span>Purified Refill Swap (₱35)</span>
+                </button>
+                <button class="type-pill" data-prod="new_container" id="pillProdNew">
+                  <svg class="ui-icon-xs" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="16"></line><line x1="8" y1="12" x2="16" y2="12"></line></svg>
+                  <span>New Jug + Water (₱250)</span>
+                </button>
+              </div>
+            </div>
+
+            <!-- Single Product Grid (Purified Gallon Focus - No Alkaline) -->
+            <div class="products-cards-grid">
+
+              <!-- HERO PRIMARY PRODUCT CARD: 5-GALLON PURIFIED WATER CARBOY -->
+              <div class="product-card active" data-prod="purified" id="cardPurified">
+                <div class="card-img-container">
+                  <img src="assets/water_jug.png" alt="5-Gallon Blue Water Jug" class="product-gallon-img">
+                  <span class="card-floating-badge">Purified Refill Swap</span>
+                </div>
+                <div class="card-details">
+                  <h4 class="product-name">5-Gallon Blue Carboy Refill</h4>
+                  <div class="product-code">Code: #GAL-05-STD</div>
+                  <div class="product-stock">Available: 150 Full Gallons Ready</div>
+                  <div class="card-footer-row">
+                    <span class="product-price-tag">₱ 35.00</span>
+                    <button class="btn-card-add" title="Add 1 Gallon">+</button>
+                  </div>
+                </div>
+              </div>
+
+              <!-- 2. BRAND-NEW JUG WITH PURIFIED WATER -->
+              <div class="product-card" data-prod="new_container" id="cardNewContainer">
+                <div class="card-img-container new-bg">
+                  <img src="assets/water_jug.png" alt="New Container + Water" class="product-gallon-img">
+                  <span class="card-floating-badge blue">With New Container</span>
+                </div>
+                <div class="card-details">
+                  <h4 class="product-name">New 5-Gal Jug + Water</h4>
+                  <div class="product-code">Code: #GAL-NEW-BOT</div>
+                  <div class="product-stock">Available: 25 Units in Storage</div>
+                  <div class="card-footer-row">
+                    <span class="product-price-tag">₱ 250.00</span>
+                    <button class="btn-card-add" title="Add 1 Jug">+</button>
+                  </div>
+                </div>
+              </div>
+
+            </div>
+
+            <!-- Droppy Mascot Station Live Message Banner (Speech Bubble Reference Design) -->
+            <div class="droppy-mascot-banner">
+              <img src="assets/droppy_winking.png" alt="Droppy Mascot" class="droppy-banner-avatar" id="droppyBannerAvatar">
+              <div class="droppy-speech-bubble-box">
+                <div class="droppy-bubble-title">Droppy</div>
+                <div class="droppy-banner-msg" id="droppyBannerMsg">
+                  Purified filtration taps running. Tap presets or input quantity, then tap Complete Sale.
+                </div>
+              </div>
+            </div>
+
+            <!-- Quick Preset 1-Tap Row (Dynamic Walk-in vs Multicab Batch Presets) -->
+            <div class="quick-presets-strip" id="quickPresetsStrip">
+              <div class="presets-header-row">
+                <div class="presets-title-wrap">
+                  <svg class="ui-icon-xs presets-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                    <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
+                  </svg>
+                  <span class="presets-label" id="presetsLabel">Walk-in Presets:</span>
+                </div>
+                <span class="presets-hint-tag" id="presetsHint">1-Tap Fast Fill</span>
+              </div>
+              <div class="preset-buttons-wrap" id="presetButtonsWrap">
+                <button class="preset-pill active" data-qty="1">
+                  <span class="preset-qty">1 Gal</span>
+                  <span class="preset-cost">(₱35)</span>
+                </button>
+                <button class="preset-pill" data-qty="2">
+                  <span class="preset-qty">2 Gal</span>
+                  <span class="preset-cost">(₱70)</span>
+                </button>
+                <button class="preset-pill" data-qty="3">
+                  <span class="preset-qty">3 Gal</span>
+                  <span class="preset-cost">(₱105)</span>
+                </button>
+                <button class="preset-pill" data-qty="4">
+                  <span class="preset-qty">4 Gal</span>
+                  <span class="preset-cost">(₱140)</span>
+                </button>
+                <button class="preset-pill" data-qty="5">
+                  <span class="preset-qty">5 Gal</span>
+                  <span class="preset-cost">(₱175)</span>
+                </button>
+              </div>
+            </div>
+
+          </div>
+
+          <!-- ==============================================================
+               RIGHT SIDEBAR: SIMPLIFIED ORDER & CALCULATION PANEL
+               ============================================================== -->
+          <div class="order-calculator-panel">
+            
+            <!-- Group 1: Order Identity & Mode -->
+            <div class="panel-order-header">
+              <div class="order-number-wrap">
+                <span class="order-num-label">Order:</span>
+                <strong class="order-num-val" id="currentOrderNumber">#849201</strong>
+              </div>
+
+              <!-- Channel Switcher: Walk-in vs Multicab Delivery -->
+              <div class="order-channel-pills">
+                <button class="channel-pill active" id="btnChannelWalkin" data-channel="walkin" title="Counter Walk-in Refill">
+                  <svg class="ui-icon-xs" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                    <circle cx="12" cy="7" r="4"></circle>
+                  </svg>
+                  <span>Walk-in</span>
+                </button>
+                <button class="channel-pill" id="btnChannelDelivery" data-channel="delivery" title="Multicab Batch Delivery">
+                  <svg class="ui-icon-xs" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <rect x="1" y="3" width="15" height="13"></rect>
+                    <polygon points="16 8 20 8 23 11 23 16 16 16 8"></polygon>
+                    <circle cx="5.5" cy="18.5" r="2.5"></circle>
+                    <circle cx="18.5" cy="18.5" r="2.5"></circle>
+                  </svg>
+                  <span>Multicab</span>
+                </button>
+                <button class="btn-trash-clear" id="btnClearCurrentOrder" title="Clear / Reset Order">
+                  <svg class="ui-icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <polyline points="3 6 5 6 21 6"></polyline>
+                    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                  </svg>
+                </button>
+              </div>
+            </div>
+
+            <!-- Group 2: Product & Quantity Stepper Card -->
+            <div class="order-selected-item-card">
+              <div class="selected-item-row">
+                <img src="assets/water_jug.png" alt="Carboy" class="selected-item-img">
+                <div class="selected-item-details">
+                  <h5 id="orderItemTitle">5-Gal Purified Refill</h5>
+                  <span class="selected-item-rate" id="orderItemRate">₱35.00 / gallon</span>
+                </div>
+              </div>
+
+              <!-- Stepper Control -->
+              <div class="quantity-stepper-row">
+                <button class="btn-stepper" id="btnStepperMinus" title="Subtract 1 gallon">−</button>
+                <div class="stepper-center-box">
+                  <span class="stepper-qty-num" id="orderItemQtyText">1</span>
+                  <span class="stepper-unit-lbl">Gallons</span>
+                </div>
+                <button class="btn-stepper" id="btnStepperPlus" title="Add 1 gallon">+</button>
+              </div>
+            </div>
+
+            <!-- Group 3: Delivery Options & Destination (Shown when Multicab Delivery is active) -->
+            <div class="order-delivery-options" id="orderDeliveryOptions" style="display: none;">
+              <div class="delivery-status-selector">
+                <label class="delivery-status-label">Delivery Payment:</label>
+                <div class="status-toggle-row">
+                  <button class="status-toggle-btn active" id="btnPayPending" data-paymode="pending" title="Driver collects payment upon delivery">
+                    <span class="status-dot dot-pending">●</span>
+                    <span>Pay on Delivery (Pending)</span>
+                  </button>
+                  <button class="status-toggle-btn" id="btnPayAdvance" data-paymode="advance" title="Customer already paid at the station counter">
+                    <span class="status-dot dot-paid">●</span>
+                    <span>Pre-paid (Now)</span>
+                  </button>
+                </div>
+              </div>
+
+              <div class="delivery-dest-input-wrap">
+                <svg class="dest-icon ui-icon-xs" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
+                  <circle cx="12" cy="10" r="3"></circle>
+                </svg>
+                <input type="text" id="orderDeliveryAddress" placeholder="Delivery destination / customer (e.g. Purok 1)">
+              </div>
+            </div>
+
+            <!-- Walk-in Note Input (shown when walk-in) -->
+            <div class="order-walkin-options" id="orderWalkinOptions">
+              <div class="order-note-container">
+                <svg class="note-icon ui-icon-xs" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M12 20h9"></path>
+                  <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path>
+                </svg>
+                <input type="text" id="orderNoteInput" placeholder="Customer name / note (e.g. Aling Tess)">
+              </div>
+            </div>
+
+            <!-- Numeric Keypad Grid (Direct & clean numeric gallon input) -->
+            <div class="numeric-keypad-grid">
+              <button class="keypad-key" data-key="7">7</button>
+              <button class="keypad-key" data-key="8">8</button>
+              <button class="keypad-key" data-key="9">9</button>
+              <button class="keypad-key key-clear" data-key="C">C</button>
+
+              <button class="keypad-key" data-key="4">4</button>
+              <button class="keypad-key" data-key="5">5</button>
+              <button class="keypad-key" data-key="6">6</button>
+              <button class="keypad-key key-op" data-key="+">+</button>
+
+              <button class="keypad-key" data-key="1">1</button>
+              <button class="keypad-key" data-key="2">2</button>
+              <button class="keypad-key" data-key="3">3</button>
+              <button class="keypad-key key-op" data-key="-">-</button>
+
+              <button class="keypad-key" data-key=".">.</button>
+              <button class="keypad-key" data-key="0">0</button>
+              <button class="keypad-key key-exact" id="btnKeypadReset">Reset</button>
+              <button class="keypad-key key-clear" id="btnKeypadBackspace">⌫</button>
+            </div>
+
+            <!-- Group 4: Total & Primary Action Button -->
+            <div class="order-submit-box">
+              <div class="order-total-display-row">
+                <div class="total-left-group">
+                  <span class="total-caption" id="totalCaption">Total:</span>
+                  <strong class="total-highlight-amount" id="summaryTotalAmount">₱ 35.00</strong>
+                </div>
+                <div class="paid-unpaid-breakdown" id="paidUnpaidBreakdown">
+                  <span class="breakdown-paid" id="breakdownPaidText">Paid: ₱35.00</span>
+                  <span class="breakdown-sep">•</span>
+                  <span class="breakdown-unpaid" id="breakdownUnpaidText">Unpaid: ₱0.00</span>
+                </div>
+              </div>
+
+              <button class="btn-primary-action" id="btnSubmitPayment">
+                <span class="btn-action-text" id="btnSubmitActionText">Complete Sale • ₱35.00</span>
+              </button>
+
+              <div class="panel-bottom-actions">
+                <button class="btn-bottom-secondary" id="btnBottomClear">Clear</button>
+                <button class="btn-bottom-primary" id="btnBottomViewOrders">
+                  Orders Log (<span id="ordersCountBadge">0</span>)
+                </button>
+              </div>
+            </div>
+
+          </div>
+
+        </div>
+
+        <!-- Full-Width Station Inventory & Quality Status Dock -->
+        <div class="station-inventory-card full-width-dock" id="stationInventoryCard">
+
+              <div class="inventory-card-header">
+                <div class="inventory-header-left">
+                  <span class="inventory-title-tag">
+                    <svg class="ui-icon-xs" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                      <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path>
+                    </svg>
+                    Station Inventory &amp; Quality
+                  </span>
+                  <span class="inventory-live-dot">● Real-time Rack Balance</span>
+                </div>
+                <button class="btn-restock-pill" id="btnRestock10" title="Quick Wash &amp; Restock 10 Gallons">
+                  <svg class="ui-icon-xs" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"></path></svg>
+                  <span>Restock 10 Gals</span>
+                </button>
+              </div>
+
+              <div class="inventory-metrics-grid">
+                <!-- 1. Full Gallons Ready on Rack -->
+                <div class="inv-mini-card ready-stock">
+                  <div class="inv-card-top">
+                    <span class="inv-lbl">Full Gallons Ready</span>
+                    <span class="inv-badge green">Ready</span>
+                  </div>
+                  <div class="inv-card-val-row">
+                    <strong class="inv-val" id="invReadyCount">150</strong>
+                    <span class="inv-unit">carboys</span>
+                  </div>
+                  <div class="inv-progress-track">
+                    <div class="inv-progress-bar green" id="invReadyBar" style="width: 75%;"></div>
+                  </div>
+                  <span class="inv-sub" id="invReadySub">Clean &amp; sealed on rack</span>
+                </div>
+
+                <!-- 2. Empty Returned Jugs (To be sanitized) -->
+                <div class="inv-mini-card wash-stock">
+                  <div class="inv-card-top">
+                    <span class="inv-lbl">Empty Jugs Returned</span>
+                    <span class="inv-badge orange">Wash Queue</span>
+                  </div>
+                  <div class="inv-card-val-row">
+                    <strong class="inv-val" id="invReturnedCount">34</strong>
+                    <span class="inv-unit">swapped</span>
+                  </div>
+                  <div class="inv-progress-track">
+                    <div class="inv-progress-bar orange" id="invReturnedBar" style="width: 34%;"></div>
+                  </div>
+                  <span class="inv-sub">Awaiting wash &amp; sanitize</span>
+                </div>
+
+                <!-- 3. Water Quality Purity (TDS Meter) -->
+                <div class="inv-mini-card purity-stock">
+                  <div class="inv-card-top">
+                    <span class="inv-lbl">Water Purity (TDS)</span>
+                    <span class="inv-badge cyan">Pure RO</span>
+                  </div>
+                  <div class="inv-card-val-row">
+                    <strong class="inv-val" id="invTdsVal">8</strong>
+                    <span class="inv-unit">PPM</span>
+                  </div>
+                  <div class="inv-progress-track">
+                    <div class="inv-progress-bar cyan" style="width: 96%;"></div>
+                  </div>
+                  <span class="inv-sub">Standard &lt; 10 PPM • Pure</span>
+                </div>
+
+                <!-- 4. Filtration Storage Tank -->
+                <div class="inv-mini-card tank-stock">
+                  <div class="inv-card-top">
+                    <span class="inv-lbl">Filtration Reservoir</span>
+                    <span class="inv-badge blue">Online</span>
+                  </div>
+                  <div class="inv-card-val-row">
+                    <strong class="inv-val" id="invTankPercent">88%</strong>
+                    <span class="inv-unit">capacity</span>
+                  </div>
+                  <div class="inv-progress-track">
+                    <div class="inv-progress-bar blue" id="invTankBar" style="width: 88%;"></div>
+                  </div>
+                  <span class="inv-sub" id="invTankSub">1,760 / 2,000 L</span>
+                </div>
+              </div>
+            </div>
+
+      </div>
+
+      <!-- ================================================================
+           VIEW STAGE 2: STORED ORDERS LOG (Specific Part of POS)
+           ================================================================ -->
+      <div class="view-stage" id="stageOrders">
+        <div class="orders-log-view">
+          
+          <div class="orders-view-header">
+            <div>
+              <h3>Stored Station Orders &amp; Gallon Log</h3>
+              <p>Real-time digital record of all paid refills and multicab deliveries</p>
+            </div>
+
+            <div class="orders-header-controls">
+              <div class="search-box">
+                <svg class="search-icon ui-icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                  <circle cx="11" cy="11" r="8"></circle>
+                  <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                </svg>
+                <input type="text" id="globalSearchInput" placeholder="Search orders, notes...">
+              </div>
+
+              <!-- Quick Segmented Filter Tabs -->
+              <div class="orders-segmented-filter" id="ordersSegmentedFilter">
+                <button class="log-filter-btn active" data-filter="all">All (<span id="filterCountAll">0</span>)</button>
+                <button class="log-filter-btn" data-filter="walkin">Walk-in (<span id="filterCountWalkin">0</span>)</button>
+                <button class="log-filter-btn filter-pending" data-filter="pending">Pending (<span id="filterCountPending">0</span>)</button>
+                <button class="log-filter-btn filter-delivery" data-filter="delivery">Multicab (<span id="filterCountDelivery">0</span>)</button>
+              </div>
+
+              <!-- Filter Dropdown (Synced for accessibility & mobile) -->
+              <div class="orders-filter-dropdown-wrap">
+                <svg class="ui-icon-xs dropdown-filter-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon>
+                </svg>
+                <select id="ordersFilterSelect" class="orders-filter-dropdown" aria-label="Filter Orders">
+                  <option value="all">All Orders (0)</option>
+                  <option value="walkin">Walk-in (0)</option>
+                  <option value="pending">Pending Delivery (0)</option>
+                  <option value="delivery">Multicab (0)</option>
+                </select>
+              </div>
+
+              <button class="btn-export-csv" id="btnExportCsv">
+                <svg class="ui-icon-xs" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+                <span>Export CSV</span>
+              </button>
+              <button class="btn-print-summary" id="btnPrintSummary">
+                <svg class="ui-icon-xs" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 6 2 18 2 18 9"></polyline><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path><rect x="6" y="14" width="12" height="8"></rect></svg>
+                <span>Print Shift</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Station Metrics Bar (In Orders Log, Clean 3-Tier Layout) -->
+          <div class="station-summary-grid">
+            <div class="metric-card gallons-card" id="cardDispensedGallons">
+              <div class="metric-card-header">
+                <span class="m-lbl">Gallons Dispensed</span>
+                <span class="m-badge-metric">Today</span>
+              </div>
+              <div class="metric-card-body">
+                <strong class="m-val" id="statAllGallons">0</strong>
+              </div>
+              <div class="metric-card-footer">
+                <span class="m-sub" id="statDispensedSub">0 Walk-in • 0 Multicab</span>
+              </div>
+            </div>
+
+            <div class="metric-card cash-collected-card" id="cardCashCollected">
+              <div class="metric-card-header">
+                <span class="m-lbl">Cash Collected</span>
+                <span class="m-badge-paid">Drawer</span>
+              </div>
+              <div class="metric-card-body">
+                <strong class="m-val" id="statTotalCash">₱0.00</strong>
+              </div>
+              <div class="metric-card-footer">
+                <span class="m-sub" id="statCashSub">In-hand counter register</span>
+              </div>
+            </div>
+
+            <div class="metric-card pending-card" id="cardPendingReceivables">
+              <div class="metric-card-header">
+                <span class="m-lbl">Pending Receivables</span>
+                <span class="m-badge-pending" id="statPendingBadge">0 Drops</span>
+              </div>
+              <div class="metric-card-body">
+                <strong class="m-val" id="statPendingCash">₱0.00</strong>
+              </div>
+              <div class="metric-card-footer">
+                <span class="m-sub" id="statPendingSub">Uncollected with drivers</span>
+              </div>
+            </div>
+
+            <div class="metric-card drops-card" id="cardFleetDrops">
+              <div class="metric-card-header">
+                <span class="m-lbl">Multicab Deliveries</span>
+                <span class="m-badge-fleet">Fleet</span>
+              </div>
+              <div class="metric-card-body">
+                <strong class="m-val" id="statPendingCount">0 Pending</strong>
+              </div>
+              <div class="metric-card-footer">
+                <span class="m-sub" id="statDeliveryGallonsTotal">0 Gals Dispatched</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Stored Orders Container -->
+          <div class="stored-orders-container" id="storedOrdersContainer">
+            <!-- Populated dynamically by pos.js -->
+          </div>
+
+          <!-- Orders Footer with Shift Metrics -->
+          <div class="orders-footer-summary">
+            <div class="footer-stat">
+              <span class="lbl">Total Shift Volume:</span>
+              <strong id="shiftVolumeVal">52 Gallons</strong>
+            </div>
+            <div class="footer-stat">
+              <span class="lbl">Total Cash Collected:</span>
+              <strong id="shiftCashVal">₱2,680.00</strong>
+            </div>
+            <button class="btn-reset-shift-log" id="btnResetShiftLog">
+              <svg class="ui-icon-xs" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"></polyline><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path></svg>
+              <span>Start New Day / Shift</span>
+            </button>
+          </div>
+
+        </div>
+      </div>
+
+    </main>
+
+  </div>
+
+  <!-- ====================================================================
+       MINI ORDERS LOG DRAWER (Quick Flyout Tab for POS Viewing)
+       ==================================================================== -->
+  <div class="mini-orders-backdrop" id="miniOrdersBackdrop"></div>
+  <aside class="mini-orders-drawer" id="miniOrdersDrawer" aria-label="Quick Orders Log Drawer">
+    <div class="mini-drawer-header">
+      <div class="mini-drawer-title-box">
+        <div class="mini-drawer-icon">
+          <svg class="ui-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+            <polyline points="16.5 9.4 7.5 4.21"></polyline>
+            <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path>
+            <polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline>
+            <line x1="12" y1="22.08" x2="12" y2="12"></line>
+          </svg>
+        </div>
+        <div>
+          <h4 class="mini-drawer-title">Quick Orders Log</h4>
+          <span class="mini-drawer-subtitle" id="miniDrawerSubtitle">Today's Station Transactions</span>
+        </div>
+      </div>
+      <button class="mini-drawer-close" id="btnCloseMiniOrders" title="Close Drawer (Esc)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+      </button>
+    </div>
+
+    <!-- Mini Filter Tabs -->
+    <div class="mini-drawer-tabs" id="miniDrawerTabs">
+      <button class="mini-tab-btn active" data-filter="all">All (<span id="miniTabCountAll">0</span>)</button>
+      <button class="mini-tab-btn" data-filter="walkin">Walk-in (<span id="miniTabCountWalkin">0</span>)</button>
+      <button class="mini-tab-btn" data-filter="pending">Pending (<span id="miniTabCountPending">0</span>)</button>
+      <button class="mini-tab-btn" data-filter="delivery">Multicab (<span id="miniTabCountDelivery">0</span>)</button>
+    </div>
+
+    <!-- Mini Orders List Container (Scrollable) -->
+    <div class="mini-orders-scroll" id="miniOrdersListContainer">
+      <!-- Dynamically injected mini order cards -->
+    </div>
+
+    <!-- Mini Drawer Footer -->
+    <div class="mini-drawer-footer">
+      <div class="mini-drawer-summary-strip">
+        <div class="mini-stat-col">
+          <span class="mini-stat-lbl">Shift Volume</span>
+          <strong class="mini-stat-val" id="miniDrawerTotalVol">0 Gals</strong>
+        </div>
+        <div class="mini-stat-col">
+          <span class="mini-stat-lbl">Cash In-Hand</span>
+          <strong class="mini-stat-val green" id="miniDrawerTotalCash">₱0.00</strong>
+        </div>
+      </div>
+      <button class="btn-open-full-orders" id="btnMiniOpenFullOrders">
+        <span>View Full Orders Screen</span>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" class="ui-icon-xs"><line x1="7" y1="17" x2="17" y2="7"></line><polyline points="7 7 17 7 17 17"></polyline></svg>
+      </button>
+    </div>
+  </aside>
+
+  <!-- Toast Notification Feedback -->
+  <div class="pos-toast" id="posToast">
+    <svg class="toast-icon-svg ui-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"></path>
+    </svg>
+    <span class="toast-message" id="toastMessage">Order recorded successfully!</span>
+  </div>
+
+  <!-- Confirmation Modal (for Void or New Shift) -->
+  <div class="modal-backdrop" id="confirmModal">
+    <div class="modal-card">
+      <img src="assets/droppy_question.png" alt="Droppy Question" class="modal-avatar" id="modalAvatar">
+      <h3 id="modalTitle">Confirm Action</h3>
+      <p id="modalMessage">Are you sure you want to proceed?</p>
+      <div class="modal-button-row">
+        <button class="btn-modal-cancel" id="btnModalCancel">Cancel</button>
+        <button class="btn-modal-confirm" id="btnModalConfirm">Confirm</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="pos.js"></script>
+</body>
+</html>

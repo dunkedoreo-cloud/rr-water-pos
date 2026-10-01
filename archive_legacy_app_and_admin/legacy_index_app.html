@@ -1,0 +1,1094 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>R&R Water Refilling - Water Delivery App</title>
+  
+  <!-- Leaflet.js CSS for Interactive Maps -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  
+  <!-- Custom Design System Stylesheet -->
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+
+  <!-- ========================================================================
+       Top Controls Bar (Theme Toggle & Status)
+       ======================================================================== -->
+  <div class="controls-bar">
+    <div class="controls-pill">
+      <!-- Water drop monochrome icon -->
+      <svg class="mono-icon fill-only" width="14" height="14" viewBox="0 0 24 24">
+        <path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/>
+      </svg>
+      <span>R&R Water Refilling Customer App</span>
+    </div>
+    <div style="display: flex; align-items: center; gap: 8px;">
+      <a href="admin.html" class="btn-nav-switch" title="Open Station Admin Portal" style="font-size: 11px; padding: 5px 12px;">
+        <svg class="mono-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke-width="2">
+          <circle cx="12" cy="12" r="3"></circle>
+          <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+        </svg>
+        <span>Admin Portal</span>
+      </a>
+      <button class="btn-signout" id="btnCustomerSignOut" title="Sign Out">
+        <svg class="mono-icon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+          <polyline points="16 17 21 12 16 7"></polyline>
+          <line x1="21" y1="12" x2="9" y2="12"></line>
+        </svg>
+        <span>Sign Out</span>
+      </button>
+      <button class="theme-toggle-btn" id="themeToggleBtn">
+        <span id="themeIcon">
+          <svg class="mono-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+          </svg>
+        </span>
+        <span id="themeLabel">Dark Mode</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- ========================================================================
+       Mobile Phone Viewport Simulation
+       ======================================================================== -->
+  <div class="phone-frame" id="phoneFrame">
+    
+    <!-- iPhone Dynamic Island -->
+    <div class="dynamic-island">
+      <span style="font-size: 9px; opacity: 0.8;">9:41</span>
+      <div style="width: 8px; height: 8px; background: #22c55e; border-radius: 50%;"></div>
+    </div>
+
+    <!-- Top Announcement Pop-down Banner (Notice from Admin) -->
+    <div class="top-announcement-popup" id="topAnnouncementPopup">
+      <div class="top-announcement-card" id="topAnnouncementCard">
+        <div class="top-announcement-header">
+          <span class="top-announcement-badge" id="topAnnouncementBadge">
+            <svg class="mono-icon fill-only" width="12" height="12" viewBox="0 0 24 24" style="color: currentColor;">
+              <path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/>
+            </svg>
+            <span id="topAnnouncementBadgeText">Station Notice</span>
+          </span>
+          <span class="top-announcement-time" id="topAnnouncementTime">Just now</span>
+          <button type="button" class="top-announcement-close" id="topAnnouncementClose" aria-label="Dismiss">&times;</button>
+        </div>
+        <div class="top-announcement-title" id="topAnnouncementTitle">Station Announcement</div>
+        <div class="top-announcement-body" id="topAnnouncementBody">Loading announcement details...</div>
+      </div>
+    </div>
+
+    <!-- Toast Notification Message Pop-up -->
+    <div class="toast-msg" id="toastMsg">
+      <svg class="mono-icon fill-only" width="16" height="16" viewBox="0 0 24 24" style="color: #38bdf8;">
+        <path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/>
+      </svg>
+      <span id="toastText">Finished 1 gallon logged! Empties updated.</span>
+    </div>
+
+    <!-- Scrollable Screen Content Container -->
+    <div class="app-screen-content">
+
+      <!-- ====================================================================
+           TAB 1: HOME DASHBOARD
+           ==================================================================== -->
+      <div class="tab-pane active" id="tab-home">
+        
+        <!-- Top App Header -->
+        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px;">
+          <div class="header-greeting">
+            <!-- Flaticon Style Black Water Droplet -->
+            <svg class="mono-icon fill-only" width="16" height="16" viewBox="0 0 24 24" style="color: var(--color-sky-blue);">
+              <path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/>
+            </svg>
+            <span style="font-size: 0.8125rem; font-weight: 700; color: var(--color-sky-blue);">R&amp;R Water</span>
+          </div>
+          
+          <div style="display: flex; gap: 8px;">
+            <!-- Search Button (Monochrome Black Icon) -->
+            <div class="icon-btn-circle" title="Search">
+              <svg class="mono-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="11" cy="11" r="8"></circle>
+                <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+              </svg>
+            </div>
+
+            <!-- Notification Bell (Monochrome Black Icon) & Tray Dropdown -->
+            <div style="position: relative;">
+              <div class="icon-btn-circle" id="btnNotificationBell" title="Notifications" role="button" tabindex="0">
+                <svg class="mono-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
+                  <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+                </svg>
+                <span id="notificationDot" style="position: absolute; top: 8px; right: 8px; width: 6px; height: 6px; background: var(--color-sky-blue); border-radius: 50%;"></span>
+              </div>
+
+              <!-- Notification Bell Dropdown Tray -->
+              <div class="notification-tray-dropdown" id="notificationTrayDropdown">
+                <div class="notification-tray-header">
+                  <span class="notification-tray-title">
+                    <svg class="mono-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                      <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
+                      <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+                    </svg>
+                    Station Broadcasts
+                  </span>
+                  <button type="button" id="btnCloseNotificationTray" style="background:none;border:none;color:var(--text-muted);font-size:1.1rem;cursor:pointer;line-height:1;" aria-label="Close Notifications">&times;</button>
+                </div>
+                <div id="notificationTrayList" style="max-height: 240px; overflow-y: auto;">
+                  <!-- Populated by app.js -->
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Date & Personalized Greeting (Inspired by Reference UI) -->
+        <div class="header-greeting-block">
+          <div class="header-date-caption" id="headerLiveDate">TODAY</div>
+          <h1 class="header-user-greeting" id="headerGreetingText">Welcome, <span class="user-highlight" id="headerUserName">Customer</span>!</h1>
+        </div>
+
+        <!-- Mascot Speech Bubble Banner (Directly Inspired by Reference UI) -->
+        <div class="mascot-speech-banner" id="mascotSpeechBanner">
+          <div class="mascot-avatar-col">
+            <img src="assets/water_mascot_question_transparent.png" id="homeMascotImg" alt="Water Mascot Droppy" class="mascot-floating mascot-banner-img" />
+          </div>
+          <div class="mascot-speech-bubble" id="mascotSpeechBubble">
+            <div class="mascot-bubble-tail"></div>
+            <div class="mascot-speaker-name" id="mascotSpeakerName">
+              <span>Droppy</span>
+            </div>
+            <div class="mascot-speech-text" id="mascotSpeechText">
+              How many gallons do you have right now?
+            </div>
+            <!-- Inline Stepper asking user to input -->
+            <div class="mascot-inline-input" id="mascotInlineInput">
+              <div class="mascot-input-row">
+                <div class="mascot-stepper-item">
+                  <span class="mascot-stepper-lbl">Full:</span>
+                  <button type="button" class="mascot-mini-step" id="btnBannerMinusFull">−</button>
+                  <input type="number" id="inputBannerFull" class="mascot-num-field" min="0" value="0" />
+                  <button type="button" class="mascot-mini-step" id="btnBannerPlusFull">+</button>
+                </div>
+                <div class="mascot-stepper-item">
+                  <span class="mascot-stepper-lbl">Empty:</span>
+                  <button type="button" class="mascot-mini-step" id="btnBannerMinusEmpty">−</button>
+                  <input type="number" id="inputBannerEmpty" class="mascot-num-field" min="0" value="0" />
+                  <button type="button" class="mascot-mini-step" id="btnBannerPlusEmpty">+</button>
+                </div>
+              </div>
+              <div class="mascot-action-row">
+                <button type="button" class="btn-mascot-save" id="btnBannerSaveGallons">
+                  Save Gallons
+                </button>
+                <span class="mascot-quick-link" id="btnBannerMoreOptions">Advanced Setup &rarr;</span>
+              </div>
+            </div>
+            <!-- Saved status summary (When gallons already configured) -->
+            <div class="mascot-saved-status" id="mascotSavedStatus" style="display: none;">
+              <span id="mascotStatusSummary">0 full, 0 empty</span>
+              <button type="button" class="btn-mascot-edit" id="btnBannerEditGallons">Edit</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Editorial Hero Headline -->
+        <h1 class="hero-editorial-title">
+          Pure water <span class="serif-italic">goes fresh</span>
+        </h1>
+        <p class="hero-subtitle">
+          Track your 5-gallon inventory, schedule neighborhood batch refills, and stay hydrated effortlessly.
+        </p>
+
+        <!-- 3D Water Jug Hero Card with Live Fluid Wave Canvas -->
+        <div class="hero-fluid-card" id="heroFluidCard">
+          
+          <!-- Animated 60fps HTML5 Fluid Wave Canvas -->
+          <canvas id="fluidCanvas" class="fluid-canvas"></canvas>
+
+          <!-- Soft Radial Floor Shadow Under Bottle -->
+          <div class="jug-water-reflection" id="jugReflection"></div>
+
+          <!-- Interactive 3D Water Jug Stage (Transparent Cutout, No White Box) -->
+          <div class="jug-3d-stage" id="jug3dStage">
+            <img src="assets/water_jug.png" alt="3D 5-Gallon Water Container" class="jug-image-3d" />
+            <div class="jug-status-pill">
+              Dispenser Gallon • In use
+            </div>
+          </div>
+
+        </div>
+
+        <!-- 2x2 Metric Cards (Quick Actions) -->
+        <div class="section-editorial-header" style="display: flex; justify-content: space-between; align-items: center;">
+          <span>Quick <span class="serif-italic">actions</span></span>
+        </div>
+
+        <div class="metrics-grid-2x2">
+          <!-- Card 1: Gallons at Home (Editable, Tap to Set Gallons) -->
+          <div class="metric-card" id="cardJugsHome" style="cursor: pointer;" title="Tap to set or update your home gallons">
+            <div class="card-water-shimmer"></div>
+            <div class="card-value-line">
+              <span class="metric-number" id="valFullEmpty">0 full, 0 empty</span>
+              <!-- Monochrome Edit Pencil Icon -->
+              <span class="mono-icon" id="btnEditJugs" title="Edit your home gallons" style="cursor: pointer;">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M12 20h9"></path>
+                  <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path>
+                </svg>
+              </span>
+            </div>
+            <span class="metric-label-natural">Gallons at Home • Tap to edit</span>
+          </div>
+
+          <!-- Card 2: Est. Supply (Editable, No Tilde) -->
+          <div class="metric-card" id="cardEstSupply">
+            <div class="card-value-line">
+              <span class="metric-number" id="valDaysLeft">0 days left</span>
+              <!-- Monochrome Edit Pencil Icon -->
+              <span class="mono-icon" id="btnEditDays" title="Edit estimated days" style="cursor: pointer;">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M12 20h9"></path>
+                  <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path>
+                </svg>
+              </span>
+            </div>
+            <span class="metric-label-natural">Est. Supply</span>
+          </div>
+
+          <!-- Card 3: Empties for Swap (Tappable to reorder exact ready bottles) -->
+          <div class="metric-card" id="cardEmptiesSwap" style="cursor: pointer;" title="Tap to prepare refill order for ready empty bottles">
+            <div class="card-water-shimmer"></div>
+            <div class="card-value-line">
+              <span class="metric-number" id="valEmptiesSwap">0 bottles ready</span>
+              <!-- Forward arrow vector icon -->
+              <svg class="mono-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--color-sky-blue)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="5" y1="12" x2="19" y2="12"></line>
+                <polyline points="12 5 19 12 12 19"></polyline>
+              </svg>
+            </div>
+            <span class="metric-label-natural">Empties to Swap • Tap to Order</span>
+          </div>
+
+          <!-- Card 4: 1-Tap Log Finished Gallon -->
+          <div class="metric-card" id="btnLogFinished" title="Tap to log 1 finished gallon">
+            <div class="card-water-shimmer"></div>
+            <div class="card-value-line">
+              <span class="metric-number" style="color: var(--color-sky-blue);">Log Finished</span>
+              <!-- Water Drop Vector Icon -->
+              <svg class="mono-icon fill-only" width="16" height="16" viewBox="0 0 24 24" style="color: var(--color-sky-blue);">
+                <path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/>
+              </svg>
+            </div>
+            <span class="metric-label-natural">Quick Log</span>
+          </div>
+        </div>
+
+        <!-- Swipeable Announcement Carousel (Notice to All) -->
+        <div class="announcement-carousel-container" id="stationNoticeCarousel">
+          <!-- Minimal Liquid Water Wave Shimmer & Bottom Ribbon Accent -->
+          <div class="announcement-water-shimmer" id="announcementWaterShimmer"></div>
+          <div class="announcement-water-wave-bg">
+            <svg class="announcement-wave-svg" viewBox="0 0 800 60" preserveAspectRatio="none">
+              <path d="M 0 30 Q 150 10, 300 30 T 600 30 T 900 30 L 900 60 L 0 60 Z" fill="url(#announcementWaterGrad)" />
+              <defs>
+                <linearGradient id="announcementWaterGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+                  <stop offset="0%" stop-color="rgba(2, 132, 199, 0.05)" />
+                  <stop offset="50%" stop-color="rgba(14, 165, 233, 0.22)" />
+                  <stop offset="80%" stop-color="rgba(56, 189, 248, 0.28)" />
+                  <stop offset="100%" stop-color="rgba(2, 132, 199, 0.05)" />
+                </linearGradient>
+              </defs>
+            </svg>
+          </div>
+
+          <div class="carousel-header-bar">
+            <div class="carousel-title-group">
+              <span class="carousel-badge">Notice to All</span>
+              <span style="font-size: 0.6875rem; color: var(--text-muted); font-weight: 600;" id="carouselCounter">1 of 3</span>
+            </div>
+            <div class="carousel-controls">
+              <button class="carousel-nav-btn" id="carouselPrevBtn" title="Previous Announcement" aria-label="Previous">◀</button>
+              <button class="carousel-nav-btn" id="carouselNextBtn" title="Next Announcement" aria-label="Next">▶</button>
+            </div>
+          </div>
+
+          <div class="carousel-viewport" id="carouselViewport">
+            <div class="carousel-track" id="carouselTrack">
+              <!-- Slide 1: Saturday Rest Day -->
+              <div class="carousel-slide">
+                <div style="display: flex; align-items: flex-start; gap: 10px;">
+                  <div class="alert-icon-box" style="flex-shrink: 0; margin-top: 2px;">
+                    <!-- Calendar Vector Icon -->
+                    <svg class="mono-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                      <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                      <line x1="16" y1="2" x2="16" y2="6"></line>
+                      <line x1="8" y1="2" x2="8" y2="6"></line>
+                      <line x1="3" y1="10" x2="21" y2="10"></line>
+                    </svg>
+                  </div>
+                  <div>
+                    <div class="slide-heading">Saturday Rest Day Notice</div>
+                    <div class="slide-body">
+                      R&amp;R Water Refilling is closed every Saturday for scheduled equipment sanitization and UV filter maintenance. Multicab deliveries resume Sunday 8:00 AM.
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Slide 2: Active Batch Delivery -->
+              <div class="carousel-slide">
+                <div style="display: flex; align-items: flex-start; gap: 10px;">
+                  <div class="alert-icon-box" style="flex-shrink: 0; margin-top: 2px;">
+                    <!-- Multicab Truck Icon -->
+                    <svg class="mono-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                      <rect x="1" y="3" width="15" height="13"></rect>
+                      <polygon points="16 8 20 8 23 11 23 16 16 16 8"></polygon>
+                      <circle cx="5.5" cy="18.5" r="2.5"></circle>
+                      <circle cx="18.5" cy="18.5" r="2.5"></circle>
+                    </svg>
+                  </div>
+                  <div>
+                    <div class="slide-heading">Batch #1 Roving Today</div>
+                    <div class="slide-body">
+                      Water delivery multicab is currently dispatching in your Purok/Sitio cluster. Keep empty 5-gal carboys ready at the gate for fast swap!
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Slide 3: Gallon Hygiene & Cap Seal Standard -->
+              <div class="carousel-slide">
+                <div style="display: flex; align-items: flex-start; gap: 10px;">
+                  <div class="alert-icon-box" style="flex-shrink: 0; margin-top: 2px;">
+                    <!-- Shield Cleanliness Icon -->
+                    <svg class="mono-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                      <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+                    </svg>
+                  </div>
+                  <div>
+                    <div class="slide-heading">Hygiene &amp; Tamper Cap Seal</div>
+                    <div class="slide-body">
+                      All gallons undergo 16-stage ultrafiltration and UV sanitization. Please ensure swapped carboys have no chemical residue or broken neck collars.
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Pagination Dots -->
+          <div class="carousel-dots" id="carouselDots">
+            <span class="carousel-dot active" data-index="0"></span>
+            <span class="carousel-dot" data-index="1"></span>
+            <span class="carousel-dot" data-index="2"></span>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- ====================================================================
+           TAB: MY 5-GALLON CONTAINERS & BALANCE
+           ==================================================================== -->
+      <div class="tab-pane" id="tab-gallons">
+        <!-- Mascot Hero Card: "How many gallons do you have?" -->
+        <div class="card-hero-clean" style="margin-bottom: 16px; padding: 18px; border-radius: 24px; position: relative; overflow: hidden; background: linear-gradient(135deg, rgba(2, 132, 199, 0.08) 0%, rgba(56, 189, 248, 0.03) 100%); border: 1px solid var(--border-card);">
+          <div style="display: flex; align-items: center; gap: 14px;">
+            <div style="flex-shrink: 0; width: 72px; height: 72px; display: flex; align-items: center; justify-content: center; background: radial-gradient(circle, rgba(56, 189, 248, 0.22) 0%, rgba(2, 132, 199, 0.06) 70%); border-radius: 50%; border: 1px solid rgba(56, 189, 248, 0.3);">
+              <img src="assets/water_mascot_question_transparent.png" class="mascot-floating" alt="How many gallons do you have?" style="width: 62px; height: 62px; object-fit: contain;" />
+            </div>
+            <div>
+              <span class="carousel-badge" style="margin-bottom: 4px; display: inline-block;">Container Balance</span>
+              <h2 style="font-size: 1.15rem; font-weight: 800; color: var(--text-main); margin: 0 0 4px 0; letter-spacing: -0.02em;">
+                How many gallons do you have?
+              </h2>
+              <p style="font-size: 0.75rem; color: var(--text-muted); margin: 0; line-height: 1.4;">
+                Input your 5-gallon containers so R&amp;R never assumes 2 or 3.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <!-- 3-Column Summary Cards -->
+        <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 16px;">
+          <div class="metric-card" style="padding: 12px 10px; text-align: center;">
+            <div style="font-size: 1.25rem; font-weight: 800; color: var(--color-sky-blue);" id="valGallonsTabFull">0</div>
+            <div style="font-size: 0.6875rem; color: var(--text-muted); font-weight: 600; margin-top: 2px;">Full Gallons</div>
+          </div>
+          <div class="metric-card" style="padding: 12px 10px; text-align: center;">
+            <div style="font-size: 1.25rem; font-weight: 800; color: var(--text-main);" id="valGallonsTabEmpty">0</div>
+            <div style="font-size: 0.6875rem; color: var(--text-muted); font-weight: 600; margin-top: 2px;">Empty Gallons</div>
+          </div>
+          <div class="metric-card" style="padding: 12px 10px; text-align: center;">
+            <div style="font-size: 1.25rem; font-weight: 800; color: var(--color-sky-blue);" id="valGallonsTabTotal">0</div>
+            <div style="font-size: 0.6875rem; color: var(--text-muted); font-weight: 600; margin-top: 2px;">Total Carboys</div>
+          </div>
+        </div>
+
+        <!-- Interactive Stepper Update Form Card -->
+        <div class="card-hero-clean" style="padding: 18px; border-radius: 22px; margin-bottom: 16px;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+            <h3 style="font-size: 0.9375rem; font-weight: 700; margin: 0; color: var(--text-main);">
+              Update Your Home Gallons
+            </h3>
+            <span id="tabGallonLockStatusBadge" style="display: none; font-size: 11px; font-weight: 700; padding: 3px 8px; border-radius: 999px; background: rgba(2, 132, 199, 0.12); color: var(--color-sky-blue);">
+              Limit Locked
+            </span>
+          </div>
+
+          <!-- Locked Banner (Shows once user saved & locked) -->
+          <div id="lockedLimitBanner" class="gallon-locked-banner" style="display: none;">
+            <svg class="mono-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color: var(--color-sky-blue); flex-shrink: 0;">
+              <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+              <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+            </svg>
+            <div style="flex: 1; font-size: 0.75rem; line-height: 1.35;">
+              <div style="font-weight: 700; color: var(--text-main);">Container Limit: <span id="lblLockedLimit">0</span> Gallons (Locked)</div>
+              <div style="color: var(--text-muted); font-size: 0.7rem;">To increase total carboys, buy new gallons below (+₱250 each).</div>
+            </div>
+          </div>
+
+          <!-- Stepper 1: Full Gallons -->
+          <div style="margin-bottom: 14px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+              <label style="font-size: 0.8125rem; font-weight: 600; color: var(--text-main);">Full Gallons (Ready to Drink)</label>
+              <span style="font-size: 0.6875rem; color: var(--color-sky-blue); font-weight: 700;">Clean Refills</span>
+            </div>
+            <div style="display: flex; align-items: center; gap: 10px;">
+              <button type="button" class="btn-stepper-circle" id="btnTabMinusFull" aria-label="Decrease Full Gallons">−</button>
+              <input type="number" id="inputTabFull" class="form-control" min="0" value="0" style="text-align: center; font-size: 1.15rem; font-weight: 800; border-radius: 12px; height: 44px;" />
+              <button type="button" class="btn-stepper-circle" id="btnTabPlusFull" aria-label="Increase Full Gallons">+</button>
+            </div>
+          </div>
+
+          <!-- Stepper 2: Empty Gallons -->
+          <div style="margin-bottom: 16px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+              <label style="font-size: 0.8125rem; font-weight: 600; color: var(--text-main);">Empty Gallons (For Swap)</label>
+              <span style="font-size: 0.6875rem; color: var(--text-muted); font-weight: 600;">Ready for Refill</span>
+            </div>
+            <div style="display: flex; align-items: center; gap: 10px;">
+              <button type="button" class="btn-stepper-circle" id="btnTabMinusEmpty" aria-label="Decrease Empty Gallons">−</button>
+              <input type="number" id="inputTabEmpty" class="form-control" min="0" value="0" style="text-align: center; font-size: 1.15rem; font-weight: 800; border-radius: 12px; height: 44px;" />
+              <button type="button" class="btn-stepper-circle" id="btnTabPlusEmpty" aria-label="Increase Empty Gallons">+</button>
+            </div>
+          </div>
+
+          <!-- Total Preview Strip -->
+          <div style="background: var(--bg-surface); padding: 10px 14px; border-radius: 12px; border: 1px solid var(--border-subtle); display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+            <span style="font-size: 0.8125rem; color: var(--text-muted);">Total Containers Capacity:</span>
+            <b id="tabGallonsTotalPreview" style="color: var(--color-sky-blue); font-size: 0.9375rem; font-weight: 800;">0 Gallons</b>
+          </div>
+
+          <!-- Save Button -->
+          <button type="button" id="btnSaveGallonsFromTab" class="btn-primary" style="width: 100%; justify-content: center; padding: 12px 16px; border-radius: 14px; font-weight: 700; font-size: 0.875rem;">
+            Save &amp; Remember Gallons
+          </button>
+        </div>
+
+        <!-- Expand Capacity Card (Buy New Gallons to Increase Limit) -->
+        <div class="expand-capacity-card" id="cardExpandCapacity" style="background: var(--bg-card); border: 1.5px solid rgba(2, 132, 199, 0.25); border-radius: 22px; padding: 18px; margin-bottom: 16px; box-shadow: 0 4px 14px rgba(2, 132, 199, 0.08);">
+          <div style="display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 6px;">
+            <div>
+              <span style="font-size: 0.6875rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; background: rgba(2, 132, 199, 0.12); color: var(--color-sky-blue); padding: 3px 8px; border-radius: 999px; border: 1px solid rgba(2, 132, 199, 0.25);">
+                Capacity Expansion
+              </span>
+              <h3 style="font-size: 0.9375rem; font-weight: 800; color: var(--text-main); margin: 6px 0 2px 0;">
+                Expand Your Gallon Limit
+              </h3>
+            </div>
+            <span style="font-size: 0.8125rem; font-weight: 800; color: var(--color-sky-blue); background: rgba(2, 132, 199, 0.08); padding: 4px 8px; border-radius: 10px;">
+              ₱250 / Gallon
+            </span>
+          </div>
+          <p style="font-size: 0.75rem; color: var(--text-muted); margin: 0 0 12px 0; line-height: 1.4;">
+            Want to expand or change the gallons you have? Buy brand-new 5-gallon carboys with sealed purified water to permanently increase your container capacity.
+          </p>
+
+          <!-- Stepper to choose quantity -->
+          <div style="display: flex; align-items: center; justify-content: space-between; background: var(--bg-surface); padding: 10px 14px; border-radius: 14px; border: 1px solid var(--border-subtle); margin-bottom: 10px;">
+            <div style="font-size: 0.8125rem; font-weight: 600; color: var(--text-main);">
+              Add New Gallons:
+            </div>
+            <div style="display: flex; align-items: center; gap: 8px;">
+              <button type="button" class="btn-stepper-circle" id="btnExpandMinus" aria-label="Decrease quantity">−</button>
+              <span id="valExpandQty" style="font-size: 1rem; font-weight: 800; min-width: 24px; text-align: center;">1</span>
+              <button type="button" class="btn-stepper-circle" id="btnExpandPlus" aria-label="Increase quantity">+</button>
+            </div>
+          </div>
+
+          <!-- Purchase Price Summary -->
+          <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; font-size: 0.8125rem;">
+            <span style="color: var(--text-muted);">Total Purchase Price:</span>
+            <strong id="valExpandPrice" style="font-size: 1.05rem; color: var(--color-sky-blue); font-weight: 800;">₱250.00</strong>
+          </div>
+
+          <!-- Buy CTA Button -->
+          <button type="button" id="btnConfirmBuyExpand" class="btn-primary" style="width: 100%; justify-content: center; padding: 12px 16px; border-radius: 14px; font-weight: 700; font-size: 0.875rem; background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%); border: none; box-shadow: 0 4px 12px rgba(2, 132, 199, 0.25);">
+            + Buy 1 Gallon &amp; Expand Limit (₱250)
+          </button>
+        </div>
+
+        <!-- Fast Action Cards -->
+        <div style="display: flex; flex-direction: column; gap: 10px; margin-bottom: 80px;">
+          <!-- 1-Tap Finished Gallon Action -->
+          <button type="button" id="btnTabLogFinished" class="metric-card" style="width: 100%; cursor: pointer; display: flex; align-items: center; justify-content: space-between; padding: 14px 16px; text-align: left; border: 1px solid var(--border-card);">
+            <div style="display: flex; align-items: center; gap: 12px;">
+              <div style="width: 36px; height: 36px; border-radius: 10px; background: rgba(2, 132, 199, 0.1); display: flex; align-items: center; justify-content: center;">
+                <svg class="mono-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/>
+                </svg>
+              </div>
+              <div>
+                <div style="font-size: 0.875rem; font-weight: 700; color: var(--text-main);">Log 1 Gallon Finished</div>
+                <div style="font-size: 0.75rem; color: var(--text-muted);">Moves 1 full gallon to empty ready for swap</div>
+              </div>
+            </div>
+            <span style="font-size: 0.75rem; color: var(--color-sky-blue); font-weight: 700;">+1 Empty</span>
+          </button>
+
+          <!-- Order Refill with Empties -->
+          <button type="button" id="btnTabOrderEmpties" class="metric-card" style="width: 100%; cursor: pointer; display: flex; align-items: center; justify-content: space-between; padding: 14px 16px; text-align: left; border: 1px solid var(--border-card);">
+            <div style="display: flex; align-items: center; gap: 12px;">
+              <div style="width: 36px; height: 36px; border-radius: 10px; background: rgba(34, 197, 94, 0.1); display: flex; align-items: center; justify-content: center; color: #16a34a;">
+                <svg class="mono-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <rect x="2" y="5" width="20" height="14" rx="2"></rect>
+                  <line x1="2" y1="10" x2="22" y2="10"></line>
+                </svg>
+              </div>
+              <div>
+                <div style="font-size: 0.875rem; font-weight: 700; color: var(--text-main);">Order Refill for Empty Gallons</div>
+                <div style="font-size: 0.75rem; color: var(--text-muted);">Quick dispatch with multicab door-to-door</div>
+              </div>
+            </div>
+            <span style="font-size: 0.75rem; color: var(--color-sky-blue); font-weight: 700;">Order &rarr;</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- ====================================================================
+           TAB 2: LIVE MAP & DELIVERY TRACKING
+           ==================================================================== -->
+      <div class="tab-pane" id="tab-map">
+        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px;">
+          <div class="header-greeting">
+            <span>Track Delivery</span>
+          </div>
+          <button id="btnSimulateTruck" style="background: var(--bg-card); border: 1px solid var(--border-subtle); border-radius: 999px; padding: 4px 12px; font-size: 11px; font-weight: 600; color: var(--color-sky-blue); cursor: pointer;">
+            Simulate Truck Move
+          </button>
+        </div>
+
+        <!-- Leaflet Map Container -->
+        <div style="width: 100%; height: 260px; border-radius: 24px; overflow: hidden; border: 1px solid var(--border-card); margin-bottom: 16px; position: relative;">
+          <div id="leafletMapContainer" style="width: 100%; height: 100%;"></div>
+        </div>
+
+        <!-- Floating Delivery Status Bottom Card -->
+        <div style="background: var(--bg-card); border: 1px solid var(--border-card); border-radius: 24px; padding: 18px; box-shadow: var(--shadow-card);">
+          <div style="display: flex; align-items: center; justify-content: space-between;">
+            <div>
+              <div style="font-size: 0.9375rem; font-weight: 700; color: var(--text-main);">
+                Delivering Today (Batch #1)
+              </div>
+              <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 2px;">
+                Estimated window: 10:00 AM – 11:30 AM
+              </div>
+            </div>
+            <div id="trackDeliveryBadge" style="background: #ede9fe; color: #7c3aed; font-size: 11px; font-weight: 600; padding: 3px 8px; border-radius: 999px;">
+              • Loaded &amp; En Route
+            </div>
+          </div>
+
+          <!-- 4-Stage Stepper -->
+          <div class="stepper-container" id="deliveryStepperContainer">
+            <div class="stepper-line">
+              <div class="stepper-line-fill" id="stepperLineFill" style="width: 66%;"></div>
+            </div>
+            
+            <div class="step-node completed" id="stepNode1">
+              <div class="step-circle">
+                <svg class="mono-icon" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke-width="3" stroke="#fff">
+                  <polyline points="20 6 9 17 4 12"></polyline>
+                </svg>
+              </div>
+              <span class="step-title">Confirmed</span>
+            </div>
+
+            <div class="step-node completed" id="stepNode2">
+              <div class="step-circle">
+                <svg class="mono-icon" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke-width="3" stroke="#fff">
+                  <polyline points="20 6 9 17 4 12"></polyline>
+                </svg>
+              </div>
+              <span class="step-title">Prepared</span>
+            </div>
+
+            <div class="step-node active" id="stepNode3">
+              <div class="step-circle">
+                <svg class="mono-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke="var(--color-sky-blue)">
+                  <rect x="1" y="3" width="15" height="13"></rect>
+                  <polygon points="16 8 20 8 23 11 23 16 16 16 16 8"></polygon>
+                  <circle cx="5.5" cy="18.5" r="2.5"></circle>
+                  <circle cx="18.5" cy="18.5" r="2.5"></circle>
+                </svg>
+              </div>
+              <span class="step-title" style="color: var(--color-sky-blue); font-weight: 600;">Out for Delivery</span>
+            </div>
+
+            <div class="step-node" id="stepNode4">
+              <div class="step-circle">
+                <svg class="mono-icon" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke="var(--text-muted)">
+                  <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+                </svg>
+              </div>
+              <span class="step-title">Delivered</span>
+            </div>
+          </div>
+
+          <!-- Delivery Crew Details -->
+          <div style="display: flex; align-items: center; gap: 12px; padding: 10px 0; border-top: 1px solid var(--border-subtle); border-bottom: 1px solid var(--border-subtle); margin-top: 8px;">
+            <div style="width: 40px; height: 40px; border-radius: 50%; background: var(--color-sky-light); border: 1.5px solid var(--color-sky-blue); display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+              <!-- Multicab Truck monochrome icon -->
+              <svg class="mono-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="1" y="3" width="15" height="13"></rect>
+                <polygon points="16 8 20 8 23 11 23 16 16 16 8"></polygon>
+                <circle cx="5.5" cy="18.5" r="2.5"></circle>
+                <circle cx="18.5" cy="18.5" r="2.5"></circle>
+              </svg>
+            </div>
+            <div style="flex: 1;">
+              <div style="font-size: 0.8125rem; font-weight: 700; color: var(--text-main);">
+                R&R Water Refilling Multicab
+              </div>
+              <div style="font-size: 0.75rem; color: var(--text-muted);">
+                Kuya Jun & Delivery Crew • Plate: NBD-2841
+              </div>
+            </div>
+          </div>
+
+          <!-- Order Line Summary -->
+          <div style="display: flex; align-items: center; gap: 10px; margin-top: 12px; font-size: 0.8125rem;">
+            <img src="assets/water_jug.png" alt="Thumbnail" style="width: 24px; height: 28px; object-fit: contain;" />
+            <span id="trackOrderQtyTitle" style="color: var(--text-main); font-weight: 600;">2x 5-Gal Purified Refill</span>
+            <span id="trackOrderPriceTotal" style="color: var(--color-sky-blue); margin-left: auto; font-weight: 700;">₱70.00 (COD)</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- ====================================================================
+           TAB 3: ORDERS & SIMPLIFIED CHECKOUT
+           ==================================================================== -->
+      <div class="tab-pane" id="tab-orders">
+        <h1 class="hero-editorial-title" style="margin-top: 0; font-size: 1.5rem;">
+          Orders & <span class="serif-italic">refill</span> Checkout
+        </h1>
+        <p class="hero-subtitle" style="margin-bottom: 16px;">
+          1. Choose gallons • 2. Prepare empties • 3. Pay on delivery
+        </p>
+
+        <!-- Refill Selector Card -->
+        <div style="background: var(--bg-card); border: 1px solid var(--border-card); border-radius: 24px; padding: 18px; margin-bottom: 16px; box-shadow: var(--shadow-card);">
+          <div style="display: flex; align-items: center; gap: 14px;">
+            <img src="assets/water_jug.png" alt="Water Gallon" style="width: 55px; height: 65px; object-fit: contain;" />
+            <div style="flex: 1;">
+              <div style="display: flex; align-items: center; gap: 8px;">
+                <span style="font-size: 0.9375rem; font-weight: 700; color: var(--text-main);">5-Gal Purified Refill</span>
+                <span class="bottle-limit-badge" id="bottleLimitBadge">Limit: 3 Swap</span>
+              </div>
+              <div style="font-size: 0.8125rem; color: var(--text-muted);" id="refillPriceSubtitle">
+                ₱35.00 per bottle swap
+              </div>
+            </div>
+            
+            <!-- Quantity Stepper -->
+            <div style="display: flex; align-items: center; gap: 10px; background: var(--bg-surface); padding: 6px 12px; border-radius: 999px; border: 1px solid var(--border-subtle);">
+              <button id="btnQtyMinus" style="border: none; background: none; font-size: 16px; font-weight: 700; cursor: pointer; color: var(--text-main);">-</button>
+              <span id="orderQtyDisplay" style="font-size: 0.9375rem; font-weight: 700; min-width: 14px; text-align: center;">2</span>
+              <button id="btnQtyPlus" style="border: none; background: none; font-size: 16px; font-weight: 700; cursor: pointer; color: var(--text-main);">+</button>
+            </div>
+          </div>
+
+          <!-- Bottle Swap Checkbox Toggle -->
+          <div style="display: flex; align-items: center; justify-content: space-between; margin-top: 16px; padding-top: 14px; border-top: 1px solid var(--border-subtle);">
+            <div>
+              <div style="font-size: 0.8125rem; font-weight: 600; color: var(--text-main);">
+                Swap empty bottles
+              </div>
+              <div style="font-size: 0.6875rem; color: var(--text-muted);" id="swapSubtitleText">
+                Surrender empty containers upon delivery (Max 3 swap)
+              </div>
+            </div>
+            <input type="checkbox" id="toggleSwap" checked style="width: 18px; height: 18px; accent-color: var(--color-sky-blue); cursor: pointer;" />
+          </div>
+
+          <!-- Limit Reached / Buy New Gallon Banner -->
+          <div id="buyNewGallonCard" style="display: none; margin-top: 14px; padding: 12px 14px; background: rgba(2, 132, 199, 0.08); border: 1px solid rgba(2, 132, 199, 0.25); border-radius: 16px;">
+            <div style="display: flex; align-items: center; justify-content: space-between; gap: 10px;">
+              <div>
+                <div style="font-size: 0.8125rem; font-weight: 700; color: var(--text-main);">
+                  Swap Limit Reached (3 Gallons)
+                </div>
+                <div style="font-size: 0.72rem; color: var(--text-muted); margin-top: 2px;">
+                  Need more? Buy brand-new 5-gal carboys with purified water for ₱250 each.
+                </div>
+              </div>
+              <button type="button" id="btnBuyNewGallon" style="background: var(--color-sky-blue); color: #fff; border: none; border-radius: 999px; font-size: 0.75rem; font-weight: 700; padding: 6px 14px; cursor: pointer; white-space: nowrap; box-shadow: 0 2px 8px rgba(2, 132, 199, 0.3);">
+                + Buy New Gallon
+              </button>
+            </div>
+          </div>
+
+          <!-- Order Breakdown Note (when mixed swap + new bottles) -->
+          <div id="orderBreakdownNote" style="display: none; margin-top: 12px; font-size: 0.75rem; color: var(--text-muted); background: var(--bg-surface); padding: 10px 14px; border-radius: 14px; border: 1px solid var(--border-subtle); line-height: 1.5;">
+          </div>
+        </div>
+
+        <!-- Simplified Payment Method Selection -->
+        <div style="margin-bottom: 20px;">
+          <div class="section-editorial-header" style="font-size: 0.9375rem; margin-bottom: 6px;">
+            Payment method
+          </div>
+          <div class="payment-pills-row">
+            <button class="payment-pill-btn selected" id="pillGCash">
+              <!-- Monochrome Wallet / Digital Payment SVG -->
+              <svg class="mono-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M21 12V7H5a2 2 0 0 1 0-4h14v4"></path>
+                <path d="M3 5v14a2 2 0 0 0 2 2h16v-5"></path>
+                <circle cx="18" cy="12" r="1"></circle>
+              </svg>
+              <span>GCash</span>
+            </button>
+            
+            <button class="payment-pill-btn" id="pillCOD">
+              <!-- Monochrome Cash SVG -->
+              <svg class="mono-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="2" y="6" width="20" height="12" rx="2"></rect>
+                <circle cx="12" cy="12" r="2"></circle>
+              </svg>
+              <span>Cash on Delivery (COD)</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Place Order CTA Button -->
+        <button class="cta-pill-button" id="btnPlaceOrder">
+          Place Refill Order • ₱70.00
+        </button>
+
+        <!-- Recent Order History -->
+        <div style="margin-top: 24px;">
+          <div style="font-size: 0.8125rem; font-weight: 600; color: var(--text-muted); margin-bottom: 8px;">
+            Recent Order History
+          </div>
+          <div style="background: var(--bg-card); border: 1px solid var(--border-card); border-radius: 18px; padding: 12px 16px; display: flex; align-items: center; justify-content: space-between;">
+            <div>
+              <div id="recentOrderSummary" style="font-size: 0.8125rem; font-weight: 600; color: var(--text-main);">
+                Order #101 • 2x Purified
+              </div>
+              <div id="recentOrderDate" style="font-size: 0.6875rem; color: var(--text-muted);">
+                Sept 13 • Batch #1 Dispatch
+              </div>
+            </div>
+            <span id="recentOrderStatus" style="font-size: 0.75rem; font-weight: 700; color: var(--color-sky-blue);">
+              Loaded
+            </span>
+          </div>
+        </div>
+      </div>
+
+      <!-- ====================================================================
+           TAB 4: SETTINGS & ACCOUNT PROFILE
+           ==================================================================== -->
+      <div class="tab-pane" id="tab-profile">
+        <h1 class="hero-editorial-title" style="margin-top: 0; font-size: 1.5rem;">
+          Account & <span class="serif-italic">settings</span>
+        </h1>
+
+        <!-- User Profile Card -->
+        <div style="background: var(--bg-card); border: 1px solid var(--border-card); border-radius: 22px; padding: 16px; display: flex; align-items: center; gap: 14px; margin-bottom: 16px;">
+          <div style="width: 48px; height: 48px; border-radius: 50%; background: var(--bg-surface); border: 1px solid var(--border-subtle); display: flex; align-items: center; justify-content: center;">
+            <!-- Monochrome User Profile Icon -->
+            <svg class="mono-icon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke-width="1.8">
+              <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+              <circle cx="12" cy="7" r="4"></circle>
+            </svg>
+          </div>
+          <div style="flex: 1;">
+            <div style="font-size: 0.9375rem; font-weight: 700; color: var(--text-main);" id="profileUserName">
+              Neil
+            </div>
+            <div style="font-size: 0.75rem; color: var(--text-muted);" id="profileAddressText">
+              Cambarong, Canhaway, Guindulman • 0917 555 0192
+            </div>
+          </div>
+          <span style="font-size: 10px; font-weight: 600; background: var(--color-sky-light); color: var(--color-sky-blue); padding: 4px 8px; border-radius: 999px;">
+            Verified
+          </span>
+        </div>
+
+        <!-- Edit My Gallons Balance Button -->
+        <button type="button" id="btnProfileEditGallons" class="btn-secondary" style="width: 100%; justify-content: center; margin-bottom: 16px; padding: 10px 14px; border-radius: 16px; font-size: 0.8125rem; font-weight: 600; gap: 8px;">
+          <svg class="mono-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke-width="2">
+            <path d="M12 20h9"></path>
+            <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path>
+          </svg>
+          <span>Update My Home Gallons Balance</span>
+        </button>
+
+        <!-- Water Consumption & Spend Ledger -->
+        <div style="background: var(--bg-card); border: 1px solid var(--border-card); border-radius: 22px; padding: 16px; margin-bottom: 16px;">
+          <div style="font-size: 0.8125rem; font-weight: 700; color: var(--text-main); margin-bottom: 10px;">
+            Water Ledger & Spending
+          </div>
+          <div style="display: flex; gap: 20px; margin-bottom: 14px;">
+            <div>
+              <div style="font-size: 1.25rem; font-weight: 800; color: var(--text-main);">24</div>
+              <div style="font-size: 0.6875rem; color: var(--text-muted);">Gallons Consumed</div>
+            </div>
+            <div>
+              <div style="font-size: 1.25rem; font-weight: 800; color: var(--color-sky-blue);">₱840</div>
+              <div style="font-size: 0.6875rem; color: var(--text-muted);">Total Spent</div>
+            </div>
+          </div>
+          <!-- Bar Chart Simulation -->
+          <div style="display: flex; align-items: flex-end; gap: 8px; height: 60px; padding-top: 10px; border-top: 1px solid var(--border-subtle);">
+            <div style="flex: 1; height: 35%; background: var(--color-sky-light); border-radius: 4px;"></div>
+            <div style="flex: 1; height: 65%; background: var(--color-sky-light); border-radius: 4px;"></div>
+            <div style="flex: 1; height: 50%; background: var(--color-sky-light); border-radius: 4px;"></div>
+            <div style="flex: 1; height: 85%; background: var(--color-sky-blue); border-radius: 4px;"></div>
+            <div style="flex: 1; height: 60%; background: var(--color-sky-light); border-radius: 4px;"></div>
+            <div style="flex: 1; height: 95%; background: var(--color-sky-blue); border-radius: 4px;"></div>
+          </div>
+          <div style="display: flex; justify-content: space-between; font-size: 9px; color: var(--text-subtle); margin-top: 4px;">
+            <span>Apr</span><span>May</span><span>Jun</span><span>Jul</span><span>Aug</span><span>Sep</span>
+          </div>
+        </div>
+
+        <!-- Reminder Preferences -->
+        <div style="background: var(--bg-card); border: 1px solid var(--border-card); border-radius: 22px; padding: 16px; margin-bottom: 16px;">
+          <div style="font-size: 0.8125rem; font-weight: 700; color: var(--text-main); margin-bottom: 12px;">
+            Reminder Preferences
+          </div>
+          
+          <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px;">
+            <div>
+              <div style="font-size: 0.8125rem; font-weight: 600; color: var(--text-main);">Daily Check-in</div>
+              <div style="font-size: 0.6875rem; color: var(--text-muted);">Prompt every morning at 9:00 AM</div>
+            </div>
+            <input type="checkbox" checked style="width: 16px; height: 16px; accent-color: var(--color-sky-blue);" />
+          </div>
+
+          <div style="display: flex; align-items: center; justify-content: space-between;">
+            <div>
+              <div style="font-size: 0.8125rem; font-weight: 600; color: var(--text-main);">Smart Predictive Alert</div>
+              <div style="font-size: 0.6875rem; color: var(--text-muted);">Alerts when 1 day of water is left</div>
+            </div>
+            <input type="checkbox" checked style="width: 16px; height: 16px; accent-color: var(--color-sky-blue);" />
+          </div>
+        </div>
+
+        <!-- Station Info & Saturday Policy -->
+        <div style="padding: 12px; background: var(--bg-card); border-radius: 18px; border: 1px solid var(--border-card); font-size: 0.75rem; color: var(--text-muted); line-height: 1.5; margin-bottom: 16px;">
+          <strong>R&R Water Refilling Station Notice:</strong><br />
+          Rest day every Saturday (No truck delivery). Emergency announcements will alert directly on your home screen.
+        </div>
+
+        <!-- In-App Mobile Sign Out Button -->
+        <button type="button" id="btnMobileSignOut" class="btn-signout" style="width: 100%; justify-content: center; padding: 11px 16px; border-radius: 16px; font-size: 0.8125rem; gap: 8px;">
+          <svg class="mono-icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+            <polyline points="16 17 21 12 16 7"></polyline>
+            <line x1="21" y1="12" x2="9" y2="12"></line>
+          </svg>
+          <span>Sign Out of Account</span>
+        </button>
+
+      </div>
+
+    </div>
+
+    <!-- ========================================================================
+         Floating Bottom Dock Navigation (Monochrome Icons)
+         ======================================================================== -->
+    <div class="floating-bottom-dock">
+      <button class="dock-item active" data-tab="home">
+        <svg class="mono-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+        </svg>
+        <span class="dock-label">Home</span>
+      </button>
+
+      <button class="dock-item" data-tab="gallons">
+        <svg class="mono-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/>
+        </svg>
+        <span class="dock-label">Gallons</span>
+      </button>
+
+      <button class="dock-item" data-tab="map">
+        <svg class="mono-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"></polygon>
+          <line x1="8" y1="2" x2="8" y2="18"></line>
+          <line x1="16" y1="6" x2="16" y2="22"></line>
+        </svg>
+        <span class="dock-label">Map</span>
+      </button>
+
+      <button class="dock-item" data-tab="orders">
+        <svg class="mono-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="2" y="5" width="20" height="14" rx="2"></rect>
+          <line x1="2" y1="10" x2="22" y2="10"></line>
+        </svg>
+        <span class="dock-label">Orders</span>
+      </button>
+
+      <button class="dock-item" data-tab="profile">
+        <svg class="mono-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+          <circle cx="12" cy="7" r="4"></circle>
+        </svg>
+        <span class="dock-label">Profile</span>
+      </button>
+    </div>
+
+  <!-- ========================================================================
+       MODAL: SET / EDIT HOME GALLONS (WITH QUESTIONING MASCOT ICON)
+       ======================================================================== -->
+  <div class="admin-modal-overlay" id="setGallonsModalOverlay" style="z-index: 10000;">
+    <div class="admin-modal-card" style="max-width: 360px; border-radius: 28px; padding: 22px 20px; text-align: center;">
+      <!-- Water Droplet Mascot Icon with speech badge -->
+      <div style="display: flex; flex-direction: column; align-items: center; margin-bottom: 12px; position: relative;">
+        <button type="button" class="modal-close-btn" id="btnSetGallonsClose" style="position: absolute; top: -6px; right: 0; background: none; border: none; font-size: 1.4rem; cursor: pointer; color: var(--text-muted); line-height: 1;" aria-label="Close">&times;</button>
+        <div style="width: 86px; height: 86px; border-radius: 50%; background: radial-gradient(circle, rgba(56, 189, 248, 0.22) 0%, rgba(2, 132, 199, 0.05) 70%); border: 1.5px solid rgba(56, 189, 248, 0.35); display: flex; align-items: center; justify-content: center; margin-bottom: 8px; box-shadow: 0 8px 20px rgba(2, 132, 199, 0.15);">
+          <img src="assets/water_mascot_question_transparent.png" class="mascot-floating" alt="How many gallons do you have?" style="width: 74px; height: 74px; object-fit: contain;" id="mascotModalImg" />
+        </div>
+        <span class="carousel-badge" id="modalOnboardingBadge" style="font-size: 0.6875rem; padding: 2px 10px;">Quick Setup</span>
+      </div>
+
+      <div class="modal-header" style="display: flex; flex-direction: column; align-items: center; margin-bottom: 12px;">
+        <h3 class="modal-title" id="setGallonsModalTitle" style="font-size: 1.15rem; font-weight: 800; margin: 0 0 4px 0; color: var(--text-main);">How many gallons do you have?</h3>
+        <p style="font-size: 0.78125rem; color: var(--text-muted); margin: 0; line-height: 1.4; max-width: 280px;" id="setGallonsModalDesc">
+          Let us know how many 5-gal carboys you currently have at home. We never assume 2 or 3!
+        </p>
+      </div>
+
+      <form id="setGallonsForm" style="text-align: left;">
+        <div class="modal-body" style="display: flex; flex-direction: column; gap: 12px; padding: 0;">
+          
+          <!-- Locked Limit Alert inside Modal -->
+          <div id="modalLockedLimitAlert" style="display: none; padding: 8px 12px; background: rgba(2, 132, 199, 0.08); border: 1px solid rgba(2, 132, 199, 0.22); border-radius: 12px; font-size: 0.75rem; color: var(--text-main);">
+            <div style="font-weight: 700; color: var(--color-sky-blue);">Container Limit: <span id="modalLockedLimitNumber">0</span> Gallons (Locked)</div>
+            <div style="color: var(--text-muted); font-size: 0.7rem; margin-top: 2px;">To increase your home containers, purchase new gallons (+₱250 each).</div>
+          </div>
+
+          <div class="form-group" style="margin: 0;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
+              <label class="form-label" style="font-size: 0.8125rem; font-weight: 600; margin: 0;">Full Gallons (Ready to Drink)</label>
+              <span style="font-size: 0.6875rem; color: var(--color-sky-blue); font-weight: 700;">Drinking</span>
+            </div>
+            <div style="display: flex; align-items: center; gap: 8px;">
+              <button type="button" class="btn-stepper-circle" id="btnModalMinusFull" aria-label="Decrease Full Gallons">−</button>
+              <input type="number" id="inputHomeFull" class="form-control" min="0" value="0" style="text-align: center; font-size: 1.15rem; font-weight: 800; border-radius: 12px; height: 42px;" required />
+              <button type="button" class="btn-stepper-circle" id="btnModalPlusFull" aria-label="Increase Full Gallons">+</button>
+            </div>
+          </div>
+
+          <div class="form-group" style="margin: 0;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
+              <label class="form-label" style="font-size: 0.8125rem; font-weight: 600; margin: 0;">Empty Gallons (For Swap Refill)</label>
+              <span style="font-size: 0.6875rem; color: var(--text-muted); font-weight: 600;">To Swap</span>
+            </div>
+            <div style="display: flex; align-items: center; gap: 8px;">
+              <button type="button" class="btn-stepper-circle" id="btnModalMinusEmpty" aria-label="Decrease Empty Gallons">−</button>
+              <input type="number" id="inputHomeEmpty" class="form-control" min="0" value="0" style="text-align: center; font-size: 1.15rem; font-weight: 800; border-radius: 12px; height: 42px;" required />
+              <button type="button" class="btn-stepper-circle" id="btnModalPlusEmpty" aria-label="Increase Empty Gallons">+</button>
+            </div>
+          </div>
+
+          <div style="background: var(--bg-surface); padding: 10px 14px; border-radius: 12px; border: 1px solid var(--border-subtle); font-size: 0.8125rem; display: flex; justify-content: space-between; align-items: center;">
+            <span style="color: var(--text-muted);">Total 5-Gal Containers:</span>
+            <b id="totalGallonsPreview" style="color: var(--color-sky-blue); font-size: 0.9375rem; font-weight: 800;">0 Gallons Total</b>
+          </div>
+        </div>
+
+        <div class="modal-footer" style="display: flex; flex-direction: column; gap: 8px; margin-top: 16px; padding: 0;">
+          <button type="submit" class="btn-primary" style="width: 100%; justify-content: center; padding: 12px 14px; border-radius: 14px; font-weight: 700; font-size: 0.9rem;">
+            Save &amp; Remember Gallons
+          </button>
+          <button type="button" id="btnModalBuyExpand" class="btn-secondary" style="display: none; width: 100%; justify-content: center; padding: 10px 14px; border-radius: 12px; font-weight: 700; font-size: 0.8125rem; color: var(--color-sky-blue); border-color: rgba(2, 132, 199, 0.3); background: rgba(2, 132, 199, 0.06);">
+            + Buy New Gallon to Expand (+₱250)
+          </button>
+          <button type="button" id="btnZeroGallonsStart" style="background: none; border: none; font-size: 0.75rem; color: var(--text-muted); cursor: pointer; padding: 6px; text-decoration: underline;">
+            I don't have bottles yet (Start with 0)
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ========================================================================
+       MODAL: BUY NEW GALLON & EXPAND CONTAINER CAPACITY
+       ======================================================================== -->
+  <div class="admin-modal-overlay" id="buyGallonModalOverlay" style="z-index: 10001;">
+    <div class="admin-modal-card" style="max-width: 360px; border-radius: 28px; padding: 22px 20px; text-align: center; position: relative;">
+      <button type="button" class="modal-close-btn" id="btnCloseBuyGallonModal" style="position: absolute; top: 14px; right: 18px; background: none; border: none; font-size: 1.4rem; cursor: pointer; color: var(--text-muted); line-height: 1;" aria-label="Close">&times;</button>
+      
+      <!-- Icon -->
+      <div style="width: 72px; height: 72px; margin: 0 auto 12px; border-radius: 50%; background: rgba(2, 132, 199, 0.1); border: 1.5px solid rgba(2, 132, 199, 0.3); display: flex; align-items: center; justify-content: center;">
+        <svg class="mono-icon" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#0284c7" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/>
+        </svg>
+      </div>
+
+      <h3 style="font-size: 1.15rem; font-weight: 800; color: var(--text-main); margin: 0 0 6px 0;">
+        Expand Container Limit
+      </h3>
+      <p style="font-size: 0.78125rem; color: var(--text-muted); margin: 0 0 14px 0; line-height: 1.4;">
+        Confirm your purchase of brand-new 5-gallon carboy(s) with sealed purified water.
+      </p>
+
+      <div style="background: var(--bg-surface); border: 1px solid var(--border-subtle); border-radius: 16px; padding: 14px; text-align: left; margin-bottom: 14px;">
+        <div style="display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 0.8125rem;">
+          <span style="color: var(--text-muted);">Purchasing:</span>
+          <strong id="buyModalItems" style="color: var(--text-main);">1x Brand-New 5-Gal Carboy</strong>
+        </div>
+        <div style="display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 0.8125rem;">
+          <span style="color: var(--text-muted);">New Container Limit:</span>
+          <strong id="buyModalLimitChange" style="color: var(--color-sky-blue);">0 &rarr; 1 Gallons</strong>
+        </div>
+        <div style="display: flex; justify-content: space-between; padding-top: 8px; border-top: 1px dashed var(--border-subtle); font-size: 0.875rem;">
+          <span style="font-weight: 600; color: var(--text-main);">Total Amount:</span>
+          <strong id="buyModalTotal" style="font-weight: 800; color: var(--color-sky-blue); font-size: 1.05rem;">₱250.00</strong>
+        </div>
+      </div>
+
+      <!-- Payment Option Selection -->
+      <div style="text-align: left; margin-bottom: 14px;">
+        <label style="font-size: 0.71875rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; margin-bottom: 6px; display: block;">Payment Method</label>
+        <div style="display: flex; gap: 8px;">
+          <button type="button" class="btn-secondary" id="btnBuyPayCOD" style="flex: 1; padding: 8px; border-radius: 10px; font-size: 0.75rem; font-weight: 700; border-color: #0284c7; color: #0284c7; background: rgba(2, 132, 199, 0.08);">
+            Cash on Delivery
+          </button>
+          <button type="button" class="btn-secondary" id="btnBuyPayGCash" style="flex: 1; padding: 8px; border-radius: 10px; font-size: 0.75rem; font-weight: 600;">
+            GCash
+          </button>
+        </div>
+      </div>
+
+      <button type="button" id="btnSubmitBuyGallon" class="btn-primary" style="width: 100%; justify-content: center; padding: 12px 14px; border-radius: 14px; font-weight: 700; font-size: 0.9rem; background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%); border: none; box-shadow: 0 4px 12px rgba(2, 132, 199, 0.25);">
+        Confirm Purchase &amp; Expand Limit
+      </button>
+    </div>
+  </div>
+
+  <!-- Leaflet.js Interactive Mapping Library -->
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  
+  <!-- Interactive App State Controller -->
+  <script src="app.js"></script>
+</body>
+</html>

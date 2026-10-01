@@ -1,0 +1,17 @@
+{
+  "name": "water-delivery-app",
+  "version": "1.0.0",
+  "description": "R&R Water Refilling Mobile Delivery Application",
+  "main": "server.js",
+  "scripts": {
+    "dev": "node server.js",
+    "start": "node server.js",
+    "serve": "node server.js"
+  },
+  "keywords": [
+    "water-refilling",
+    "delivery-app"
+  ],
+  "author": "R&R Water Refilling",
+  "license": "ISC"
+}

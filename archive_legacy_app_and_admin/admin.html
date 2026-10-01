@@ -1,0 +1,733 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>R&R Water Refilling - Station Admin Portal</title>
+  
+  <!-- Google Fonts: Plus Jakarta Sans & Playfair Display -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,600;0,700;1,600;1,700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <!-- Shared Design System Stylesheet -->
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body class="admin-page-body">
+
+  <!-- ========================================================================
+       Top Navigation Bar (Branding, Role Switcher, Theme Toggle)
+       ======================================================================== -->
+  <header class="admin-navbar">
+    <div class="admin-brand-group">
+      <svg class="mono-icon fill-only" width="20" height="20" viewBox="0 0 24 24" style="color: var(--color-sky-blue);">
+        <path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/>
+      </svg>
+      <div class="admin-brand-title">
+        R&R Water Refilling
+        <span class="admin-portal-badge">Admin Portal</span>
+      </div>
+    </div>
+
+    <div class="admin-nav-actions">
+      <!-- Switch to Station POS Terminal -->
+      <a href="pos.html" class="btn-nav-switch" title="Open Station POS Terminal" style="background: rgba(2, 132, 199, 0.15); border-color: rgba(56, 189, 248, 0.35); color: #38bdf8;">
+        <svg class="mono-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect>
+          <line x1="8" y1="21" x2="16" y2="21"></line>
+          <line x1="12" y1="17" x2="12" y2="21"></line>
+        </svg>
+        <span>Station POS</span>
+      </a>
+
+      <!-- Switch to Customer Mobile App -->
+      <a href="index.html" class="btn-nav-switch" title="Open Customer Mobile App">
+        <svg class="mono-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="5" y="2" width="14" height="20" rx="2" ry="2"></rect>
+          <line x1="12" y1="18" x2="12.01" y2="18"></line>
+        </svg>
+        <span>Customer App</span>
+      </a>
+
+      <!-- Admin Sign Out -->
+      <button class="btn-signout" id="btnAdminSignOut" title="Sign Out of Station Admin">
+        <svg class="mono-icon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+          <polyline points="16 17 21 12 16 7"></polyline>
+          <line x1="21" y1="12" x2="9" y2="12"></line>
+        </svg>
+        <span>Sign Out</span>
+      </button>
+
+      <!-- Theme Toggle -->
+      <button class="theme-toggle-btn" id="adminThemeToggle">
+        <span id="adminThemeIcon">
+          <svg class="mono-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+          </svg>
+        </span>
+        <span id="adminThemeLabel">Dark Mode</span>
+      </button>
+    </div>
+  </header>
+
+  <!-- ========================================================================
+       Main Content Container
+       ======================================================================== -->
+  <main class="admin-container">
+    
+    <!-- Page Header & Global Actions -->
+    <div class="admin-header-row">
+      <div>
+        <h1 class="admin-page-title">
+          Station <span class="serif-italic">Operations</span>
+        </h1>
+        <p class="admin-page-subtitle">
+          Manage multicab batch dispatch, live order fulfillment, customer directory & announcements.
+        </p>
+      </div>
+
+      <div class="toolbar-actions">
+        <button class="btn-secondary" id="btnEditStationMetrics">
+          <svg class="mono-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke-width="2">
+            <path d="M12 20h9"></path>
+            <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path>
+          </svg>
+          <span>Edit Station Stock</span>
+        </button>
+        <button class="btn-primary" id="btnOpenNewOrderModal">
+          <svg class="mono-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke-width="2">
+            <line x1="12" y1="5" x2="12" y2="19"></line>
+            <line x1="5" y1="12" x2="19" y2="12"></line>
+          </svg>
+          <span>New Order</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- 4-Card Editable Operations Metrics Grid -->
+    <div class="admin-stats-grid">
+      
+      <!-- Metric 1: Today's Revenue -->
+      <div class="admin-stat-card">
+        <div class="stat-card-top">
+          <span class="stat-card-label">Today's Revenue</span>
+          <svg class="mono-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke-width="1.8">
+            <rect x="2" y="5" width="20" height="14" rx="2"></rect>
+            <line x1="2" y1="10" x2="22" y2="10"></line>
+          </svg>
+        </div>
+        <div class="stat-card-value" id="statRevenue">₱3,430.00</div>
+        <div class="stat-card-sub" id="statRevenueBreakdown">
+          <span>₱2,100 COD</span> • <span>₱1,330 GCash</span>
+        </div>
+      </div>
+
+      <!-- Metric 2: Multicab Truck Batch Status -->
+      <div class="admin-stat-card">
+        <div class="stat-card-top">
+          <span class="stat-card-label">Batch #1 Dispatched</span>
+          <button class="stat-edit-btn" id="btnEditDriver" title="Edit driver & truck details">Edit</button>
+        </div>
+        <div class="stat-card-value" id="statTruckCapacity">12 / 50 Gallons</div>
+        <div class="progress-bar-wrap">
+          <div class="progress-bar-fill" id="statTruckBar" style="width: 68%;"></div>
+        </div>
+        <div class="stat-card-sub" id="statDriverInfo" style="margin-top: 8px;">
+          Kuya Jun & Crew • Plate: NBD-2841
+        </div>
+      </div>
+
+      <!-- Metric 3: Station Bottling Inventory -->
+      <div class="admin-stat-card">
+        <div class="stat-card-top">
+          <span class="stat-card-label">Station Floor Stock</span>
+          <button class="stat-edit-btn" id="btnEditInventoryQuick" title="Edit station inventory">Edit</button>
+        </div>
+        <div class="stat-card-value" id="statStationStock">52 Full / 38 Empty</div>
+        <div class="stat-card-sub">
+          <span style="color: var(--color-sky-blue); font-weight: 700;">● 52 Purified ready</span> • <span>38 in sanitization</span>
+        </div>
+      </div>
+
+      <!-- Metric 4: Station Schedule Policy -->
+      <div class="admin-stat-card">
+        <div class="stat-card-top">
+          <span class="stat-card-label">Station Schedule</span>
+          <span style="font-size: 0.6875rem; font-weight: 700; color: #16a34a; background: #dcfce7; padding: 2px 6px; border-radius: 999px;">Active</span>
+        </div>
+        <div class="stat-card-value" style="font-size: 1.25rem; font-weight: 700;">Operating Today</div>
+        <div class="stat-card-sub">
+          Saturday Rest Day (UV deep sanitization)
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Tab Navigation Bar -->
+    <nav class="admin-tab-bar">
+      <button class="admin-tab-pill active" data-tab="orders">
+        <svg class="mono-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke-width="2">
+          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+          <polyline points="14 2 14 8 20 8"></polyline>
+          <line x1="16" y1="13" x2="8" y2="13"></line>
+          <line x1="16" y1="17" x2="8" y2="17"></line>
+        </svg>
+        <span>Live Orders &amp; Queue</span>
+        <span class="carousel-badge" id="badgeOrderCount" style="padding: 1px 6px; font-size: 10px;">6</span>
+      </button>
+
+      <button class="admin-tab-pill" data-tab="broadcast">
+        <svg class="mono-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke-width="2">
+          <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+        </svg>
+        <span>Station Broadcaster</span>
+      </button>
+
+      <button class="admin-tab-pill" data-tab="ledger">
+        <svg class="mono-icon fill-only" width="16" height="16" viewBox="0 0 24 24">
+          <path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/>
+        </svg>
+        <span>5-Gal Bottle Ledger</span>
+      </button>
+
+      <button class="admin-tab-pill" data-tab="customers">
+        <svg class="mono-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke-width="2">
+          <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+          <circle cx="9" cy="7" r="4"></circle>
+          <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+          <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+        </svg>
+        <span>Customer Directory</span>
+        <span class="carousel-badge" id="badgeCustomerCount" style="padding: 1px 6px; font-size: 10px;">6</span>
+      </button>
+    </nav>
+
+    <!-- TAB 1: LIVE ORDERS -->
+    <section class="admin-section-card" id="tabContentOrders">
+      <div class="section-toolbar">
+        <div class="toolbar-title-group">
+          <div>
+            <h2 class="toolbar-title">
+              Live Order <span class="serif-italic">Queue</span>
+            </h2>
+            <p class="admin-page-subtitle" style="font-size: 0.75rem; margin-top: 2px;">
+              Active customer refill orders and multicab delivery dispatch
+            </p>
+          </div>
+        </div>
+
+        <div class="toolbar-actions" style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
+          <select id="selectOrderFilter" class="form-control" style="width: auto; padding: 6px 12px; font-size: 0.8125rem;">
+            <option value="all">All Orders</option>
+            <option value="batch1">Batch #1 (Morning)</option>
+            <option value="batch2">Batch #2 (Afternoon)</option>
+            <option value="pending">Pending Only</option>
+            <option value="delivered">Delivered Only</option>
+          </select>
+          <button type="button" id="btnMarkBatchArrived" class="btn-secondary" style="font-size: 0.75rem; padding: 6px 12px; display: inline-flex; align-items: center; gap: 6px; cursor: pointer;" title="Mark batch orders as Delivered and set customers to ordered gallons + 0 empty">
+            <svg class="mono-icon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polyline points="20 6 9 17 4 12"></polyline>
+            </svg>
+            <span>Mark Batch Arrived</span>
+          </button>
+        </div>
+      </div>
+
+      <div class="admin-table-container">
+        <table class="admin-table">
+          <thead>
+            <tr>
+              <th>Order ID</th>
+              <th>Customer</th>
+              <th>Purok Address</th>
+              <th>5-Gal Quantity</th>
+              <th>Water Type</th>
+              <th>Condition</th>
+              <th>Total (₱)</th>
+              <th>Payment</th>
+              <th>Fulfillment Status</th>
+              <th style="text-align: right;">Actions</th>
+            </tr>
+          </thead>
+          <tbody id="ordersTableBody"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- TAB 2: BROADCASTER -->
+    <section class="admin-section-card" id="tabContentBroadcast" style="display: none;">
+      <div class="section-toolbar">
+        <div>
+          <h2 class="toolbar-title">
+            Station Notice <span class="serif-italic">Broadcaster</span>
+          </h2>
+          <p class="admin-page-subtitle">
+            Edits published here sync directly to the swipeable announcement carousel on customer mobile screens!
+          </p>
+        </div>
+      </div>
+
+      <div class="broadcaster-grid">
+        <div style="background: var(--bg-surface); border: 1px solid var(--border-subtle); border-radius: 20px; padding: 20px;">
+          <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px;">
+            <label class="form-label" style="font-size: 0.8125rem;">Select Notice Slide to Edit:</label>
+            <button class="btn-secondary" id="btnAddNewNoticeSlide" style="padding: 4px 10px; font-size: 0.75rem;">
+              <svg class="mono-icon" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <line x1="12" y1="5" x2="12" y2="19"></line>
+                <line x1="5" y1="12" x2="19" y2="12"></line>
+              </svg>
+              <span>Add New Slide</span>
+            </button>
+          </div>
+
+          <div class="form-group">
+            <select id="selectNoticeSlide" class="form-control"></select>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Announcement Headline</label>
+            <input type="text" id="inputNoticeTitle" class="form-control" placeholder="e.g., Saturday Rest Day Notice" />
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Category Badge</label>
+            <input type="text" id="inputNoticeBadge" class="form-control" placeholder="e.g., Notice to All, Weather Advisory" />
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Notice Details &amp; Message</label>
+            <textarea id="inputNoticeBody" class="form-control" rows="4" placeholder="Type notice description here..."></textarea>
+          </div>
+
+          <div style="display: flex; gap: 10px; margin-top: 20px;">
+            <button class="btn-primary" id="btnSaveNotice" style="flex: 1; justify-content: center;">
+              <svg class="mono-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
+                <polyline points="17 21 17 13 7 13 7 21"></polyline>
+                <polyline points="7 3 7 8 15 8"></polyline>
+              </svg>
+              <span>Save &amp; Broadcast Notice</span>
+            </button>
+            <button class="btn-secondary" id="btnDeleteNotice" style="color: #ef4444; border-color: #fca5a5;">
+              <svg class="mono-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polyline points="3 6 5 6 21 6"></polyline>
+                <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                <line x1="10" y1="11" x2="10" y2="17"></line>
+                <line x1="14" y1="11" x2="14" y2="17"></line>
+              </svg>
+              <span>Delete Slide</span>
+            </button>
+          </div>
+        </div>
+
+        <div class="phone-preview-card">
+          <div style="font-size: 0.75rem; font-weight: 700; color: var(--text-muted); margin-bottom: 12px; text-transform: uppercase; letter-spacing: 0.05em; display: flex; align-items: center; gap: 6px;">
+            <svg class="mono-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <rect x="5" y="2" width="14" height="20" rx="2" ry="2"></rect>
+              <line x1="12" y1="18" x2="12.01" y2="18"></line>
+            </svg>
+            <span>Live Customer Mobile Preview</span>
+          </div>
+
+          <div class="phone-mockup-frame">
+            <div style="font-size: 9px; opacity: 0.6; margin-bottom: 8px; text-align: center;">Preview inside R&R Customer App</div>
+            
+            <div class="announcement-carousel-container" style="margin-bottom: 0;">
+              <div class="carousel-header-bar">
+                <div class="carousel-title-group">
+                  <span class="carousel-badge" id="prevBadgeText">Notice to All</span>
+                  <span style="font-size: 0.6875rem; color: var(--text-muted); font-weight: 600;" id="prevCounterText">1 of 3</span>
+                </div>
+                <div class="carousel-controls">
+                  <button class="carousel-nav-btn" style="pointer-events: none;">◀</button>
+                  <button class="carousel-nav-btn" style="pointer-events: none;">▶</button>
+                </div>
+              </div>
+
+              <div style="display: flex; align-items: flex-start; gap: 10px; padding: 4px 0;">
+                <div class="alert-icon-box" style="flex-shrink: 0; margin-top: 2px;">
+                  <svg class="mono-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke-width="1.8">
+                    <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                    <line x1="16" y1="2" x2="16" y2="6"></line>
+                    <line x1="8" y1="2" x2="8" y2="6"></line>
+                    <line x1="3" y1="10" x2="21" y2="10"></line>
+                  </svg>
+                </div>
+                <div>
+                  <div class="slide-heading" id="prevHeadingText">Saturday Rest Day Notice</div>
+                  <div class="slide-body" id="prevBodyText" style="margin-top: 4px;">
+                    R&R Water Refilling is closed every Saturday for scheduled equipment sanitization and UV filter maintenance. Multicab deliveries resume Sunday 8:00 AM.
+                  </div>
+                </div>
+              </div>
+
+              <div class="carousel-dots" style="margin-top: 12px;">
+                <span class="carousel-dot active"></span>
+                <span class="carousel-dot"></span>
+                <span class="carousel-dot"></span>
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- TAB 3: LEDGER -->
+    <section class="admin-section-card" id="tabContentLedger" style="display: none;">
+      <div class="section-toolbar">
+        <div>
+          <h2 class="toolbar-title">
+            5-Gallon Carboy <span class="serif-italic">Bottle Ledger</span>
+          </h2>
+          <p class="admin-page-subtitle">
+            Unit-based physical inventory tracking to prevent loss of station carboys.
+          </p>
+        </div>
+      </div>
+
+      <div class="admin-stats-grid" style="margin-bottom: 24px;">
+        <div class="admin-stat-card">
+          <span class="stat-card-label">Total Station Carboys</span>
+          <div class="stat-card-value" id="ledgerTotalCarboys">250</div>
+          <div class="stat-card-sub">Owned &amp; serialized inventory</div>
+        </div>
+
+        <div class="admin-stat-card">
+          <span class="stat-card-label">At Station (Full)</span>
+          <div class="stat-card-value" id="ledgerStationFull" style="color: var(--color-sky-blue);">52</div>
+          <div class="stat-card-sub">Ready for batch dispatch</div>
+        </div>
+
+        <div class="admin-stat-card">
+          <span class="stat-card-label">At Station (Empty)</span>
+          <div class="stat-card-value" id="ledgerStationEmpty">38</div>
+          <div class="stat-card-sub">Awaiting 16-stage sanitization</div>
+        </div>
+
+        <div class="admin-stat-card">
+          <span class="stat-card-label">In Field (Customer Homes)</span>
+          <div class="stat-card-value" id="ledgerFieldCarboys">160</div>
+          <div class="stat-card-sub">Circulating across Purok clusters</div>
+        </div>
+      </div>
+
+      <div style="background: var(--bg-surface); border: 1px solid var(--border-subtle); border-radius: 20px; padding: 20px; margin-bottom: 24px;">
+        <h3 style="font-size: 1rem; font-weight: 700; margin-top: 0; margin-bottom: 14px;">
+          Editable Station Pricing Scheme
+        </h3>
+        
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Refill Swap Price (Purified 5-Gal)</label>
+            <div style="display: flex; align-items: center; gap: 8px;">
+              <span style="font-weight: 700;">₱</span>
+              <input type="number" id="priceRefillPurified" class="form-control" value="35.00" step="1" />
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Refill Swap Price (Alkaline 5-Gal)</label>
+            <div style="display: flex; align-items: center; gap: 8px;">
+              <span style="font-weight: 700;">₱</span>
+              <input type="number" id="priceRefillAlkaline" class="form-control" value="45.00" step="1" />
+            </div>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">New 5-Gal Carboy + Water (Deposit / Purchase)</label>
+            <div style="display: flex; align-items: center; gap: 8px;">
+              <span style="font-weight: 700;">₱</span>
+              <input type="number" id="priceNewJug" class="form-control" value="250.00" step="5" />
+            </div>
+          </div>
+
+          <div class="form-group" style="display: flex; align-items: flex-end;">
+            <button class="btn-primary" id="btnSavePricing" style="width: 100%; justify-content: center; height: 42px;">
+              <svg class="mono-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
+                <polyline points="17 21 17 13 7 13 7 21"></polyline>
+                <polyline points="7 3 7 8 15 8"></polyline>
+              </svg>
+              <span>Update Station Pricing</span>
+            </button>
+          </div>
+        </div>
+      </div>
+
+    </section>
+
+    <!-- TAB 4: CUSTOMERS -->
+    <section class="admin-section-card" id="tabContentCustomers" style="display: none;">
+      <div class="section-toolbar">
+        <div>
+          <h2 class="toolbar-title">
+            Customer <span class="serif-italic">Directory</span>
+          </h2>
+          <p class="admin-page-subtitle">
+            Track household gallon balances, delivery addresses, and reorder velocity.
+          </p>
+        </div>
+
+        <div class="toolbar-actions">
+          <button class="btn-primary" id="btnAddNewCustomerModal">
+            <svg class="mono-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke-width="2">
+              <line x1="12" y1="5" x2="12" y2="19"></line>
+              <line x1="5" y1="12" x2="19" y2="12"></line>
+            </svg>
+            <span>Add Customer</span>
+          </button>
+        </div>
+      </div>
+
+      <div class="admin-table-container">
+        <table class="admin-table">
+          <thead>
+            <tr>
+              <th>Customer Name</th>
+              <th>Contact Phone</th>
+              <th>Purok Address</th>
+              <th>Gallons at Home</th>
+              <th>Avg Refill Velocity</th>
+              <th>Status</th>
+              <th style="text-align: right;">Actions</th>
+            </tr>
+          </thead>
+          <tbody id="customersTableBody"></tbody>
+        </table>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- MODAL: CREATE / EDIT ORDER -->
+  <div class="admin-modal-overlay" id="orderModalOverlay">
+    <div class="admin-modal-card">
+      <div class="modal-header">
+        <h3 class="modal-title" id="orderModalTitle">New Customer Order</h3>
+        <button class="modal-close-btn" id="btnOrderModalClose">&times;</button>
+      </div>
+
+      <form id="orderForm">
+        <div class="modal-body">
+          <input type="hidden" id="editOrderId" value="" />
+
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">Customer Name</label>
+              <input type="text" id="orderCustomerName" class="form-control" required placeholder="e.g., Neil" />
+            </div>
+            <div class="form-group">
+              <label class="form-label">Phone Number</label>
+              <input type="text" id="orderCustomerPhone" class="form-control" placeholder="0917 555 0192" />
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Purok / Delivery Address</label>
+            <input type="text" id="orderCustomerAddress" class="form-control" required placeholder="e.g., Purok 4, Sampaguita St." />
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">5-Gallon Quantity</label>
+              <input type="number" id="orderQuantity" class="form-control" min="1" max="20" value="2" required />
+            </div>
+            <div class="form-group">
+              <label class="form-label">Water Type</label>
+              <select id="orderWaterType" class="form-control">
+                <option value="Purified">Purified (₱35/gallon)</option>
+                <option value="Alkaline">Alkaline (₱45/gallon)</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">Bottle Condition</label>
+              <select id="orderBottleCondition" class="form-control">
+                <option value="swap">Bottle Swap (Surrendering Empty)</option>
+                <option value="deposit">New Container Purchase (+₱250)</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Payment Method</label>
+              <select id="orderPaymentMethod" class="form-control">
+                <option value="COD">Cash on Delivery (COD)</option>
+                <option value="GCash">GCash Verified</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">Delivery Batch</label>
+              <select id="orderBatch" class="form-control">
+                <option value="batch1">Batch #1 (Morning Dispatch)</option>
+                <option value="batch2">Batch #2 (Afternoon Dispatch)</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Fulfillment Status</label>
+              <select id="orderStatus" class="form-control">
+                <option value="Pending">Pending</option>
+                <option value="Confirmed">Confirmed</option>
+                <option value="Loaded">Loaded on Multicab</option>
+                <option value="Delivered">Delivered &amp; Paid</option>
+              </select>
+            </div>
+          </div>
+
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="btn-secondary" id="btnCancelOrderModal">Cancel</button>
+          <button type="submit" class="btn-primary" id="btnSaveOrderSubmit">Save Order</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL: Edit Metrics / Driver Settings -->
+  <div class="admin-modal-overlay" id="metricsModalOverlay">
+    <div class="admin-modal-card">
+      <div class="modal-header">
+        <h3 class="modal-title">Edit Route &amp; Capacity</h3>
+        <button type="button" class="modal-close-btn" id="btnCloseMetricsModal">&times;</button>
+      </div>
+      
+      <form id="metricsForm">
+        <div class="modal-body">
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">Station Full Gallons Ready</label>
+              <input type="number" id="inputFullStock" class="form-control" min="0" value="52" required />
+            </div>
+            <div class="form-group">
+              <label class="form-label">Station Empties in Wash</label>
+              <input type="number" id="inputEmptyStock" class="form-control" min="0" value="38" required />
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">Active Driver / Crew Name</label>
+              <input type="text" id="inputDriverName" class="form-control" value="Kuya Jun & Delivery Crew" required />
+            </div>
+            <div class="form-group">
+              <label class="form-label">Multicab Plate Number</label>
+              <input type="text" id="inputPlateNumber" class="form-control" value="NBD-2841" required />
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Truck Capacity (Max 5-Gallon Units)</label>
+            <input type="number" id="inputTruckCapacity" class="form-control" value="50" min="20" max="100" required />
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="btn-secondary" id="btnCancelMetricsModal">Cancel</button>
+          <button type="submit" class="btn-primary">Save Changes</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL: Add / Edit Customer -->
+  <div class="admin-modal-overlay" id="customerModalOverlay">
+    <div class="admin-modal-card">
+      <div class="modal-header">
+        <h3 class="modal-title" id="customerModalTitle">Add New Customer</h3>
+        <button type="button" class="modal-close-btn" id="btnCloseCustomerModal">&times;</button>
+      </div>
+      
+      <form id="customerForm">
+        <input type="hidden" id="custEditId" value="" />
+        <div class="modal-body">
+          <div class="form-group">
+            <label class="form-label">Full Name</label>
+            <input type="text" id="custName" class="form-control" required placeholder="e.g., Aling Maria" />
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">Email (Optional)</label>
+              <input type="email" id="custEmail" class="form-control" placeholder="e.g., maria@gmail.com" />
+            </div>
+            <div class="form-group">
+              <label class="form-label">Phone Number</label>
+              <input type="tel" id="custPhone" class="form-control" required placeholder="0917 123 4567" />
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Sitio / Street</label>
+            <input type="text" id="custSitio" class="form-control" required placeholder="e.g., Cambarong" />
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">Barangay</label>
+              <input type="text" id="custBarangay" class="form-control" required placeholder="e.g., Canhaway" />
+            </div>
+            <div class="form-group">
+              <label class="form-label">Municipality</label>
+              <input type="text" id="custMunicipality" class="form-control" required placeholder="e.g., Guindulman" />
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">Full Gallons at Home</label>
+              <input type="number" id="custFull" class="form-control" min="0" value="2" required />
+            </div>
+            <div class="form-group">
+              <label class="form-label">Empty Gallons at Home</label>
+              <input type="number" id="custEmpty" class="form-control" min="0" value="1" required />
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn-secondary" id="btnCancelCustomerModal">Cancel</button>
+          <button type="submit" class="btn-primary">Save Customer</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- CUSTOM IN-APP CONFIRMATION POP-UP MODAL (REPLACES BROWSER DIALOG) -->
+  <div class="admin-modal-overlay" id="customConfirmOverlay" style="z-index: 999;">
+    <div class="admin-modal-card confirm-modal-card">
+      <div class="confirm-modal-content">
+        <div class="confirm-icon-wrap" id="confirmModalIconWrap">
+          <svg class="mono-icon" id="confirmModalIcon" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path>
+            <line x1="12" y1="9" x2="12" y2="13"></line>
+            <line x1="12" y1="17" x2="12.01" y2="17"></line>
+          </svg>
+        </div>
+        <div class="confirm-text-wrap">
+          <h3 class="confirm-title" id="confirmModalTitle">Cancel Order</h3>
+          <p class="confirm-desc" id="confirmModalDesc">Are you sure you want to cancel Order #105?</p>
+        </div>
+      </div>
+      <div class="confirm-actions">
+        <button type="button" class="btn-cancel-dialog" id="btnConfirmCancel">Keep Order</button>
+        <button type="button" class="btn-danger-dialog" id="btnConfirmAccept">Cancel Order</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Notification Message -->
+  <div class="toast-msg" id="adminToast">
+    <svg class="mono-icon fill-only" width="16" height="16" viewBox="0 0 24 24" style="color: var(--color-sky-blue);">
+      <path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/>
+    </svg>
+    <span id="adminToastText">Changes updated successfully!</span>
+  </div>
+
+  <!-- Admin Controller JavaScript -->
+  <script src="admin.js"></script>
+</body>
+</html>
