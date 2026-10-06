@@ -223,6 +223,16 @@ function loadSavedData() {
     State.theme = savedTheme;
   }
 
+  const savedSettings = localStorage.getItem('rr_pos_settings');
+  if (savedSettings) {
+    try {
+      const parsed = JSON.parse(savedSettings);
+      State.settings = { ...State.settings, ...parsed };
+      if (State.settings.pricePurified) PRODUCTS.purified.price = State.settings.pricePurified;
+      if (State.settings.priceNewJug) PRODUCTS.new_container.price = State.settings.priceNewJug;
+    } catch (e) {}
+  }
+
   const urlParams = new URLSearchParams(window.location.search);
   if (urlParams.get('theme')) {
     State.theme = urlParams.get('theme');
@@ -1862,8 +1872,6 @@ function exportOrdersCSV() {
   document.body.removeChild(link);
 
   showToast('Exported stored orders spreadsheet!');
-}
-
 // ==========================================================================
 // DROPPY MASCOT & MODAL
 // ==========================================================================

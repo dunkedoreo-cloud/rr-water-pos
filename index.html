@@ -52,6 +52,15 @@
           <span class="nav-badge" id="sidebarOrdersBadge">0</span>
         </button>
 
+        <!-- Settings -->
+        <button class="nav-item" data-view="settings" id="navSettings">
+          <svg class="ui-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="3"></circle>
+            <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+          </svg>
+          <span>Settings</span>
+        </button>
+
       </nav>
 
       <!-- Droppy Mascot in Sidebar (Mascot Speech Bubble Design) -->
@@ -602,6 +611,408 @@
               <svg class="ui-icon-xs" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"></polyline><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path></svg>
               <span>Start New Day / Shift</span>
             </button>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- ================================================================
+           VIEW STAGE 3: SYSTEM & STATION SETTINGS
+           ================================================================ -->
+      <div class="view-stage" id="stageSettings">
+        <div class="settings-view">
+          
+          <div class="settings-view-header">
+            <div>
+              <h3>Station Configuration &amp; POS Settings</h3>
+              <p>Configure gallon pricing, station details, driver fleet, and water filtration presets</p>
+            </div>
+            <button class="btn-save-settings" id="btnSaveAllSettings">
+              <svg class="ui-icon-xs" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path><polyline points="17 21 17 13 7 13 7 21"></polyline><polyline points="7 3 7 8 15 8"></polyline></svg>
+              <span>Save Changes</span>
+            </button>
+          </div>
+
+          <!-- Settings Tabbed Navigation -->
+          <div class="settings-tabs-nav">
+            <button class="settings-tab-btn active" data-tab="pricing">
+              <svg class="ui-icon-xs" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>
+              <span>Station &amp; Pricing</span>
+            </button>
+            <button class="settings-tab-btn" data-tab="fleet">
+              <svg class="ui-icon-xs" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="3" width="15" height="13"></rect><polygon points="16 8 20 8 23 11 23 16 16 8"></polygon><circle cx="5.5" cy="18.5" r="2.5"></circle><circle cx="18.5" cy="18.5" r="2.5"></circle></svg>
+              <span>Fleet &amp; Delivery</span>
+            </button>
+            <button class="settings-tab-btn" data-tab="maintenance">
+              <svg class="ui-icon-xs" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"></path></svg>
+              <span>Filter Life &amp; UV</span>
+            </button>
+            <button class="settings-tab-btn" data-tab="system">
+              <svg class="ui-icon-xs" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect><line x1="8" y1="21" x2="16" y2="21"></line><line x1="12" y1="17" x2="12" y2="21"></line></svg>
+              <span>Terminal &amp; Data</span>
+            </button>
+          </div>
+
+          <!-- Tab Content 1: Station & Pricing -->
+          <div class="settings-tab-pane active" id="panePricing">
+            <div class="settings-cards-grid">
+              
+              <!-- Card 1: Gallon Pricing & Rates -->
+              <div class="setting-card">
+                <div class="setting-card-header">
+                  <div class="card-icon-tag blue">
+                    <svg class="ui-icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>
+                  </div>
+                  <div>
+                    <h4>Gallon Pricing &amp; Rates</h4>
+                    <p>Configure selling price for refills and new containers</p>
+                  </div>
+                </div>
+
+                <div class="setting-inputs-list">
+                  <div class="setting-row">
+                    <div class="setting-meta">
+                      <label for="settingPricePurified">Purified Carboy Refill (5-Gal)</label>
+                      <span class="setting-desc">Standard walk-in &amp; delivery swap price</span>
+                    </div>
+                    <div class="input-currency-wrap">
+                      <span class="currency-prefix">₱</span>
+                      <input type="number" id="settingPricePurified" class="setting-input num-input" value="35" min="1" step="1">
+                    </div>
+                  </div>
+
+                  <div class="setting-row">
+                    <div class="setting-meta">
+                      <label for="settingPriceNewJug">New 5-Gal Jug + Water</label>
+                      <span class="setting-desc">Includes brand-new bottle and initial fill</span>
+                    </div>
+                    <div class="input-currency-wrap">
+                      <span class="currency-prefix">₱</span>
+                      <input type="number" id="settingPriceNewJug" class="setting-input num-input" value="250" min="1" step="5">
+                    </div>
+                  </div>
+
+                  <div class="setting-row">
+                    <div class="setting-meta">
+                      <label for="settingMinBatch">Multicab Minimum Batch</label>
+                      <span class="setting-desc">Default starting quantity for vehicle deliveries</span>
+                    </div>
+                    <div class="input-unit-wrap">
+                      <input type="number" id="settingMinBatch" class="setting-input num-input" value="10" min="1" step="1">
+                      <span class="unit-suffix">Gal</span>
+                    </div>
+                  </div>
+
+                  <div class="setting-row">
+                    <div class="setting-meta">
+                      <label for="settingWholesalePrice">Wholesale Bulk Rate (20+ Gal)</label>
+                      <span class="setting-desc">Special discount rate for stores &amp; canteens</span>
+                    </div>
+                    <div class="input-currency-wrap">
+                      <span class="currency-prefix">₱</span>
+                      <input type="number" id="settingWholesalePrice" class="setting-input num-input" value="30" min="1" step="1">
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Card 2: Station Identity & Thermal Receipts -->
+              <div class="setting-card">
+                <div class="setting-card-header">
+                  <div class="card-icon-tag green">
+                    <svg class="ui-icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+                  </div>
+                  <div>
+                    <h4>Station Details &amp; Receipt Header</h4>
+                    <p>Details printed on sales slips and shift reports</p>
+                  </div>
+                </div>
+
+                <div class="setting-inputs-list">
+                  <div class="setting-field">
+                    <label for="settingStationName">Station Business Name</label>
+                    <input type="text" id="settingStationName" class="setting-input" value="R&amp;R Water Refilling Station">
+                  </div>
+
+                  <div class="setting-field">
+                    <label for="settingStationBranch">Terminal / Counter Label</label>
+                    <input type="text" id="settingStationBranch" class="setting-input" value="Counter #1 (Main Terminal)">
+                  </div>
+
+                  <div class="setting-row-2col">
+                    <div class="setting-field">
+                      <label for="settingStationPhone">Contact Number</label>
+                      <input type="text" id="settingStationPhone" class="setting-input" value="0917-829-4102">
+                    </div>
+                    <div class="setting-field">
+                      <label for="settingStationAddress">Station Location</label>
+                      <input type="text" id="settingStationAddress" class="setting-input" value="Purok 1, Main Road">
+                    </div>
+                  </div>
+
+                  <div class="setting-toggle-row">
+                    <div class="setting-meta">
+                      <label for="settingAutoPrintToggle">Auto-Prompt Print on Sale</label>
+                      <span class="setting-desc">Open browser print dialog right after payment</span>
+                    </div>
+                    <label class="switch-toggle">
+                      <input type="checkbox" id="settingAutoPrintToggle">
+                      <span class="slider"></span>
+                    </label>
+                  </div>
+                </div>
+              </div>
+
+            </div>
+          </div>
+
+          <!-- Tab Content 2: Fleet & Delivery -->
+          <div class="settings-tab-pane" id="paneFleet">
+            <div class="settings-cards-grid">
+              
+              <!-- Card 3: Multicab Drivers & Fleet Roster -->
+              <div class="setting-card">
+                <div class="setting-card-header">
+                  <div class="card-icon-tag purple">
+                    <svg class="ui-icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="3" width="15" height="13"></rect><polygon points="16 8 20 8 23 11 23 16 16 8"></polygon><circle cx="5.5" cy="18.5" r="2.5"></circle><circle cx="18.5" cy="18.5" r="2.5"></circle></svg>
+                  </div>
+                  <div>
+                    <h4>Delivery Fleet &amp; Driver Roster</h4>
+                    <p>Active vehicles and assigned delivery personnel</p>
+                  </div>
+                </div>
+
+                <div class="fleet-roster-list">
+                  <div class="driver-item-card">
+                    <div class="driver-avatar-box">J</div>
+                    <div class="driver-meta">
+                      <strong>Kuya Jun</strong>
+                      <span>Multicab #1 • Plate: ABC-1234</span>
+                    </div>
+                    <span class="driver-status-pill online">● Active Fleet</span>
+                  </div>
+
+                  <div class="driver-item-card">
+                    <div class="driver-avatar-box">M</div>
+                    <div class="driver-meta">
+                      <strong>Kuya Mario</strong>
+                      <span>Multicab #2 • Plate: XYZ-5678</span>
+                    </div>
+                    <span class="driver-status-pill standby">● Route Standby</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Card 4: Delivery Fees & Purok Zones -->
+              <div class="setting-card">
+                <div class="setting-card-header">
+                  <div class="card-icon-tag orange">
+                    <svg class="ui-icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
+                  </div>
+                  <div>
+                    <h4>Delivery Zones &amp; Flat Surcharges</h4>
+                    <p>Configured delivery routes across barangay puroks</p>
+                  </div>
+                </div>
+
+                <div class="setting-inputs-list">
+                  <div class="setting-row">
+                    <div class="setting-meta">
+                      <strong>Purok 1 (Central Station Zone)</strong>
+                      <span class="setting-desc">0-1 km radius from refilling station</span>
+                    </div>
+                    <span class="zone-fee-badge free">FREE Delivery</span>
+                  </div>
+
+                  <div class="setting-row">
+                    <div class="setting-meta">
+                      <strong>Purok 2 (Residential Heights)</strong>
+                      <span class="setting-desc">1-2 km radius</span>
+                    </div>
+                    <span class="zone-fee-badge free">FREE Delivery</span>
+                  </div>
+
+                  <div class="setting-row">
+                    <div class="setting-meta">
+                      <strong>Purok 3 (Riverside &amp; Outer Zone)</strong>
+                      <span class="setting-desc">2-4 km radius (remote drops)</span>
+                    </div>
+                    <span class="zone-fee-badge free">FREE Delivery</span>
+                  </div>
+                </div>
+              </div>
+
+            </div>
+          </div>
+
+          <!-- Tab Content 3: Filter Life & UV -->
+          <div class="settings-tab-pane" id="paneMaintenance">
+            <div class="settings-cards-grid">
+              
+              <!-- Card 5: Filtration Cartridge Stages -->
+              <div class="setting-card">
+                <div class="setting-card-header">
+                  <div class="card-icon-tag cyan">
+                    <svg class="ui-icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"></path></svg>
+                  </div>
+                  <div>
+                    <h4>Filtration Stage Maintenance</h4>
+                    <p>Monitor remaining lifespans of sediment, carbon, and RO membranes</p>
+                  </div>
+                </div>
+
+                <div class="filter-life-list">
+                  <div class="filter-life-item">
+                    <div class="fl-header">
+                      <strong>Stage 1: 5-Micron Sediment Filter</strong>
+                      <span class="fl-days">Replaced: 12 days ago • Life: 88%</span>
+                    </div>
+                    <div class="fl-progress-track">
+                      <div class="fl-progress-bar green" style="width: 88%;"></div>
+                    </div>
+                  </div>
+
+                  <div class="filter-life-item">
+                    <div class="fl-header">
+                      <strong>Stage 2: Granular Activated Carbon (GAC)</strong>
+                      <span class="fl-days">Replaced: 18 days ago • Life: 76%</span>
+                    </div>
+                    <div class="fl-progress-track">
+                      <div class="fl-progress-bar green" style="width: 76%;"></div>
+                    </div>
+                  </div>
+
+                  <div class="filter-life-item">
+                    <div class="fl-header">
+                      <strong>Stage 3: Reverse Osmosis (RO) Membrane</strong>
+                      <span class="fl-days">Replaced: 45 days ago • Life: 92%</span>
+                    </div>
+                    <div class="fl-progress-track">
+                      <div class="fl-progress-bar green" style="width: 92%;"></div>
+                    </div>
+                  </div>
+
+                  <div class="filter-life-item">
+                    <div class="fl-header">
+                      <strong>Stage 4: UV Sterilizer Lamp (Phillips 25W)</strong>
+                      <span class="fl-days">Operating: 1,420 / 8,000 Hours</span>
+                    </div>
+                    <div class="fl-progress-track">
+                      <div class="fl-progress-bar blue" style="width: 82%;"></div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Card 6: Daily Sanitation Checklist -->
+              <div class="setting-card">
+                <div class="setting-card-header">
+                  <div class="card-icon-tag green">
+                    <svg class="ui-icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+                  </div>
+                  <div>
+                    <h4>Sanitation &amp; Counter Protocol</h4>
+                    <p>Daily station hygiene checklist for opening &amp; closing</p>
+                  </div>
+                </div>
+
+                <div class="checklist-items">
+                  <label class="check-row">
+                    <input type="checkbox" checked>
+                    <span>Morning Nozzle &amp; Sink Ozone Rinse</span>
+                  </label>
+                  <label class="check-row">
+                    <input type="checkbox" checked>
+                    <span>Drain Pan Inspection &amp; Wash</span>
+                  </label>
+                  <label class="check-row">
+                    <input type="checkbox" checked>
+                    <span>Carboy Exterior Pre-wash Station Cleared</span>
+                  </label>
+                  <label class="check-row">
+                    <input type="checkbox">
+                    <span>Evening Station Surface Bleach Wipe-down</span>
+                  </label>
+                </div>
+              </div>
+
+            </div>
+          </div>
+
+          <!-- Tab Content 4: Terminal & Data Tools -->
+          <div class="settings-tab-pane" id="paneSystem">
+            <div class="settings-cards-grid">
+              
+              <!-- Card 7: POS Station Identity -->
+              <div class="setting-card">
+                <div class="setting-card-header">
+                  <div class="card-icon-tag blue">
+                    <svg class="ui-icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect><line x1="8" y1="21" x2="16" y2="21"></line><line x1="12" y1="17" x2="12" y2="21"></line></svg>
+                  </div>
+                  <div>
+                    <h4>POS Terminal Diagnostics</h4>
+                    <p>Software build version and local storage cache</p>
+                  </div>
+                </div>
+
+                <div class="system-meta-list">
+                  <div class="meta-row">
+                    <span class="m-k">Application Build</span>
+                    <strong class="m-v">R&amp;R POS v2.6.4 (Clean Pure POS)</strong>
+                  </div>
+                  <div class="meta-row">
+                    <span class="m-k">Local Database Engine</span>
+                    <strong class="m-v">Browser LocalStorage (Encrypted Cache)</strong>
+                  </div>
+                  <div class="meta-row">
+                    <span class="m-k">Station Sound Effects</span>
+                    <strong class="m-v">HTML5 Audio Synthesizer (Zero Latency)</strong>
+                  </div>
+                  <div class="meta-row">
+                    <span class="m-k">Offline Capability</span>
+                    <strong class="m-v green">● 100% Offline Ready (Zero Network Required)</strong>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Card 8: Data Backup & Reset Actions -->
+              <div class="setting-card">
+                <div class="setting-card-header">
+                  <div class="card-icon-tag red">
+                    <svg class="ui-icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
+                  </div>
+                  <div>
+                    <h4>Shift &amp; Database Maintenance</h4>
+                    <p>Export records or reset shift ledger</p>
+                  </div>
+                </div>
+
+                <div class="setting-inputs-list">
+                  <div class="data-tool-action">
+                    <div>
+                      <strong>Export Shift CSV</strong>
+                      <p>Download full comma-separated spreadsheet of all transactions</p>
+                    </div>
+                    <button class="btn-sub-action" id="btnExportCsvFromSettings">
+                      <svg class="ui-icon-xs" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+                      <span>Export CSV</span>
+                    </button>
+                  </div>
+
+                  <div class="data-tool-action">
+                    <div>
+                      <strong>Start New Day / Reset Shift</strong>
+                      <p>Archive and clear today's orders to start fresh at ₱0.00</p>
+                    </div>
+                    <button class="btn-sub-action danger" id="btnResetShiftFromSettings">
+                      <svg class="ui-icon-xs" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"></polyline><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path></svg>
+                      <span>Reset Shift</span>
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+            </div>
           </div>
 
         </div>
