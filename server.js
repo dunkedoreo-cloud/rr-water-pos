@@ -79,9 +79,10 @@ server.on('error', (err) => {
 
 server.listen(PORT, () => {
   console.log('========================================================');
-  console.log('  R&R Water Refilling Station - Dedicated POS Terminal');
+  console.log('  R&R Water Refilling Station - POS Terminals');
   console.log('========================================================');
-  console.log(`  [>] POS System URL: http://localhost:${PORT}/`);
+  console.log(`  [>] Main POS URL:      http://localhost:${PORT}/`);
+  console.log(`  [>] Prototype POS URL: http://localhost:${PORT}/WRS-POS-Prototype.html`);
   console.log('========================================================');
   console.log('  Press Ctrl+C to stop server.\n');
 });
