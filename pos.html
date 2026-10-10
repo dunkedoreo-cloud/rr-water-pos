@@ -52,6 +52,16 @@
           <span class="nav-badge" id="sidebarOrdersBadge">0</span>
         </button>
 
+        <!-- Reports -->
+        <button class="nav-item" data-view="reports" id="navReports">
+          <svg class="ui-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="18" y1="20" x2="18" y2="10"></line>
+            <line x1="12" y1="20" x2="12" y2="4"></line>
+            <line x1="6" y1="20" x2="6" y2="14"></line>
+          </svg>
+          <span>Reports</span>
+        </button>
+
         <!-- Settings -->
         <button class="nav-item" data-view="settings" id="navSettings">
           <svg class="ui-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -617,7 +627,242 @@
       </div>
 
       <!-- ================================================================
-           VIEW STAGE 3: SYSTEM & STATION SETTINGS
+           VIEW STAGE: REPORTS & ANALYTICS (FIXORIA SAAS UI DESIGN)
+           ================================================================ -->
+      <div class="view-stage" id="stageReports">
+        <div class="fixoria-report-view">
+
+          <!-- 1. Top Breadcrumb Bar -->
+          <div class="report-breadcrumb-bar">
+            <div class="breadcrumb-links">
+              <a href="javascript:void(0)" class="breadcrumb-home" id="reportBreadcrumbHome" title="Back to POS Terminal">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+                  <polyline points="9 22 9 12 15 12 15 22"></polyline>
+                </svg>
+              </a>
+              <span class="breadcrumb-sep">/</span>
+              <span class="breadcrumb-item">Report</span>
+              <span class="breadcrumb-sep">/</span>
+              <span class="breadcrumb-current">Station Sales Report</span>
+            </div>
+            <button class="breadcrumb-more-btn" id="btnReportMenuMore" title="Report Options">
+              <svg viewBox="0 0 24 24" fill="currentColor">
+                <circle cx="5" cy="12" r="2"></circle>
+                <circle cx="12" cy="12" r="2"></circle>
+                <circle cx="19" cy="12" r="2"></circle>
+              </svg>
+            </button>
+          </div>
+
+          <!-- 2. Hero Header with Dark Square Icon, Title, and Subtitle -->
+          <div class="report-hero-header">
+            <div class="report-hero-icon-box">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="3" y="12" width="4" height="8" rx="1"></rect>
+                <rect x="10" y="4" width="4" height="16" rx="1"></rect>
+                <rect x="17" y="8" width="4" height="12" rx="1"></rect>
+              </svg>
+            </div>
+            <div class="report-hero-text">
+              <div class="report-hero-title-row">
+                <h2>Station Sales Report</h2>
+                <button class="report-star-btn" id="btnFavoriteReport" title="Favorite Report">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
+                  </svg>
+                </button>
+              </div>
+              <span class="report-hero-sub" id="reportHeroSub">Auto-updates in real time</span>
+            </div>
+          </div>
+
+          <!-- 3. Top 3 KPI Summary Cards with Green Sparklines -->
+          <div class="sparkline-kpi-grid">
+            <!-- Card 1: Total Volume / Dispensed -->
+            <div class="sparkline-card">
+              <div class="sparkline-card-info">
+                <span class="kpi-label">Total Dispensed</span>
+                <strong class="kpi-value" id="kpiDispensedVal">1,612,132</strong>
+                <span class="kpi-subtext" id="kpiDispensedSub">Total Volume last 365 days</span>
+              </div>
+              <div class="sparkline-graph-wrap">
+                <svg class="sparkline-svg" viewBox="0 0 120 48" preserveAspectRatio="none">
+                  <defs>
+                    <linearGradient id="sparkGrad1" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stop-color="#10b981" stop-opacity="0.28" />
+                      <stop offset="100%" stop-color="#10b981" stop-opacity="0.0" />
+                    </linearGradient>
+                  </defs>
+                  <path id="sparkArea1" fill="url(#sparkGrad1)" d="M 0 44 L 0 36 C 25 36, 45 42, 65 30 C 85 18, 100 12, 120 12 L 120 48 L 0 48 Z" />
+                  <path id="sparkLine1" fill="none" stroke="#10b981" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" d="M 0 36 C 25 36, 45 42, 65 30 C 85 18, 100 12, 120 12" />
+                </svg>
+              </div>
+            </div>
+
+            <!-- Card 2: Total Tax / Uncollected Receivables -->
+            <div class="sparkline-card">
+              <div class="sparkline-card-info">
+                <span class="kpi-label">Total Uncollected</span>
+                <strong class="kpi-value" id="kpiUncollectedVal">₱1,45,520</strong>
+                <span class="kpi-subtext" id="kpiUncollectedSub">Pending driver balances</span>
+              </div>
+              <div class="sparkline-graph-wrap">
+                <svg class="sparkline-svg" viewBox="0 0 120 48" preserveAspectRatio="none">
+                  <defs>
+                    <linearGradient id="sparkGrad2" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stop-color="#10b981" stop-opacity="0.28" />
+                      <stop offset="100%" stop-color="#10b981" stop-opacity="0.0" />
+                    </linearGradient>
+                  </defs>
+                  <path id="sparkArea2" fill="url(#sparkGrad2)" d="M 0 44 L 0 38 C 30 38, 50 30, 80 18 C 95 12, 110 14, 120 14 L 120 48 L 0 48 Z" />
+                  <path id="sparkLine2" fill="none" stroke="#10b981" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" d="M 0 38 C 30 38, 50 30, 80 18 C 95 12, 110 14, 120 14" />
+                </svg>
+              </div>
+            </div>
+
+            <!-- Card 3: Total Revenue / Amount -->
+            <div class="sparkline-card">
+              <div class="sparkline-card-info">
+                <span class="kpi-label">Total Amount</span>
+                <strong class="kpi-value" id="kpiRevenueVal">₱2,012,132</strong>
+                <span class="kpi-subtext" id="kpiRevenueSub">Total Amount last 365 days</span>
+              </div>
+              <div class="sparkline-graph-wrap">
+                <svg class="sparkline-svg" viewBox="0 0 120 48" preserveAspectRatio="none">
+                  <defs>
+                    <linearGradient id="sparkGrad3" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stop-color="#10b981" stop-opacity="0.28" />
+                      <stop offset="100%" stop-color="#10b981" stop-opacity="0.0" />
+                    </linearGradient>
+                  </defs>
+                  <path id="sparkArea3" fill="url(#sparkGrad3)" d="M 0 44 L 0 38 C 25 38, 45 32, 70 20 C 90 20, 105 10, 120 8 L 120 48 L 0 48 Z" />
+                  <path id="sparkLine3" fill="none" stroke="#10b981" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" d="M 0 38 C 25 38, 45 32, 70 20 C 90 20, 105 10, 120 8" />
+                </svg>
+              </div>
+            </div>
+          </div>
+
+          <!-- 4. Report List Section & Filter Bar -->
+          <div class="report-list-section">
+            <h3 class="report-list-heading">Report List</h3>
+
+            <div class="report-list-toolbar">
+              <!-- Left Toolbar: Dropdowns & Filter Icon -->
+              <div class="toolbar-left-group">
+                <!-- Dropdown 1: Source Filter -->
+                <div class="select-pill-wrapper">
+                  <select id="reportFilterSource" class="report-select-pill" aria-label="Filter Source">
+                    <option value="all">All Source</option>
+                    <option value="walkin">Front Desks</option>
+                    <option value="delivery">Web Reservation</option>
+                    <option value="container">Group Reservation</option>
+                  </select>
+                  <svg class="select-arrow-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"></polyline></svg>
+                </div>
+
+                <!-- Dropdown 2: Period Filter (Weekly, Monthly, Yearly, Today, All-Time) -->
+                <div class="select-pill-wrapper">
+                  <select id="reportFilterPeriod" class="report-select-pill" aria-label="Filter Period">
+                    <option value="monthly" selected>Monthly</option>
+                    <option value="weekly">Weekly</option>
+                    <option value="yearly">Yearly</option>
+                    <option value="today">Today / Shift</option>
+                    <option value="all">All Time</option>
+                  </select>
+                  <svg class="select-arrow-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"></polyline></svg>
+                </div>
+
+                <!-- Filter funnel icon button -->
+                <button class="report-icon-btn" id="btnReportFilterToggle" title="Filter Options">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon>
+                  </svg>
+                </button>
+              </div>
+
+              <!-- Right Toolbar: Search & Export Buttons -->
+              <div class="toolbar-right-group">
+                <!-- Search input with search icon -->
+                <div class="report-search-wrap">
+                  <svg class="report-search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="11" cy="11" r="8"></circle>
+                    <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                  </svg>
+                  <input type="text" id="reportSearchInput" placeholder="Search..." aria-label="Search reports">
+                </div>
+
+                <!-- Export PDF -->
+                <button class="report-action-btn" id="btnReportExportPdf" title="Export or Print PDF">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                    <polyline points="14 2 14 8 20 8"></polyline>
+                    <line x1="16" y1="13" x2="8" y2="13"></line>
+                    <line x1="16" y1="17" x2="8" y2="17"></line>
+                    <polyline points="10 9 9 9 8 9"></polyline>
+                  </svg>
+                  <span>Export PDF</span>
+                </button>
+
+                <!-- Export Excel -->
+                <button class="report-action-btn" id="btnReportExportExcel" title="Export Excel / CSV">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="18" y1="20" x2="18" y2="10"></line>
+                    <line x1="12" y1="20" x2="12" y2="4"></line>
+                    <line x1="6" y1="20" x2="6" y2="14"></line>
+                    <rect x="2" y="3" width="20" height="18" rx="2"></rect>
+                  </svg>
+                  <span>Export Excel</span>
+                </button>
+              </div>
+            </div>
+
+            <!-- 5. Data Table -->
+            <div class="report-table-card">
+              <table class="report-clean-table" id="reportCleanTable">
+                <thead>
+                  <tr>
+                    <th class="th-cb"><input type="checkbox" id="reportSelectAllCb" title="Select All"></th>
+                    <th class="th-orderno">Booking No</th>
+                    <th class="th-guest">Name of Guest</th>
+                    <th class="th-qty">Guests</th>
+                    <th class="th-source">Source</th>
+                    <th class="th-date">Booking Date &amp; Time</th>
+                    <th class="th-fare">Fare</th>
+                    <th class="th-tax">Tax</th>
+                    <th class="th-total">Total Amount</th>
+                    <th class="th-status">Status</th>
+                    <th class="th-dots"></th>
+                  </tr>
+                </thead>
+                <tbody id="reportCleanTbody">
+                  <!-- Dynamically populated rows -->
+                </tbody>
+              </table>
+            </div>
+
+            <!-- 6. Bottom Pagination Bar -->
+            <div class="report-pagination-bar" id="reportPaginationBar">
+              <button class="pagination-btn pagination-prev" id="btnReportPrevPage">← Previous</button>
+              <div class="pagination-pages-group" id="reportPaginationPages">
+                <button class="page-pill active" data-page="1">1</button>
+                <button class="page-pill" data-page="2">2</button>
+                <span class="page-ellipsis">...</span>
+                <button class="page-pill" data-page="10">10</button>
+                <button class="page-pill" data-page="12">12</button>
+                <button class="page-pill" data-page="13">13</button>
+                <button class="page-pill" data-page="14">14</button>
+              </div>
+              <button class="pagination-btn pagination-next" id="btnReportNextPage">Next →</button>
+            </div>
+
+          </div>
+
+        </div>
+      </div>
+
+      <!-- ================================================================
+           VIEW STAGE 4: SYSTEM & STATION SETTINGS
            ================================================================ -->
       <div class="view-stage" id="stageSettings">
         <div class="settings-view">
