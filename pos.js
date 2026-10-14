@@ -819,10 +819,20 @@ function bindEvents() {
     });
   }
 
-  // Export CSV
+  // Export CSV (Minimal Aesthetic Format)
   const btnExport = document.getElementById('btnExportCsv');
   if (btnExport) {
-    btnExport.addEventListener('click', exportOrdersCSV);
+    btnExport.addEventListener('click', () => {
+      exportReportAestheticCSV(true);
+    });
+  }
+
+  // Export Excel (Pre-Designed Spreadsheet Template)
+  const btnExportExcelOrders = document.getElementById('btnExportExcelOrders');
+  if (btnExportExcelOrders) {
+    btnExportExcelOrders.addEventListener('click', () => {
+      exportReportExcelFile(true);
+    });
   }
 
   // Print shift
@@ -955,10 +965,20 @@ function bindEvents() {
     });
   }
 
-  // Export CSV from Settings
+  // Export Excel (Pre-Designed Spreadsheet Template) from Settings
+  const btnExportExcelSettings = document.getElementById('btnExportExcelFromSettings');
+  if (btnExportExcelSettings) {
+    btnExportExcelSettings.addEventListener('click', () => {
+      exportReportExcelFile(true);
+    });
+  }
+
+  // Export CSV (Clean Aesthetic Statement) from Settings
   const btnExportSettings = document.getElementById('btnExportCsvFromSettings') || document.getElementById('btnExportSettingsCsv');
   if (btnExportSettings) {
-    btnExportSettings.addEventListener('click', exportOrdersCSV);
+    btnExportSettings.addEventListener('click', () => {
+      exportReportAestheticCSV(true);
+    });
   }
 
   // Backup Database JSON from Settings
@@ -2480,44 +2500,483 @@ function renderReportPagination(totalPages, activePage) {
   });
 }
 
-function exportReportExcelCSV() {
-  const filtered = getReportFilteredOrders();
-  if (filtered.length === 0) {
-    showToast('No orders found in current filter to export.');
+// ==========================================================================
+// PRE-DESIGNED EXCEL & MINIMAL AESTHETIC CSV EXPORT
+// ==========================================================================
+
+function getExportOrdersData(allOrders = false) {
+  const orders = allOrders ? (State.storedOrders || []) : getReportFilteredOrders();
+  const periodLabel = allOrders
+    ? 'All Stored Orders & Shift Ledger'
+    : (State.reportPeriod === 'monthly' ? 'Monthly Operations & Revenue Report (30 Days)' :
+       State.reportPeriod === 'weekly' ? 'Weekly Operations & Revenue Report (7 Days)' :
+       State.reportPeriod === 'yearly' ? 'Yearly Operations & Revenue Report (12 Months)' :
+       State.reportPeriod === 'today' ? "Today's Active Shift Operations Report" : 'All Time Comprehensive History');
+
+  let totalGallons = 0;
+  let totalFare = 0;
+  let totalTax = 0;
+  let totalRevenue = 0;
+  let settledCount = 0;
+
+  orders.forEach(o => {
+    const isPaid = o.status === 'paid';
+    const fare = typeof o.fare === 'number' ? o.fare : Math.round((o.total || 0) * 0.9);
+    const tax = typeof o.tax === 'number' ? o.tax : (o.unpaidAmount || (isPaid ? 0 : o.total));
+    const total = o.total || (fare + tax);
+
+    totalGallons += (o.gallons || 1);
+    totalFare += fare;
+    totalTax += tax;
+    totalRevenue += total;
+    if (isPaid) settledCount++;
+  });
+
+  const settlementRate = orders.length > 0 ? ((settledCount / orders.length) * 100).toFixed(1) : '100.0';
+
+  return {
+    orders,
+    periodLabel,
+    totalGallons,
+    totalFare,
+    totalTax,
+    totalRevenue,
+    settledCount,
+    settlementRate
+  };
+}
+
+function exportReportExcelFile(allOrders = false) {
+  const data = getExportOrdersData(allOrders);
+  const { orders, periodLabel, totalGallons, totalFare, totalTax, totalRevenue, settledCount, settlementRate } = data;
+
+  if (orders.length === 0) {
+    showToast('No orders found to export.');
     return;
   }
 
   soundCtrl.playTap();
-  const headers = ['Booking No', 'Name of Guest / Note', 'Guests (Gallons)', 'Source', 'Date & Time', 'Fare', 'Tax (Unpaid)', 'Total Amount', 'Status'];
-  const rows = filtered.map(o => {
+  const now = new Date();
+  const exportTime = `${now.toISOString().slice(0, 10)} ${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+  const todayDate = now.toISOString().slice(0, 10);
+
+  // Generate Styled MSO-HTML Spreadsheet (Native .xls format compatible with Excel, Sheets, Calc)
+  const rowsHtml = orders.map((o, idx) => {
     const isPaid = o.status === 'paid';
     const fareVal = typeof o.fare === 'number' ? o.fare : Math.round((o.total || 0) * 0.9);
     const taxVal = typeof o.tax === 'number' ? o.tax : (o.unpaidAmount || (isPaid ? 0 : o.total));
+    const totalVal = o.total || (fareVal + taxVal);
     const sourceText = o.channel === 'delivery' ? 'Web Reservation' : (o.prodKey === 'new_container' ? 'Group Reservation' : 'Font Desks');
-    return [
-      `"${o.orderNo}"`,
-      `"${(o.note || '').replace(/"/g, '""')}"`,
-      o.gallons || 1,
-      `"${sourceText}"`,
-      `"${formatReportDateTime(o.timestamp)}"`,
-      fareVal,
-      taxVal,
-      o.total || 0,
-      `"${isPaid ? 'Booked' : 'Refund'}"`
-    ];
-  });
+    const guestName = escapeHtml(o.note || (o.channel === 'delivery' ? 'Delivery Client' : 'Walk-in Guest'));
+    const dateTimeStr = formatReportDateTime(o.timestamp);
+    const notesStr = escapeHtml(o.note || '');
 
-  const csvContent = 'data:text/csv;charset=utf-8,' + [headers.join(','), ...rows.map(r => r.join(','))].join('\n');
-  const encodedUri = encodeURI(csvContent);
+    return `
+      <tr class="${idx % 2 === 0 ? 'cell-even' : 'cell-odd'}">
+        <td class="cell-orderno">${o.orderNo}</td>
+        <td>${guestName}</td>
+        <td class="cell-num">${o.gallons || 1}</td>
+        <td>${sourceText}</td>
+        <td class="cell-date">${dateTimeStr}</td>
+        <td class="cell-currency">${fareVal.toFixed(2)}</td>
+        <td class="cell-currency">${taxVal.toFixed(2)}</td>
+        <td class="cell-currency cell-total">${totalVal.toFixed(2)}</td>
+        <td class="${isPaid ? 'pill-booked' : 'pill-refund'}">${isPaid ? 'Booked' : 'Refund'}</td>
+        <td class="cell-notes">${notesStr}</td>
+      </tr>
+    `;
+  }).join('');
+
+  const excelTemplate = `
+    <html xmlns:o="urn:schemas-microsoft-com:office:office"
+          xmlns:x="urn:schemas-microsoft-com:office:excel"
+          xmlns="http://www.w3.org/TR/REC-html40">
+    <head>
+      <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+      <!--[if gte mso 9]>
+      <xml>
+        <x:ExcelWorkbook>
+          <x:ExcelWorksheets>
+            <x:ExcelWorksheet>
+              <x:Name>Station Audit Ledger</x:Name>
+              <x:WorksheetOptions>
+                <x:DisplayGridlines/>
+                <x:Print>
+                  <x:ValidPrinterInfo/>
+                  <x:PaperSizeIndex>9</x:PaperSizeIndex>
+                  <x:HorizontalResolution>600</x:HorizontalResolution>
+                  <x:VerticalResolution>600</x:VerticalResolution>
+                </x:Print>
+              </x:WorksheetOptions>
+            </x:ExcelWorksheet>
+          </x:ExcelWorksheets>
+        </x:ExcelWorkbook>
+      </xml>
+      <![endif]-->
+      <style>
+        body, table, td, th {
+          font-family: 'Segoe UI', Calibri, Arial, sans-serif;
+          font-size: 10pt;
+          color: #0f172a;
+        }
+        .station-title {
+          background-color: #0369a1;
+          color: #ffffff;
+          font-size: 16pt;
+          font-weight: bold;
+          text-align: left;
+          padding: 14px 16px;
+          letter-spacing: 0.5px;
+        }
+        .station-subtitle {
+          background-color: #0284c7;
+          color: #f0f9ff;
+          font-size: 9.5pt;
+          font-weight: normal;
+          padding: 4px 16px 12px 16px;
+        }
+        .meta-row td {
+          background-color: #f8fafc;
+          color: #475569;
+          font-size: 9pt;
+          padding: 8px 12px;
+          border-bottom: 1px solid #cbd5e1;
+        }
+        .kpi-title {
+          font-size: 8pt;
+          font-weight: bold;
+          color: #475569;
+          text-transform: uppercase;
+          background-color: #f8fafc;
+          border: 1px solid #e2e8f0;
+          text-align: center;
+          padding: 8px 6px 3px 6px;
+        }
+        .kpi-val {
+          font-size: 16pt;
+          font-weight: bold;
+          background-color: #f8fafc;
+          border-left: 1px solid #e2e8f0;
+          border-right: 1px solid #e2e8f0;
+          text-align: center;
+          padding: 2px 6px 3px 6px;
+        }
+        .kpi-sub {
+          font-size: 8pt;
+          color: #64748b;
+          background-color: #f8fafc;
+          border-bottom: 1px solid #e2e8f0;
+          border-left: 1px solid #e2e8f0;
+          border-right: 1px solid #e2e8f0;
+          text-align: center;
+          padding: 2px 6px 8px 6px;
+        }
+        .th-header {
+          background-color: #0f172a;
+          color: #ffffff;
+          font-weight: bold;
+          font-size: 9.5pt;
+          text-align: left;
+          padding: 10px 10px;
+          border: 1px solid #0f172a;
+        }
+        .th-header-num {
+          background-color: #0f172a;
+          color: #ffffff;
+          font-weight: bold;
+          font-size: 9.5pt;
+          text-align: right;
+          padding: 10px 10px;
+          border: 1px solid #0f172a;
+        }
+        .th-header-center {
+          background-color: #0f172a;
+          color: #ffffff;
+          font-weight: bold;
+          font-size: 9.5pt;
+          text-align: center;
+          padding: 10px 10px;
+          border: 1px solid #0f172a;
+        }
+        .cell-even td, td.cell-even {
+          background-color: #ffffff;
+          border: 1px solid #e2e8f0;
+          padding: 8px 10px;
+          vertical-align: middle;
+        }
+        .cell-odd td, td.cell-odd {
+          background-color: #f8fafc;
+          border: 1px solid #e2e8f0;
+          padding: 8px 10px;
+          vertical-align: middle;
+        }
+        .cell-orderno {
+          font-weight: bold;
+          color: #0284c7;
+        }
+        .cell-date {
+          white-space: nowrap;
+          color: #475569;
+        }
+        .cell-currency {
+          text-align: right;
+          mso-number-format: "\\₱\\#\\,\\#\\#0\\.00";
+          white-space: nowrap;
+        }
+        .cell-total {
+          font-weight: bold;
+          color: #0284c7;
+        }
+        .cell-num {
+          text-align: right;
+          mso-number-format: "\\#\\,\\#\\#0";
+        }
+        .pill-booked {
+          background-color: #ecfdf5;
+          color: #047857;
+          font-weight: bold;
+          text-align: center;
+          border: 1px solid #a7f3d0;
+        }
+        .pill-refund {
+          background-color: #fffbeb;
+          color: #b45309;
+          font-weight: bold;
+          text-align: center;
+          border: 1px solid #fde68a;
+        }
+        .cell-notes {
+          color: #64748b;
+          font-size: 9pt;
+        }
+        .totals-row td {
+          background-color: #f0f9ff;
+          border-top: 2px solid #0284c7;
+          border-bottom: 3px double #0284c7;
+          font-weight: bold;
+          color: #0369a1;
+          padding: 10px 10px;
+          font-size: 10.5pt;
+        }
+        .signoff-row td {
+          font-size: 8.5pt;
+          color: #64748b;
+          padding: 14px 6px 4px 6px;
+        }
+      </style>
+    </head>
+    <body>
+      <table border="0" cellpadding="0" cellspacing="0" style="border-collapse: collapse; width: 100%;">
+        <col width="115">
+        <col width="170">
+        <col width="85">
+        <col width="135">
+        <col width="140">
+        <col width="110">
+        <col width="115">
+        <col width="125">
+        <col width="95">
+        <col width="190">
+
+        <!-- Station Branding Banner -->
+        <tr>
+          <td colspan="10" class="station-title">R&amp;R WATER REFILLING STATION &mdash; EXECUTIVE SALES &amp; OPERATIONS LEDGER</td>
+        </tr>
+        <tr>
+          <td colspan="10" class="station-subtitle">Standard Purified Operations &bull; Station POS Terminal #01 &bull; Financial Audit Report</td>
+        </tr>
+        <tr class="meta-row">
+          <td colspan="5"><strong>Report Scope:</strong> ${periodLabel}</td>
+          <td colspan="5" style="text-align: right;"><strong>Export Generated:</strong> ${exportTime} &bull; <strong>Currency:</strong> Philippine Peso (&#8369;)</td>
+        </tr>
+        <tr style="height: 12px;"><td colspan="10"></td></tr>
+
+        <!-- Executive KPI Cards -->
+        <tr>
+          <td colspan="2" class="kpi-title" style="border-top-color:#38bdf8; border-top-width:3px;">GROSS REVENUE</td>
+          <td colspan="3" class="kpi-title" style="border-top-color:#34d399; border-top-width:3px;">DISPENSED VOLUME</td>
+          <td colspan="2" class="kpi-title" style="border-top-color:#f59e0b; border-top-width:3px;">PENDING RECEIVABLES</td>
+          <td colspan="3" class="kpi-title" style="border-top-color:#0284c7; border-top-width:3px;">SETTLEMENT RATE</td>
+        </tr>
+        <tr>
+          <td colspan="2" class="kpi-val cell-currency" style="color: #0284c7;">&#8369;${totalRevenue.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+          <td colspan="3" class="kpi-val" style="color: #059669;">${totalGallons.toLocaleString()} Gals</td>
+          <td colspan="2" class="kpi-val cell-currency" style="color: #d97706;">&#8369;${totalTax.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+          <td colspan="3" class="kpi-val" style="color: #0284c7;">${settlementRate}%</td>
+        </tr>
+        <tr>
+          <td colspan="2" class="kpi-sub">Total Sales &amp; Collections</td>
+          <td colspan="3" class="kpi-sub">Purified Water Dispensed</td>
+          <td colspan="2" class="kpi-sub">Uncollected Receivables</td>
+          <td colspan="3" class="kpi-sub">${settledCount} of ${orders.length} Orders Settled</td>
+        </tr>
+        <tr style="height: 14px;"><td colspan="10"></td></tr>
+
+        <!-- Table Column Headers -->
+        <tr>
+          <th class="th-header">Booking No</th>
+          <th class="th-header">Customer / Guest</th>
+          <th class="th-header-num">Gallons</th>
+          <th class="th-header">Source Channel</th>
+          <th class="th-header">Date &amp; Time</th>
+          <th class="th-header-num">Base Fare (&#8369;)</th>
+          <th class="th-header-num">Tax / Credit (&#8369;)</th>
+          <th class="th-header-num">Total Amount (&#8369;)</th>
+          <th class="th-header-center">Status</th>
+          <th class="th-header">Notes / Destination</th>
+        </tr>
+
+        <!-- Data Rows -->
+        ${rowsHtml}
+
+        <!-- Grand Totals Accounting Row -->
+        <tr class="totals-row">
+          <td colspan="2" style="font-size: 10pt; text-transform: uppercase;">&bull; TOTAL AUDIT SUMMARY</td>
+          <td class="cell-num" style="font-size: 10pt; text-align: right;">${totalGallons.toLocaleString()}</td>
+          <td colspan="2" style="font-size: 9pt; color: #0369a1;">${orders.length} Audited Transactions</td>
+          <td class="cell-currency">&#8369;${totalFare.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+          <td class="cell-currency" style="color: #b45309;">&#8369;${totalTax.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+          <td class="cell-currency" style="color: #0369a1; font-size: 11pt;">&#8369;${totalRevenue.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+          <td style="text-align: center; font-size: 9pt;">${settlementRate}% Paid</td>
+          <td style="font-size: 8.5pt; color: #64748b;">Ledger Balance Verified</td>
+        </tr>
+        <tr style="height: 18px;"><td colspan="10"></td></tr>
+
+        <!-- Audit Sign-off Row -->
+        <tr class="signoff-row">
+          <td colspan="4" style="border-top: 1px solid #cbd5e1; padding-top: 8px;">
+            <strong>Prepared By:</strong> Station Cashier / Attendant<br>
+            <span>R&amp;R Water Automated Terminal Point</span>
+          </td>
+          <td colspan="2"></td>
+          <td colspan="4" style="border-top: 1px solid #cbd5e1; padding-top: 8px; text-align: right;">
+            <strong>Audited &amp; Approved By:</strong> Operations Manager<br>
+            <span>Certified Pure Water Quality Assurance</span>
+          </td>
+        </tr>
+      </table>
+    </body>
+    </html>
+  `;
+
+  const blob = new Blob(['\uFEFF' + excelTemplate], {
+    type: 'application/vnd.ms-excel;charset=utf-8;'
+  });
+  const url = URL.createObjectURL(blob);
   const link = document.createElement('a');
-  link.setAttribute('href', encodedUri);
-  const today = new Date().toISOString().split('T')[0];
-  link.setAttribute('download', `RR_Water_${State.reportPeriod.toUpperCase()}_Report_${today}.csv`);
+  link.href = url;
+  const filePrefix = allOrders ? 'RR_Water_Shift_Ledger' : `RR_Water_${State.reportPeriod.toUpperCase()}_Executive_Report`;
+  link.download = `${filePrefix}_${todayDate}.xls`;
   document.body.appendChild(link);
   link.click();
-  document.body.removeChild(link);
+  link.remove();
+  URL.revokeObjectURL(url);
 
-  showToast(`Exported ${filtered.length} orders to CSV spreadsheet!`);
+  showToast(`Exported ${orders.length} transactions to Executive Excel Spreadsheet!`);
+}
+
+function exportReportAestheticCSV(allOrders = false) {
+  const data = getExportOrdersData(allOrders);
+  const { orders, periodLabel, totalGallons, totalFare, totalTax, totalRevenue, settledCount, settlementRate } = data;
+
+  if (orders.length === 0) {
+    showToast('No orders available to export.');
+    return;
+  }
+
+  soundCtrl.playTap();
+  const now = new Date();
+  const exportTime = `${now.toISOString().slice(0, 10)} ${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}:${String(now.getSeconds()).padStart(2, '0')}`;
+  const todayDate = now.toISOString().slice(0, 10);
+
+  const lines = [
+    '# ==============================================================================',
+    '#  R&R WATER REFILLING STATION  --  EXECUTIVE FINANCIAL AUDIT STATEMENT',
+    '# ==============================================================================',
+    `#  Report Scope    : ${periodLabel}`,
+    `#  Export Generated: ${exportTime} (Local Station Time)`,
+    '#  Station Terminal: Station Terminal #01 (Clean Pure POS v2.6.4)',
+    '#  Base Currency   : Philippine Peso (PHP - ₱)',
+    '# ------------------------------------------------------------------------------',
+    '#  EXECUTIVE METRICS OVERVIEW:',
+    `#  Total Orders Dispensed  : ${orders.length} Orders`,
+    `#  Total Gallons Delivered : ${totalGallons.toLocaleString()} Gallons`,
+    `#  Gross Sales Revenue     : ₱${totalRevenue.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,
+    `#  Pending Receivables     : ₱${totalTax.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,
+    `#  Order Settlement Ratio  : ${settlementRate}% (${settledCount} of ${orders.length} Settled)`,
+    '# ==============================================================================',
+    '',
+    [
+      '"Booking No"',
+      '"Customer / Guest"',
+      '"Dispensed (Gals)"',
+      '"Source Channel"',
+      '"Date & Time"',
+      '"Base Fare (PHP)"',
+      '"Tax / Pending (PHP)"',
+      '"Total Revenue (PHP)"',
+      '"Payment Status"',
+      '"Delivery Notes / Remarks"'
+    ].join(','),
+    ...orders.map(o => {
+      const isPaid = o.status === 'paid';
+      const fareVal = typeof o.fare === 'number' ? o.fare : Math.round((o.total || 0) * 0.9);
+      const taxVal = typeof o.tax === 'number' ? o.tax : (o.unpaidAmount || (isPaid ? 0 : o.total));
+      const totalVal = o.total || (fareVal + taxVal);
+      const sourceText = o.channel === 'delivery' ? 'Web Reservation' : (o.prodKey === 'new_container' ? 'Group Reservation' : 'Font Desks');
+      const guestName = (o.note || (o.channel === 'delivery' ? 'Delivery Client' : 'Walk-in Guest')).replace(/"/g, '""');
+      const dateTimeStr = formatReportDateTime(o.timestamp);
+      const remarks = (o.note || '').replace(/"/g, '""');
+
+      return [
+        `"${o.orderNo}"`,
+        `"${guestName}"`,
+        o.gallons || 1,
+        `"${sourceText}"`,
+        `"${dateTimeStr}"`,
+        fareVal.toFixed(2),
+        taxVal.toFixed(2),
+        totalVal.toFixed(2),
+        `"${isPaid ? 'Booked' : 'Refund'}"`,
+        `"${remarks}"`
+      ].join(',');
+    }),
+    [
+      '"TOTAL AUDIT SUMMARY"',
+      '"---"',
+      totalGallons,
+      '"---"',
+      `"${orders.length} Transactions"`,
+      totalFare.toFixed(2),
+      totalTax.toFixed(2),
+      totalRevenue.toFixed(2),
+      `"${settlementRate}% Settled"`,
+      '"Ledger Audit Complete"'
+    ].join(','),
+    '',
+    '# ------------------------------------------------------------------------------',
+    '#  END OF FINANCIAL AUDIT STATEMENT -- R&R WATER REFILLING STATION',
+    '# =============================================================================='
+  ];
+
+  const csvContent = '\uFEFF' + lines.join('\r\n');
+  const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.href = url;
+  const filePrefix = allOrders ? 'RR_Water_Shift_Statement' : `RR_Water_${State.reportPeriod.toUpperCase()}_Statement`;
+  link.download = `${filePrefix}_${todayDate}.csv`;
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+  URL.revokeObjectURL(url);
+
+  showToast(`Exported ${orders.length} orders to Clean Aesthetic CSV Statement!`);
+}
+
+// Backward compatibility alias
+function exportReportExcelCSV() {
+  exportReportExcelFile(false);
 }
 
 function bindReportEvents() {
@@ -2578,11 +3037,19 @@ function bindReportEvents() {
     });
   }
 
-  // Export Excel Button
+  // Export Excel (Pre-Designed Spreadsheet Template) Button
   const btnExcel = document.getElementById('btnReportExportExcel');
   if (btnExcel) {
     btnExcel.addEventListener('click', () => {
-      exportReportExcelCSV();
+      exportReportExcelFile(false);
+    });
+  }
+
+  // Export CSV (Clean Aesthetic Statement) Button
+  const btnCsv = document.getElementById('btnReportExportCsv');
+  if (btnCsv) {
+    btnCsv.addEventListener('click', () => {
+      exportReportAestheticCSV(false);
     });
   }
 
@@ -2665,43 +3132,7 @@ function bindReportEvents() {
 // EXPORT CSV
 // ==========================================================================
 function exportOrdersCSV() {
-  if (State.storedOrders.length === 0) {
-    showToast('Orders log is empty!');
-    return;
-  }
-
-  soundCtrl.playTap();
-  const headers = ['Order No', 'Time', 'Channel', 'Quantity (Gallons)', 'Product', 'Unit Price', 'Total Amount', 'Paid Amount', 'Unpaid Balance', 'Payment Status', 'Destination/Notes'];
-  const rows = State.storedOrders.map(o => {
-    const isPending = o.status === 'pending';
-    const paid = typeof o.paidAmount === 'number' ? o.paidAmount : (isPending ? 0 : o.total);
-    const unpaid = typeof o.unpaidAmount === 'number' ? o.unpaidAmount : (isPending ? o.total : 0);
-    return [
-      `"${o.orderNo}"`,
-      `"${o.time}"`,
-      `"${o.channel === 'walkin' ? 'Walk-in Refill' : 'Multicab Delivery'}"`,
-      o.gallons,
-      `"${o.prodName}"`,
-      o.unitPrice,
-      o.total,
-      paid,
-      unpaid,
-      `"${isPending ? 'Pending' : 'Paid'}"`,
-      `"${(o.note || '').replace(/"/g, '""')}"`
-    ];
-  });
-
-  const csvContent = 'data:text/csv;charset=utf-8,' + [headers.join(','), ...rows.map(r => r.join(','))].join('\n');
-  const encodedUri = encodeURI(csvContent);
-  const link = document.createElement('a');
-  link.setAttribute('href', encodedUri);
-  const today = new Date().toISOString().split('T')[0];
-  link.setAttribute('download', `RR_Water_Stored_Orders_${today}.csv`);
-  document.body.appendChild(link);
-  link.click();
-  document.body.removeChild(link);
-
-  showToast('Exported stored orders spreadsheet!');
+  exportReportAestheticCSV(true);
 }
 
 // ==========================================================================

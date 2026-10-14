@@ -536,9 +536,13 @@
                 </select>
               </div>
 
-              <button class="btn-export-csv" id="btnExportCsv">
+              <button class="btn-export-csv" id="btnExportCsv" title="Export Clean Minimal CSV">
                 <svg class="ui-icon-xs" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
                 <span>Export CSV</span>
+              </button>
+              <button class="btn-export-csv" id="btnExportExcelOrders" title="Export Pre-Designed Excel Spreadsheet">
+                <svg class="ui-icon-xs" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"></line><line x1="12" y1="20" x2="12" y2="4"></line><line x1="6" y1="20" x2="6" y2="14"></line><rect x="2" y="3" width="20" height="18" rx="2"></rect></svg>
+                <span>Export Excel</span>
               </button>
               <button class="btn-print-summary" id="btnPrintSummary">
                 <svg class="ui-icon-xs" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 6 2 18 2 18 9"></polyline><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path><rect x="6" y="14" width="12" height="8"></rect></svg>
@@ -804,8 +808,8 @@
                   <span>Export PDF</span>
                 </button>
 
-                <!-- Export Excel -->
-                <button class="report-action-btn" id="btnReportExportExcel" title="Export Excel / CSV">
+                <!-- Export Excel (Pre-Designed Template) -->
+                <button class="report-action-btn" id="btnReportExportExcel" title="Export Pre-Designed Excel Spreadsheet">
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                     <line x1="18" y1="20" x2="18" y2="10"></line>
                     <line x1="12" y1="20" x2="12" y2="4"></line>
@@ -813,6 +817,16 @@
                     <rect x="2" y="3" width="20" height="18" rx="2"></rect>
                   </svg>
                   <span>Export Excel</span>
+                </button>
+
+                <!-- Export CSV (Minimal Aesthetic Format) -->
+                <button class="report-action-btn" id="btnReportExportCsv" title="Export Clean Minimal CSV">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                    <polyline points="7 10 12 15 17 10"></polyline>
+                    <line x1="12" y1="15" x2="12" y2="3"></line>
+                  </svg>
+                  <span>Export CSV</span>
                 </button>
               </div>
             </div>
@@ -1255,8 +1269,19 @@
                 <div class="setting-inputs-list">
                   <div class="data-tool-action">
                     <div>
+                      <strong>Export Shift Excel</strong>
+                      <p>Download pre-designed executive spreadsheet with KPI cards &amp; totals</p>
+                    </div>
+                    <button class="btn-sub-action" id="btnExportExcelFromSettings">
+                      <svg class="ui-icon-xs" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"></line><line x1="12" y1="20" x2="12" y2="4"></line><line x1="6" y1="20" x2="6" y2="14"></line><rect x="2" y="3" width="20" height="18" rx="2"></rect></svg>
+                      <span>Export Excel</span>
+                    </button>
+                  </div>
+
+                  <div class="data-tool-action">
+                    <div>
                       <strong>Export Shift CSV</strong>
-                      <p>Download full comma-separated spreadsheet of all transactions</p>
+                      <p>Download clean, aesthetic comma-separated financial statement</p>
                     </div>
                     <button class="btn-sub-action" id="btnExportCsvFromSettings">
                       <svg class="ui-icon-xs" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
@@ -1272,17 +1297,6 @@
                     <button class="btn-sub-action" id="btnBackupJsonFromSettings">
                       <svg class="ui-icon-xs" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
                       <span>Backup JSON</span>
-                    </button>
-                  </div>
-
-                  <div class="data-tool-action">
-                    <div>
-                      <strong>Reload Analytics Sample Data</strong>
-                      <p>Restore realistic sample orders for weekly/monthly reports</p>
-                    </div>
-                    <button class="btn-sub-action" id="btnReloadSampleFromSettings">
-                      <svg class="ui-icon-xs" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"></polyline><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path></svg>
-                      <span>Load Samples</span>
                     </button>
                   </div>
 
