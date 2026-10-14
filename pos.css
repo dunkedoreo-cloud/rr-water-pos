@@ -2933,7 +2933,11 @@ body:not(.light-mode) .fixoria-report-view {
 }
 
 .breadcrumb-home:hover {
-  color: #10b981;
+  color: #0284c7;
+}
+
+body:not(.light-mode) .breadcrumb-home:hover {
+  color: #38bdf8;
 }
 
 .breadcrumb-sep {
@@ -2947,12 +2951,12 @@ body:not(.light-mode) .fixoria-report-view {
 }
 
 .breadcrumb-current {
-  color: #065f46;
+  color: #0284c7;
   font-weight: 600;
 }
 
 body:not(.light-mode) .breadcrumb-current {
-  color: #34d399;
+  color: #38bdf8;
 }
 
 .breadcrumb-more-btn {
@@ -2980,8 +2984,13 @@ body:not(.light-mode) .breadcrumb-more-btn {
 }
 
 .breadcrumb-more-btn:hover {
-  border-color: #cbd5e1;
-  color: #475569;
+  border-color: #0284c7;
+  color: #0284c7;
+}
+
+body:not(.light-mode) .breadcrumb-more-btn:hover {
+  border-color: #38bdf8;
+  color: #38bdf8;
 }
 
 /* 2. Hero Header */
@@ -2995,19 +3004,24 @@ body:not(.light-mode) .breadcrumb-more-btn {
   width: 50px;
   height: 50px;
   border-radius: 14px;
-  background-color: #1e293b;
+  background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);
   display: flex;
   align-items: center;
   justify-content: center;
   color: #ffffff;
   flex-shrink: 0;
-  box-shadow: 0 4px 12px rgba(15, 23, 42, 0.12);
+  box-shadow: 0 4px 14px rgba(2, 132, 199, 0.32);
+}
+
+body:not(.light-mode) .report-hero-icon-box {
+  background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);
+  box-shadow: 0 4px 16px rgba(2, 132, 199, 0.45);
 }
 
 .report-hero-icon-box svg {
   width: 24px;
   height: 24px;
-  color: #e2e8f0;
+  color: #ffffff;
 }
 
 .report-hero-text {
@@ -3298,8 +3312,8 @@ body:not(.light-mode) .report-search-wrap input {
 }
 
 .report-search-wrap input:focus {
-  border-color: #10b981;
-  box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1);
+  border-color: #0284c7;
+  box-shadow: 0 0 0 3px rgba(2, 132, 199, 0.15);
 }
 
 .report-action-btn {
@@ -3330,12 +3344,15 @@ body:not(.light-mode) .report-action-btn {
 }
 
 .report-action-btn:hover {
-  border-color: #cbd5e1;
-  background-color: #f8fafc;
+  border-color: #0284c7;
+  color: #0284c7;
+  background-color: #f0f9ff;
 }
 
 body:not(.light-mode) .report-action-btn:hover {
-  background-color: rgba(255, 255, 255, 0.05);
+  border-color: #38bdf8;
+  color: #38bdf8;
+  background-color: rgba(2, 132, 199, 0.15);
 }
 
 /* 5. Clean Data Table */
@@ -3416,7 +3433,7 @@ body:not(.light-mode) .report-clean-table tbody tr:hover {
 
 .th-cb input, .td-cb input {
   cursor: pointer;
-  accent-color: #10b981;
+  accent-color: #0284c7;
 }
 
 .td-orderno {
@@ -3480,16 +3497,23 @@ body:not(.light-mode) .td-total {
   color: #f8fafc;
 }
 
-/* Status Badges: Mint Booked & Peach Refund */
+/* Status Badges: Water Blue Booked & Peach Refund */
 .badge-status-booked {
   display: inline-block;
   padding: 3px 12px;
-  background-color: #dcfce7;
-  color: #15803d;
+  background-color: #e0f2fe;
+  color: #0284c7;
+  border: 1px solid #bae6fd;
   border-radius: 9999px;
   font-size: 0.74rem;
   font-weight: 600;
   text-align: center;
+}
+
+body:not(.light-mode) .badge-status-booked {
+  background-color: rgba(2, 132, 199, 0.2);
+  color: #38bdf8;
+  border-color: rgba(56, 189, 248, 0.35);
 }
 
 .badge-status-refund {
@@ -3606,8 +3630,9 @@ body:not(.light-mode) .page-pill:hover:not(.active) {
 }
 
 .page-pill.active {
-  background-color: #10b981 !important;
+  background-color: #0284c7 !important;
   color: #ffffff !important;
+  box-shadow: 0 2px 8px rgba(2, 132, 199, 0.35);
 }
 
 .page-ellipsis {
@@ -4289,8 +4314,9 @@ body:not(.light-mode) .page-pill:hover:not(.active) {
   background: linear-gradient(90deg, #3b82f6 0%, #60a5fa 100%);
 }
 
-/* Data Tools */
-.data-tools-list {
+/* Data Tools & Terminal Diagnostics */
+.data-tools-list,
+.system-meta-list {
   display: flex;
   flex-direction: column;
   gap: 12px;
@@ -4305,6 +4331,16 @@ body:not(.light-mode) .page-pill:hover:not(.active) {
   background-color: var(--bg-surface);
   border: 1px solid var(--border-subtle);
   border-radius: var(--radius-md);
+  transition: all 0.15s ease;
+}
+
+.data-tool-action:hover {
+  border-color: #cbd5e1;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03);
+}
+
+body:not(.light-mode) .data-tool-action:hover {
+  border-color: rgba(255, 255, 255, 0.12);
 }
 
 .data-tool-action strong {
@@ -4312,12 +4348,75 @@ body:not(.light-mode) .page-pill:hover:not(.active) {
   font-size: 0.84rem;
   font-weight: 800;
   color: var(--text-main);
+  letter-spacing: -0.01em;
 }
 
 .data-tool-action p {
   font-size: 0.72rem;
   color: var(--text-muted);
-  margin-top: 1px;
+  margin-top: 2px;
+}
+
+.meta-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 12px;
+  border-radius: 9999px;
+  font-size: 0.74rem;
+  font-weight: 700;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.meta-badge.blue {
+  background-color: #e0f2fe;
+  color: #0284c7;
+  border: 1px solid #bae6fd;
+}
+
+body:not(.light-mode) .meta-badge.blue {
+  background-color: rgba(2, 132, 199, 0.2);
+  color: #38bdf8;
+  border-color: rgba(56, 189, 248, 0.35);
+}
+
+.meta-badge.slate {
+  background-color: #f1f5f9;
+  color: #475569;
+  border: 1px solid #e2e8f0;
+}
+
+body:not(.light-mode) .meta-badge.slate {
+  background-color: rgba(255, 255, 255, 0.08);
+  color: #cbd5e1;
+  border-color: rgba(255, 255, 255, 0.12);
+}
+
+.meta-badge.green {
+  background-color: #dcfce7;
+  color: #15803d;
+  border: 1px solid #bbf7d0;
+}
+
+body:not(.light-mode) .meta-badge.green {
+  background-color: rgba(16, 185, 129, 0.2);
+  color: #34d399;
+  border-color: rgba(52, 211, 153, 0.35);
+}
+
+.pulse-indicator {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background-color: #10b981;
+  box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.3);
+  animation: pulseDot 2s infinite ease-in-out;
+}
+
+@keyframes pulseDot {
+  0%, 100% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(1.25); opacity: 0.6; }
 }
 
 .btn-sub-action.danger {
