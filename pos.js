@@ -176,6 +176,10 @@ class SoundController {
       osc.stop(t + 0.2);
     } catch (e) {}
   }
+
+  playSuccessTone() {
+    this.playPaymentChime();
+  }
 }
 
 const soundCtrl = new SoundController();
@@ -187,6 +191,7 @@ document.addEventListener('DOMContentLoaded', () => {
   loadSavedData();
   initLiveClock();
   initTheme();
+  initSanitationProtocol();
   bindEvents();
   renderPresets();
   renderAll();
@@ -210,27 +215,33 @@ document.addEventListener('DOMContentLoaded', () => {
 
 function loadSavedData() {
   const savedOrders = localStorage.getItem('rr_pos_stored_orders');
-  if (savedOrders) {
+  if (savedOrders !== null) {
     try {
       const parsed = JSON.parse(savedOrders);
-      // Clean up any stale dummy orders or alkaline orders from prior builds
-      State.storedOrders = parsed.filter(o => o.prodKey !== 'alkaline' && !o.isMock);
-      if (State.storedOrders.length === 0) {
-        State.storedOrders = generateRealisticReportOrders();
-        saveOrders();
-      }
+      // Retain the user's actual stored orders (or clean empty array)
+      State.storedOrders = Array.isArray(parsed) ? parsed : [];
     } catch (e) {
-      State.storedOrders = generateRealisticReportOrders();
-      saveOrders();
+      State.storedOrders = [];
     }
   } else {
-    State.storedOrders = generateRealisticReportOrders();
-    saveOrders();
+    // Start on a clean, empty state by default!
+    State.storedOrders = [];
   }
 
   const savedTheme = localStorage.getItem('rr_pos_theme');
   if (savedTheme) {
     State.theme = savedTheme;
+  }
+
+  const savedChecks = localStorage.getItem('rr_pos_sanitation_checks');
+  if (savedChecks) {
+    try {
+      State.sanitationChecks = JSON.parse(savedChecks);
+    } catch (e) {
+      State.sanitationChecks = { ozone: true, drain: true, prewash: true, bleach: false };
+    }
+  } else {
+    State.sanitationChecks = { ozone: true, drain: true, prewash: true, bleach: false };
   }
 
   const urlParams = new URLSearchParams(window.location.search);
@@ -329,6 +340,57 @@ function saveOrders() {
 function saveInventory() {
   if (State.inventory) {
     localStorage.setItem('rr_pos_inventory', JSON.stringify(State.inventory));
+  }
+}
+
+function saveStationData() {
+  soundCtrl.playPaymentChime();
+  saveOrders();
+  saveInventory();
+  saveSettings();
+  localStorage.setItem('rr_pos_theme', State.theme || 'light');
+  localStorage.setItem('rr_pos_sanitation_checks', JSON.stringify(State.sanitationChecks || {}));
+  const badge = document.getElementById('badgePersistenceStatus');
+  if (badge) {
+    badge.textContent = 'Saved Just Now';
+    badge.className = 'meta-badge green';
+  }
+  showToast('✓ Station data, orders & settings saved to LocalStorage!');
+}
+
+function initSanitationProtocol() {
+  const keys = ['ozone', 'drain', 'prewash', 'bleach'];
+  const defaults = { ozone: true, drain: true, prewash: true, bleach: false };
+  if (!State.sanitationChecks) State.sanitationChecks = defaults;
+
+  keys.forEach(k => {
+    const chk = document.getElementById('chkSanitation' + k.charAt(0).toUpperCase() + k.slice(1));
+    const badge = document.getElementById('badgeSanitation' + k.charAt(0).toUpperCase() + k.slice(1));
+    if (!chk) return;
+
+    // Apply saved state
+    const isChecked = State.sanitationChecks[k] !== undefined ? State.sanitationChecks[k] : defaults[k];
+    chk.checked = !!isChecked;
+    updateSanitationBadge(badge, isChecked);
+
+    chk.addEventListener('change', () => {
+      soundCtrl.playTap();
+      State.sanitationChecks[k] = chk.checked;
+      localStorage.setItem('rr_pos_sanitation_checks', JSON.stringify(State.sanitationChecks));
+      updateSanitationBadge(badge, chk.checked);
+      showToast(chk.checked ? `Sanitation task completed.` : `Sanitation task marked pending.`);
+    });
+  });
+}
+
+function updateSanitationBadge(badge, isChecked) {
+  if (!badge) return;
+  if (isChecked) {
+    badge.className = 'protocol-status-badge completed';
+    badge.textContent = '✓ Done';
+  } else {
+    badge.className = 'protocol-status-badge pending';
+    badge.textContent = '○ Pending Close';
   }
 }
 
@@ -548,6 +610,14 @@ function bindEvents() {
   const btnViewAll = document.getElementById('btnViewAllOrders');
   if (btnViewAll) {
     btnViewAll.addEventListener('click', () => switchView('orders'));
+  }
+
+  // Top Header Save Data Button
+  const btnHeaderSave = document.getElementById('btnHeaderSaveData');
+  if (btnHeaderSave) {
+    btnHeaderSave.addEventListener('click', () => {
+      saveStationData();
+    });
   }
 
   // Bottom action "Orders Log" -> Opens Mini Orders Log Tab/Drawer
@@ -819,6 +889,14 @@ function bindEvents() {
     });
   }
 
+  // Save Orders & Station Data Button
+  const btnOrdersSave = document.getElementById('btnOrdersSaveData');
+  if (btnOrdersSave) {
+    btnOrdersSave.addEventListener('click', () => {
+      saveStationData();
+    });
+  }
+
   // Export CSV (Minimal Aesthetic Format)
   const btnExport = document.getElementById('btnExportCsv');
   if (btnExport) {
@@ -858,7 +936,7 @@ function bindEvents() {
 
           // Retain historical orders for reports while resetting today's shift drawer
           const pastOrders = (State.storedOrders || []).filter(o => (o.timestamp || 0) < todayMs);
-          State.storedOrders = pastOrders.length > 0 ? pastOrders : generateRealisticReportOrders().filter(o => (o.timestamp || 0) < todayMs);
+          State.storedOrders = pastOrders;
           saveOrders();
           renderAll();
           showToast('New day/shift started! Shift drawer reset to ₱0.00.');
@@ -965,6 +1043,14 @@ function bindEvents() {
     });
   }
 
+  // Save Station State & Ledger from Settings
+  const btnSaveDataSettings = document.getElementById('btnSaveDataFromSettings');
+  if (btnSaveDataSettings) {
+    btnSaveDataSettings.addEventListener('click', () => {
+      saveStationData();
+    });
+  }
+
   // Export Excel (Pre-Designed Spreadsheet Template) from Settings
   const btnExportExcelSettings = document.getElementById('btnExportExcelFromSettings');
   if (btnExportExcelSettings) {
@@ -1040,7 +1126,7 @@ function bindEvents() {
 
           // Retain historical orders for reports while resetting today's shift drawer
           const pastOrders = (State.storedOrders || []).filter(o => (o.timestamp || 0) < todayMs);
-          State.storedOrders = pastOrders.length > 0 ? pastOrders : generateRealisticReportOrders().filter(o => (o.timestamp || 0) < todayMs);
+          State.storedOrders = pastOrders;
           saveOrders();
           renderAll();
           showToast('New day/shift started! Shift drawer reset to ₱0.00.');
@@ -1560,10 +1646,10 @@ function renderStoredOrders() {
   // Search filter
   if (State.searchQuery) {
     filtered = filtered.filter(o => {
-      const matchNo = o.orderNo.toLowerCase().includes(State.searchQuery);
-      const matchTime = o.time.toLowerCase().includes(State.searchQuery);
-      const matchProd = o.prodName.toLowerCase().includes(State.searchQuery);
-      const matchNote = o.note && o.note.toLowerCase().includes(State.searchQuery);
+      const matchNo = (o.orderNo || '').toLowerCase().includes(State.searchQuery);
+      const matchTime = (o.time || '').toLowerCase().includes(State.searchQuery);
+      const matchProd = (o.prodName || '').toLowerCase().includes(State.searchQuery);
+      const matchNote = o.note ? o.note.toLowerCase().includes(State.searchQuery) : false;
       return matchNo || matchTime || matchProd || matchNote;
     });
   }
@@ -1601,8 +1687,8 @@ function renderStoredOrders() {
   let totalGallons = 0;
   let totalCash = 0;
   State.storedOrders.forEach(o => {
-    totalGallons += o.gallons;
-    const paid = typeof o.paidAmount === 'number' ? o.paidAmount : (o.status === 'paid' ? o.total : 0);
+    totalGallons += (Number(o.gallons) || 0);
+    const paid = typeof o.paidAmount === 'number' ? o.paidAmount : (o.status === 'paid' ? (Number(o.total) || 0) : 0);
     totalCash += paid;
   });
 
@@ -1631,15 +1717,17 @@ function renderStoredOrders() {
   filtered.forEach(order => {
     const isDeliv = order.channel === 'delivery';
     const isPending = order.status === 'pending';
+    const galCount = Number(order.gallons) || 1;
+    const orderTotal = Number(order.total) || 0;
 
-    filteredGallons += order.gallons;
-    filteredTotal += order.total;
+    filteredGallons += galCount;
+    filteredTotal += orderTotal;
     if (isPending) pendingCount++;
     else paidCount++;
 
     const prodTitle = order.prodKey === 'new_container'
-      ? `${order.gallons}x New Jug + Water`
-      : `${order.gallons}x Purified Refill`;
+      ? `${galCount}x New Jug + Water`
+      : `${galCount}x Purified Refill`;
 
     const prodSub = order.prodKey === 'new_container'
       ? 'Brand-new Sealed Bottle'
@@ -1657,19 +1745,19 @@ function renderStoredOrders() {
       ? escapeHtml(order.note)
       : (isDeliv ? 'Multicab Route' : 'Walk-in Counter');
 
-    const paidVal = typeof order.paidAmount === 'number' ? order.paidAmount : (isPending ? 0 : order.total);
-    const unpaidVal = typeof order.unpaidAmount === 'number' ? order.unpaidAmount : (isPending ? order.total : 0);
+    const paidVal = typeof order.paidAmount === 'number' ? order.paidAmount : (isPending ? 0 : orderTotal);
+    const unpaidVal = typeof order.unpaidAmount === 'number' ? order.unpaidAmount : (isPending ? orderTotal : 0);
 
     const markPaidBtn = isPending
-      ? `<button class="btn-mark-paid btn-table-collect" data-orderno="${order.orderNo}" title="Collect and mark paid">✓ Collect &amp; Remit</button>`
+      ? `<button class="btn-mark-paid btn-table-collect" data-orderno="${escapeHtml(order.orderNo || '')}" title="Collect and mark paid">✓ Collect &amp; Remit</button>`
       : '';
 
     rowsHtml += `
-      <tr class="orders-table-row ${isPending ? 'row-pending' : ''}" data-orderno="${order.orderNo}">
+      <tr class="orders-table-row ${isPending ? 'row-pending' : ''}" data-orderno="${escapeHtml(order.orderNo || '')}">
         <td class="td-orderno">
-          <span class="order-id-badge">${order.orderNo}</span>
+          <span class="order-id-badge">${escapeHtml(order.orderNo || '')}</span>
         </td>
-        <td class="td-time font-num">${order.time}</td>
+        <td class="td-time font-num">${escapeHtml(order.time || '---')}</td>
         <td class="td-customer">
           <div class="customer-location-cell">
             <span class="location-pin-icon">📍</span>
@@ -1687,13 +1775,13 @@ function renderStoredOrders() {
           ${statusTag}
         </td>
         <td class="td-amount font-num">
-          <div class="table-amount-main">₱ ${order.total.toFixed(2)}</div>
+          <div class="table-amount-main">₱ ${orderTotal.toFixed(2)}</div>
           ${isPending ? `<div class="table-amount-sub-unpaid">Pending: ₱${unpaidVal.toFixed(2)}</div>` : ''}
         </td>
         <td class="td-actions">
           <div class="table-actions-cell">
             ${markPaidBtn}
-            <button class="btn-order-void" data-orderno="${order.orderNo}" title="Void / Cancel Order">
+            <button class="btn-order-void" data-orderno="${escapeHtml(order.orderNo || '')}" title="Void / Cancel Order">
               <svg viewBox="0 0 24 24"><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/></svg>
             </button>
           </div>
@@ -2186,25 +2274,10 @@ function getReportFilteredOrders() {
     minTime = 0; // 'all'
   }
 
-  // Ensure stored orders exist; if empty, seed with realistic station records
-  if (!State.storedOrders || State.storedOrders.length === 0) {
-    State.storedOrders = generateRealisticReportOrders();
-    saveOrders();
-  }
-
   let orders = (State.storedOrders || []).filter(o => {
     const t = o.timestamp || now;
     return t >= minTime;
   });
-
-  // If a filter yielded 0 orders for non-today views because user just cleared shift drawer or dates shifted,
-  // supplement from the realistic station reference data so reports are always populated and meaningful
-  if (orders.length === 0 && State.reportPeriod !== 'today' && !State.reportSearch && State.reportSource === 'all') {
-    const fallback = generateRealisticReportOrders().filter(o => (o.timestamp || now) >= minTime);
-    if (fallback.length > 0) {
-      orders = fallback;
-    }
-  }
 
   // Filter by Source Channel
   if (State.reportSource === 'walkin') {
@@ -2547,35 +2620,30 @@ function getExportOrdersData(allOrders = false) {
 }
 
 function exportReportExcelFile(allOrders = false) {
+  soundCtrl.playTap();
   const data = getExportOrdersData(allOrders);
   const { orders, periodLabel, totalGallons, totalFare, totalTax, totalRevenue, settledCount, settlementRate } = data;
 
-  if (orders.length === 0) {
-    showToast('No orders found to export.');
-    return;
-  }
-
-  soundCtrl.playTap();
   const now = new Date();
   const exportTime = `${now.toISOString().slice(0, 10)} ${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
   const todayDate = now.toISOString().slice(0, 10);
 
   // Generate Styled MSO-HTML Spreadsheet (Native .xls format compatible with Excel, Sheets, Calc)
-  const rowsHtml = orders.map((o, idx) => {
+  const rowsHtml = orders.length > 0 ? orders.map((o, idx) => {
     const isPaid = o.status === 'paid';
-    const fareVal = typeof o.fare === 'number' ? o.fare : Math.round((o.total || 0) * 0.9);
-    const taxVal = typeof o.tax === 'number' ? o.tax : (o.unpaidAmount || (isPaid ? 0 : o.total));
-    const totalVal = o.total || (fareVal + taxVal);
+    const fareVal = typeof o.fare === 'number' ? o.fare : Math.round((Number(o.total) || 0) * 0.9);
+    const taxVal = typeof o.tax === 'number' ? o.tax : (Number(o.unpaidAmount) || (isPaid ? 0 : Number(o.total) || 0));
+    const totalVal = Number(o.total) || (fareVal + taxVal);
     const sourceText = o.channel === 'delivery' ? 'Web Reservation' : (o.prodKey === 'new_container' ? 'Group Reservation' : 'Font Desks');
     const guestName = escapeHtml(o.note || (o.channel === 'delivery' ? 'Delivery Client' : 'Walk-in Guest'));
-    const dateTimeStr = formatReportDateTime(o.timestamp);
-    const notesStr = escapeHtml(o.note || '');
+    const dateTimeStr = o.time ? `${todayDate} ${o.time}` : formatReportDateTime(o.timestamp);
+    const notesStr = escapeHtml(o.note || (o.channel === 'delivery' ? 'Route Delivery' : 'Walk-in Counter'));
 
     return `
       <tr class="${idx % 2 === 0 ? 'cell-even' : 'cell-odd'}">
-        <td class="cell-orderno">${o.orderNo}</td>
+        <td class="cell-orderno">${escapeHtml(o.orderNo || '#ORD-0000')}</td>
         <td>${guestName}</td>
-        <td class="cell-num">${o.gallons || 1}</td>
+        <td class="cell-num">${Number(o.gallons) || 1}</td>
         <td>${sourceText}</td>
         <td class="cell-date">${dateTimeStr}</td>
         <td class="cell-currency">${fareVal.toFixed(2)}</td>
@@ -2585,7 +2653,13 @@ function exportReportExcelFile(allOrders = false) {
         <td class="cell-notes">${notesStr}</td>
       </tr>
     `;
-  }).join('');
+  }).join('') : `
+    <tr class="cell-even">
+      <td colspan="10" style="text-align: center; color: #64748b; padding: 22px 12px; font-style: italic; background: #ffffff;">
+        No active orders recorded for this period yet. Complete transactions at the POS to populate this ledger.
+      </td>
+    </tr>
+  `;
 
   const excelTemplate = `
     <html xmlns:o="urn:schemas-microsoft-com:office:office"
@@ -2867,27 +2941,53 @@ function exportReportExcelFile(allOrders = false) {
   link.href = url;
   const filePrefix = allOrders ? 'RR_Water_Shift_Ledger' : `RR_Water_${State.reportPeriod.toUpperCase()}_Executive_Report`;
   link.download = `${filePrefix}_${todayDate}.xls`;
+  link.style.display = 'none';
   document.body.appendChild(link);
   link.click();
-  link.remove();
-  URL.revokeObjectURL(url);
+  setTimeout(() => {
+    if (link.parentNode) link.parentNode.removeChild(link);
+    URL.revokeObjectURL(url);
+  }, 400);
 
-  showToast(`Exported ${orders.length} transactions to Executive Excel Spreadsheet!`);
+  showToast(orders.length > 0 
+    ? `Exported ${orders.length} transactions to Executive Excel Spreadsheet!` 
+    : 'Exported Executive Excel Spreadsheet template (Clean Slate)!');
 }
 
 function exportReportAestheticCSV(allOrders = false) {
+  soundCtrl.playTap();
   const data = getExportOrdersData(allOrders);
   const { orders, periodLabel, totalGallons, totalFare, totalTax, totalRevenue, settledCount, settlementRate } = data;
 
-  if (orders.length === 0) {
-    showToast('No orders available to export.');
-    return;
-  }
-
-  soundCtrl.playTap();
   const now = new Date();
   const exportTime = `${now.toISOString().slice(0, 10)} ${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}:${String(now.getSeconds()).padStart(2, '0')}`;
   const todayDate = now.toISOString().slice(0, 10);
+
+  const dataRows = orders.length > 0 ? orders.map(o => {
+    const isPaid = o.status === 'paid';
+    const fareVal = typeof o.fare === 'number' ? o.fare : Math.round((Number(o.total) || 0) * 0.9);
+    const taxVal = typeof o.tax === 'number' ? o.tax : (Number(o.unpaidAmount) || (isPaid ? 0 : Number(o.total) || 0));
+    const totalVal = Number(o.total) || (fareVal + taxVal);
+    const sourceText = o.channel === 'delivery' ? 'Web Reservation' : (o.prodKey === 'new_container' ? 'Group Reservation' : 'Font Desks');
+    const guestName = (o.note || (o.channel === 'delivery' ? 'Delivery Client' : 'Walk-in Guest')).replace(/"/g, '""');
+    const dateTimeStr = o.time ? `${todayDate} ${o.time}` : formatReportDateTime(o.timestamp);
+    const remarks = (o.note || '').replace(/"/g, '""');
+
+    return [
+      `"${o.orderNo || '#ORD-0000'}"`,
+      `"${guestName}"`,
+      Number(o.gallons) || 1,
+      `"${sourceText}"`,
+      `"${dateTimeStr}"`,
+      fareVal.toFixed(2),
+      taxVal.toFixed(2),
+      totalVal.toFixed(2),
+      `"${isPaid ? 'Booked' : 'Refund'}"`,
+      `"${remarks}"`
+    ].join(',');
+  }) : [
+    '"NO ORDERS RECORDED","---",0,"---","---",0.00,0.00,0.00,"N/A","Clean Shift State - No Orders Logged Yet"'
+  ];
 
   const lines = [
     '# ==============================================================================',
@@ -2918,29 +3018,7 @@ function exportReportAestheticCSV(allOrders = false) {
       '"Payment Status"',
       '"Delivery Notes / Remarks"'
     ].join(','),
-    ...orders.map(o => {
-      const isPaid = o.status === 'paid';
-      const fareVal = typeof o.fare === 'number' ? o.fare : Math.round((o.total || 0) * 0.9);
-      const taxVal = typeof o.tax === 'number' ? o.tax : (o.unpaidAmount || (isPaid ? 0 : o.total));
-      const totalVal = o.total || (fareVal + taxVal);
-      const sourceText = o.channel === 'delivery' ? 'Web Reservation' : (o.prodKey === 'new_container' ? 'Group Reservation' : 'Font Desks');
-      const guestName = (o.note || (o.channel === 'delivery' ? 'Delivery Client' : 'Walk-in Guest')).replace(/"/g, '""');
-      const dateTimeStr = formatReportDateTime(o.timestamp);
-      const remarks = (o.note || '').replace(/"/g, '""');
-
-      return [
-        `"${o.orderNo}"`,
-        `"${guestName}"`,
-        o.gallons || 1,
-        `"${sourceText}"`,
-        `"${dateTimeStr}"`,
-        fareVal.toFixed(2),
-        taxVal.toFixed(2),
-        totalVal.toFixed(2),
-        `"${isPaid ? 'Booked' : 'Refund'}"`,
-        `"${remarks}"`
-      ].join(',');
-    }),
+    ...dataRows,
     [
       '"TOTAL AUDIT SUMMARY"',
       '"---"',
@@ -2966,12 +3044,17 @@ function exportReportAestheticCSV(allOrders = false) {
   link.href = url;
   const filePrefix = allOrders ? 'RR_Water_Shift_Statement' : `RR_Water_${State.reportPeriod.toUpperCase()}_Statement`;
   link.download = `${filePrefix}_${todayDate}.csv`;
+  link.style.display = 'none';
   document.body.appendChild(link);
   link.click();
-  link.remove();
-  URL.revokeObjectURL(url);
+  setTimeout(() => {
+    if (link.parentNode) link.parentNode.removeChild(link);
+    URL.revokeObjectURL(url);
+  }, 400);
 
-  showToast(`Exported ${orders.length} orders to Clean Aesthetic CSV Statement!`);
+  showToast(orders.length > 0 
+    ? `Exported ${orders.length} orders to Clean Aesthetic CSV Statement!` 
+    : 'Exported Clean Aesthetic CSV template (Clean Slate)!');
 }
 
 // Backward compatibility alias

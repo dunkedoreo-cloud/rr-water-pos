@@ -4258,60 +4258,299 @@ body:not(.light-mode) .page-pill:hover:not(.active) {
   color: #d97706;
 }
 
-/* Filter Life List */
+/* Manual Header Save Data Button */
+.btn-header-save {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  border-radius: 9999px;
+  background: rgba(16, 185, 129, 0.12);
+  border: 1px solid rgba(16, 185, 129, 0.35);
+  color: #059669;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.btn-header-save:hover {
+  background: #10b981;
+  color: #ffffff;
+  border-color: #10b981;
+  box-shadow: 0 2px 10px rgba(16, 185, 129, 0.35);
+  transform: translateY(-1px);
+}
+
+.btn-header-save svg {
+  width: 14px;
+  height: 14px;
+}
+
+body:not(.light-mode) .btn-header-save {
+  background: rgba(16, 185, 129, 0.2);
+  border-color: rgba(52, 211, 153, 0.4);
+  color: #34d399;
+}
+
+body:not(.light-mode) .btn-header-save:hover {
+  background: #10b981;
+  color: #ffffff;
+}
+
+/* Filter Maintenance Cards (Filter Life & UV) */
 .filter-life-list {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 10px;
 }
 
-.filter-life-item {
+.stage-maintenance-card {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 8px;
+  padding: 10px 14px;
+  background-color: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  transition: all 0.2s ease;
 }
 
-.fl-header {
+.stage-maintenance-card:hover {
+  border-color: rgba(2, 132, 199, 0.35);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+}
+
+body:not(.light-mode) .stage-maintenance-card:hover {
+  border-color: rgba(56, 189, 248, 0.4);
+}
+
+.stage-card-top {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  gap: 10px;
 }
 
-.fl-header strong {
-  font-size: 0.8rem;
+.stage-info-wrap {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.stage-num-badge {
+  font-size: 0.65rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  padding: 3px 8px;
+  border-radius: 9999px;
+  white-space: nowrap;
+}
+
+.stage-num-badge.cyan {
+  background-color: rgba(6, 182, 212, 0.12);
+  color: #0891b2;
+}
+
+body:not(.light-mode) .stage-num-badge.cyan {
+  background-color: rgba(6, 182, 212, 0.25);
+  color: #22d3ee;
+}
+
+.stage-num-badge.blue {
+  background-color: rgba(2, 132, 199, 0.12);
+  color: var(--primary);
+}
+
+body:not(.light-mode) .stage-num-badge.blue {
+  background-color: rgba(2, 132, 199, 0.25);
+  color: #38bdf8;
+}
+
+.stage-name {
+  font-size: 0.84rem;
   font-weight: 800;
   color: var(--text-main);
+  display: block;
+  line-height: 1.2;
 }
 
-.fl-days {
+.stage-sub-info {
+  font-size: 0.72rem;
+  color: var(--text-muted);
+  display: block;
+  margin-top: 2px;
+}
+
+.stage-health-badge {
   font-size: 0.72rem;
   font-weight: 700;
-  color: var(--text-muted);
+  padding: 3px 10px;
+  border-radius: 9999px;
+  white-space: nowrap;
 }
 
-.fl-progress-track {
+.stage-health-badge.green {
+  background-color: rgba(16, 185, 129, 0.12);
+  color: #059669;
+}
+
+body:not(.light-mode) .stage-health-badge.green {
+  background-color: rgba(16, 185, 129, 0.2);
+  color: #34d399;
+}
+
+.stage-health-badge.blue {
+  background-color: rgba(2, 132, 199, 0.12);
+  color: var(--primary);
+}
+
+body:not(.light-mode) .stage-health-badge.blue {
+  background-color: rgba(2, 132, 199, 0.2);
+  color: #38bdf8;
+}
+
+.stage-progress-track {
   width: 100%;
   height: 6px;
   background-color: var(--border-subtle);
-  border-radius: var(--radius-full);
+  border-radius: 9999px;
   overflow: hidden;
 }
 
-.fl-progress-bar {
+.stage-progress-bar {
   height: 100%;
-  border-radius: var(--radius-full);
+  border-radius: 9999px;
+  transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-.fl-progress-bar.green {
+.stage-progress-bar.green {
   background: linear-gradient(90deg, #10b981 0%, #34d399 100%);
 }
 
-.fl-progress-bar.cyan {
+.stage-progress-bar.blue {
   background: linear-gradient(90deg, #0284c7 0%, #38bdf8 100%);
 }
 
-.fl-progress-bar.blue {
-  background: linear-gradient(90deg, #3b82f6 0%, #60a5fa 100%);
+/* Sanitation & Counter Protocol Cards */
+.sanitation-protocol-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.protocol-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 14px;
+  background-color: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  transition: all 0.2s ease;
+  cursor: pointer;
+}
+
+.protocol-card:hover {
+  border-color: rgba(2, 132, 199, 0.35);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+}
+
+body:not(.light-mode) .protocol-card:hover {
+  border-color: rgba(56, 189, 248, 0.4);
+}
+
+.protocol-label {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  cursor: pointer;
+  flex: 1;
+}
+
+.protocol-checkbox {
+  display: none;
+}
+
+.custom-chk-box {
+  width: 22px;
+  height: 22px;
+  border-radius: 6px;
+  border: 2px solid var(--border-strong);
+  background-color: var(--bg-card);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: all 0.2s ease;
+}
+
+.custom-chk-box svg {
+  width: 13px;
+  height: 13px;
+  stroke: #ffffff;
+  opacity: 0;
+  transform: scale(0.6);
+  transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.protocol-checkbox:checked + .custom-chk-box {
+  background-color: var(--primary);
+  border-color: var(--primary);
+}
+
+.protocol-checkbox:checked + .custom-chk-box svg {
+  opacity: 1;
+  transform: scale(1);
+}
+
+.protocol-details {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.protocol-title {
+  font-size: 0.84rem;
+  font-weight: 800;
+  color: var(--text-main);
+  line-height: 1.2;
+}
+
+.protocol-desc {
+  font-size: 0.72rem;
+  color: var(--text-muted);
+  line-height: 1.2;
+}
+
+.protocol-status-badge {
+  font-size: 0.72rem;
+  font-weight: 700;
+  padding: 3px 10px;
+  border-radius: 9999px;
+  white-space: nowrap;
+}
+
+.protocol-status-badge.completed {
+  background-color: rgba(16, 185, 129, 0.12);
+  color: #059669;
+}
+
+body:not(.light-mode) .protocol-status-badge.completed {
+  background-color: rgba(16, 185, 129, 0.2);
+  color: #34d399;
+}
+
+.protocol-status-badge.pending {
+  background-color: rgba(245, 158, 11, 0.12);
+  color: #d97706;
+}
+
+body:not(.light-mode) .protocol-status-badge.pending {
+  background-color: rgba(245, 158, 11, 0.2);
+  color: #fbbf24;
 }
 
 /* Data Tools & Terminal Diagnostics */
@@ -4400,6 +4639,18 @@ body:not(.light-mode) .meta-badge.slate {
 }
 
 body:not(.light-mode) .meta-badge.green {
+  background-color: rgba(16, 185, 129, 0.2);
+  color: #34d399;
+  border-color: rgba(52, 211, 153, 0.35);
+}
+
+.meta-badge.emerald {
+  background-color: #ecfdf5;
+  color: #047857;
+  border: 1px solid #a7f3d0;
+}
+
+body:not(.light-mode) .meta-badge.emerald {
   background-color: rgba(16, 185, 129, 0.2);
   color: #34d399;
   border-color: rgba(52, 211, 153, 0.35);

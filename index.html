@@ -105,6 +105,16 @@
         </div>
 
         <div class="header-right-actions">
+          <!-- Manual Save Data Button -->
+          <button class="btn-header-save" id="btnHeaderSaveData" title="Save All Station Data, Orders &amp; Settings to LocalStorage">
+            <svg class="ui-icon-xs" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
+              <polyline points="17 21 17 13 7 13 7 21"></polyline>
+              <polyline points="7 3 7 8 15 8"></polyline>
+            </svg>
+            <span>Save Data</span>
+          </button>
+
           <!-- Live Clock -->
           <div class="live-clock-pill" id="liveClock">--:--:-- --</div>
 
@@ -536,6 +546,10 @@
                 </select>
               </div>
 
+              <button class="btn-export-csv" id="btnOrdersSaveData" title="Save Shift to LocalStorage" style="background: rgba(16, 185, 129, 0.1); border-color: rgba(16, 185, 129, 0.3); color: #059669;">
+                <svg class="ui-icon-xs" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path><polyline points="17 21 17 13 7 13 7 21"></polyline><polyline points="7 3 7 8 15 8"></polyline></svg>
+                <span>Save Data</span>
+              </button>
               <button class="btn-export-csv" id="btnExportCsv" title="Export Clean Minimal CSV">
                 <svg class="ui-icon-xs" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
                 <span>Export CSV</span>
@@ -1121,43 +1135,67 @@
                 </div>
 
                 <div class="filter-life-list">
-                  <div class="filter-life-item">
-                    <div class="fl-header">
-                      <strong>Stage 1: 5-Micron Sediment Filter</strong>
-                      <span class="fl-days">Replaced: 12 days ago • Life: 88%</span>
+                  <div class="stage-maintenance-card">
+                    <div class="stage-card-top">
+                      <div class="stage-info-wrap">
+                        <span class="stage-num-badge cyan">STAGE 1</span>
+                        <div>
+                          <strong class="stage-name">5-Micron Sediment Filter</strong>
+                          <span class="stage-sub-info">Replaced: 12 days ago • Micron rating: 5µm</span>
+                        </div>
+                      </div>
+                      <span class="stage-health-badge green">88% Health</span>
                     </div>
-                    <div class="fl-progress-track">
-                      <div class="fl-progress-bar green" style="width: 88%;"></div>
-                    </div>
-                  </div>
-
-                  <div class="filter-life-item">
-                    <div class="fl-header">
-                      <strong>Stage 2: Granular Activated Carbon (GAC)</strong>
-                      <span class="fl-days">Replaced: 18 days ago • Life: 76%</span>
-                    </div>
-                    <div class="fl-progress-track">
-                      <div class="fl-progress-bar green" style="width: 76%;"></div>
+                    <div class="stage-progress-track">
+                      <div class="stage-progress-bar green" style="width: 88%;"></div>
                     </div>
                   </div>
 
-                  <div class="filter-life-item">
-                    <div class="fl-header">
-                      <strong>Stage 3: Reverse Osmosis (RO) Membrane</strong>
-                      <span class="fl-days">Replaced: 45 days ago • Life: 92%</span>
+                  <div class="stage-maintenance-card">
+                    <div class="stage-card-top">
+                      <div class="stage-info-wrap">
+                        <span class="stage-num-badge cyan">STAGE 2</span>
+                        <div>
+                          <strong class="stage-name">Granular Activated Carbon (GAC)</strong>
+                          <span class="stage-sub-info">Replaced: 18 days ago • Chlorine &amp; Odor Adsorption</span>
+                        </div>
+                      </div>
+                      <span class="stage-health-badge green">76% Health</span>
                     </div>
-                    <div class="fl-progress-track">
-                      <div class="fl-progress-bar green" style="width: 92%;"></div>
+                    <div class="stage-progress-track">
+                      <div class="stage-progress-bar green" style="width: 76%;"></div>
                     </div>
                   </div>
 
-                  <div class="filter-life-item">
-                    <div class="fl-header">
-                      <strong>Stage 4: UV Sterilizer Lamp (Phillips 25W)</strong>
-                      <span class="fl-days">Operating: 1,420 / 8,000 Hours</span>
+                  <div class="stage-maintenance-card">
+                    <div class="stage-card-top">
+                      <div class="stage-info-wrap">
+                        <span class="stage-num-badge cyan">STAGE 3</span>
+                        <div>
+                          <strong class="stage-name">Reverse Osmosis (RO) Membrane</strong>
+                          <span class="stage-sub-info">Replaced: 45 days ago • TDS Rejection: 98.4%</span>
+                        </div>
+                      </div>
+                      <span class="stage-health-badge green">92% Health</span>
                     </div>
-                    <div class="fl-progress-track">
-                      <div class="fl-progress-bar blue" style="width: 82%;"></div>
+                    <div class="stage-progress-track">
+                      <div class="stage-progress-bar green" style="width: 92%;"></div>
+                    </div>
+                  </div>
+
+                  <div class="stage-maintenance-card">
+                    <div class="stage-card-top">
+                      <div class="stage-info-wrap">
+                        <span class="stage-num-badge blue">STAGE 4</span>
+                        <div>
+                          <strong class="stage-name">UV Sterilizer Lamp (Phillips 25W)</strong>
+                          <span class="stage-sub-info">Operating: 1,420 / 8,000 Hours • 254nm Quartz</span>
+                        </div>
+                      </div>
+                      <span class="stage-health-badge blue">82% Life</span>
+                    </div>
+                    <div class="stage-progress-track">
+                      <div class="stage-progress-bar blue" style="width: 82%;"></div>
                     </div>
                   </div>
                 </div>
@@ -1175,23 +1213,62 @@
                   </div>
                 </div>
 
-                <div class="checklist-items">
-                  <label class="check-row">
-                    <input type="checkbox" checked>
-                    <span>Morning Nozzle &amp; Sink Ozone Rinse</span>
-                  </label>
-                  <label class="check-row">
-                    <input type="checkbox" checked>
-                    <span>Drain Pan Inspection &amp; Wash</span>
-                  </label>
-                  <label class="check-row">
-                    <input type="checkbox" checked>
-                    <span>Carboy Exterior Pre-wash Station Cleared</span>
-                  </label>
-                  <label class="check-row">
-                    <input type="checkbox">
-                    <span>Evening Station Surface Bleach Wipe-down</span>
-                  </label>
+                <div class="sanitation-protocol-list">
+                  <div class="protocol-card" data-key="ozone">
+                    <label class="protocol-label">
+                      <input type="checkbox" class="protocol-checkbox" id="chkSanitationOzone" checked>
+                      <span class="custom-chk-box">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                      </span>
+                      <div class="protocol-details">
+                        <strong class="protocol-title">Morning Nozzle &amp; Sink Ozone Rinse</strong>
+                        <span class="protocol-desc">Sanitize stainless steel fill heads &amp; spray basin before shift opening</span>
+                      </div>
+                    </label>
+                    <span class="protocol-status-badge completed" id="badgeSanitationOzone">✓ Done (07:30 AM)</span>
+                  </div>
+
+                  <div class="protocol-card" data-key="drain">
+                    <label class="protocol-label">
+                      <input type="checkbox" class="protocol-checkbox" id="chkSanitationDrain" checked>
+                      <span class="custom-chk-box">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                      </span>
+                      <div class="protocol-details">
+                        <strong class="protocol-title">Drain Pan Inspection &amp; Wash</strong>
+                        <span class="protocol-desc">Clear drip trays and sanitize wastewater overflow conduits</span>
+                      </div>
+                    </label>
+                    <span class="protocol-status-badge completed" id="badgeSanitationDrain">✓ Done (07:35 AM)</span>
+                  </div>
+
+                  <div class="protocol-card" data-key="prewash">
+                    <label class="protocol-label">
+                      <input type="checkbox" class="protocol-checkbox" id="chkSanitationPrewash" checked>
+                      <span class="custom-chk-box">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                      </span>
+                      <div class="protocol-details">
+                        <strong class="protocol-title">Carboy Exterior Pre-wash Station Cleared</strong>
+                        <span class="protocol-desc">Verify pressurized bottle wash rinse and detergent solution levels</span>
+                      </div>
+                    </label>
+                    <span class="protocol-status-badge completed" id="badgeSanitationPrewash">✓ Done (07:40 AM)</span>
+                  </div>
+
+                  <div class="protocol-card" data-key="bleach">
+                    <label class="protocol-label">
+                      <input type="checkbox" class="protocol-checkbox" id="chkSanitationBleach">
+                      <span class="custom-chk-box">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                      </span>
+                      <div class="protocol-details">
+                        <strong class="protocol-title">Evening Station Surface Bleach Wipe-down</strong>
+                        <span class="protocol-desc">Sanitize work surfaces, capping counter &amp; bottle racks at shift close</span>
+                      </div>
+                    </label>
+                    <span class="protocol-status-badge pending" id="badgeSanitationBleach">○ Pending Close</span>
+                  </div>
                 </div>
               </div>
 
@@ -1251,6 +1328,14 @@
                       <span class="pulse-indicator"></span> 100% Offline Ready
                     </span>
                   </div>
+
+                  <div class="data-tool-action">
+                    <div>
+                      <strong>Persistent Storage Cache</strong>
+                      <p>Data persists across browser reloads &amp; sessions</p>
+                    </div>
+                    <span class="meta-badge emerald" id="badgePersistenceStatus">Active &amp; Persisted</span>
+                  </div>
                 </div>
               </div>
 
@@ -1267,6 +1352,16 @@
                 </div>
 
                 <div class="setting-inputs-list">
+                  <div class="data-tool-action">
+                    <div>
+                      <strong>Save Station State &amp; Ledger</strong>
+                      <p>Commit all current orders, inventory levels, and settings to storage</p>
+                    </div>
+                    <button class="btn-sub-action primary" id="btnSaveDataFromSettings" style="color: #059669; border-color: rgba(16, 185, 129, 0.4); background: rgba(16, 185, 129, 0.08);">
+                      <svg class="ui-icon-xs" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path><polyline points="17 21 17 13 7 13 7 21"></polyline><polyline points="7 3 7 8 15 8"></polyline></svg>
+                      <span>Save Data</span>
+                    </button>
+                  </div>
                   <div class="data-tool-action">
                     <div>
                       <strong>Export Shift Excel</strong>
