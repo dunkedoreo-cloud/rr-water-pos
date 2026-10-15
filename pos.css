@@ -1156,77 +1156,121 @@ body:not(.light-mode) .card-floating-badge.purple {
 .droppy-mascot-banner {
   display: flex;
   align-items: center;
-  gap: 16px;
-  background: linear-gradient(135deg, #15803d 0%, #166534 100%);
-  border: 1px solid rgba(22, 101, 52, 0.4);
-  border-radius: var(--radius-xl);
-  padding: 12px 18px;
-  box-shadow: 0 4px 16px rgba(21, 128, 61, 0.2);
+  gap: 20px;
+  background: linear-gradient(135deg, #e0f2fe 0%, #dbeafe 50%, #bae6fd 100%);
+  border: 1.5px solid rgba(56, 189, 248, 0.45);
+  border-radius: 20px;
+  padding: 14px 22px;
+  box-shadow: 0 8px 24px rgba(2, 132, 199, 0.12), inset 0 1px 0 rgba(255, 255, 255, 0.8);
   position: relative;
+  overflow: visible;
 }
 
 body:not(.light-mode) .droppy-mascot-banner {
-  background: linear-gradient(135deg, #064e3b 0%, #022c22 100%);
-  border-color: rgba(16, 185, 129, 0.3);
+  background: linear-gradient(135deg, #071529 0%, #0c274c 55%, #081a33 100%);
+  border-color: rgba(56, 189, 248, 0.35);
+  box-shadow: 0 8px 28px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.06);
 }
 
 .droppy-banner-avatar {
-  width: 88px;
-  height: 88px;
+  width: 104px;
+  height: 116px;
   object-fit: contain;
-  filter: drop-shadow(0 6px 14px rgba(0, 0, 0, 0.3));
+  filter: drop-shadow(0 8px 18px rgba(2, 132, 199, 0.35));
   animation: droppy-float 3s ease-in-out infinite;
   flex-shrink: 0;
+  transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+  cursor: pointer;
+}
+
+.droppy-banner-avatar:hover {
+  transform: scale(1.08) translateY(-4px) rotate(-2deg);
+}
+
+body:not(.light-mode) .droppy-banner-avatar {
+  filter: drop-shadow(0 8px 20px rgba(0, 0, 0, 0.6)) drop-shadow(0 0 16px rgba(56, 189, 248, 0.4));
 }
 
 .droppy-speech-bubble-box {
   position: relative;
   background-color: #ffffff;
-  border-radius: var(--radius-lg);
-  padding: 10px 16px;
+  border-radius: 16px;
+  padding: 14px 20px;
   flex: 1;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.12);
+  box-shadow: 0 4px 18px rgba(2, 132, 199, 0.08), 0 1px 3px rgba(0, 0, 0, 0.05);
+  border: 1px solid rgba(226, 232, 240, 0.9);
 }
 
 /* Left pointing arrow pointing towards Droppy */
 .droppy-speech-bubble-box::before {
   content: '';
   position: absolute;
-  left: -8px;
+  left: -9px;
   top: 50%;
   transform: translateY(-50%);
   width: 0;
   height: 0;
   border-top: 8px solid transparent;
   border-bottom: 8px solid transparent;
-  border-right: 8px solid #ffffff;
+  border-right: 9px solid #ffffff;
 }
 
 body:not(.light-mode) .droppy-speech-bubble-box {
-  background-color: #0f172a;
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  background-color: #0f1e33;
+  border: 1px solid rgba(56, 189, 248, 0.25);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.35);
 }
 
 body:not(.light-mode) .droppy-speech-bubble-box::before {
-  border-right-color: #0f172a;
+  border-right-color: #0f1e33;
+}
+
+.droppy-bubble-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 5px;
 }
 
 .droppy-bubble-title {
-  font-size: 0.84rem;
+  font-size: 0.95rem;
   font-weight: 800;
-  color: #15803d;
-  margin-bottom: 2px;
+  color: #0284c7;
   letter-spacing: -0.01em;
+  display: flex;
+  align-items: center;
+  gap: 6px;
 }
 
 body:not(.light-mode) .droppy-bubble-title {
-  color: #34d399;
+  color: #38bdf8;
+}
+
+.droppy-bubble-badge {
+  display: inline-flex;
+  align-items: center;
+  font-size: 0.68rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: rgba(2, 132, 199, 0.1);
+  color: #0284c7;
+  border: 1px solid rgba(2, 132, 199, 0.2);
+}
+
+body:not(.light-mode) .droppy-bubble-badge {
+  background: rgba(56, 189, 248, 0.14);
+  color: #38bdf8;
+  border-color: rgba(56, 189, 248, 0.28);
 }
 
 .droppy-banner-msg {
-  font-size: 0.82rem;
+  font-size: 0.88rem;
   color: #334155;
-  line-height: 1.4;
+  line-height: 1.48;
   font-weight: 500;
   margin: 0;
 }
@@ -5283,15 +5327,24 @@ body:not(.light-mode) .meta-badge.emerald {
     font-size: 0.72rem;
   }
   .droppy-mascot-banner {
-    padding: 10px 12px;
-    gap: 8px;
+    padding: 12px 14px;
+    gap: 12px;
+    border-radius: 16px;
   }
   .droppy-banner-avatar {
-    width: 40px;
-    height: 40px;
+    width: 68px;
+    height: 76px;
+  }
+  .droppy-bubble-title {
+    font-size: 0.88rem;
+  }
+  .droppy-bubble-badge {
+    font-size: 0.62rem;
+    padding: 1px 6px;
   }
   .droppy-banner-msg {
-    font-size: 0.72rem;
+    font-size: 0.78rem;
+    line-height: 1.4;
   }
 
   /* Quick Presets on Mobile */
