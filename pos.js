@@ -39,6 +39,13 @@ function generateRandomOrderNo() {
   return '#' + Math.floor(100000 + Math.random() * 900000);
 }
 
+// --- SECURITY & STAFF ROLES ---
+const DEFAULT_STAFF = [
+  { id: 'usr_1', name: 'Neil', role: 'manager', pin: '1234', title: 'Station Manager', avatarColor: '#0284c7' },
+  { id: 'usr_2', name: 'Sarah', role: 'cashier', pin: '2222', title: 'Front-Desk Cashier', avatarColor: '#10b981' },
+  { id: 'usr_3', name: 'Kuya Jun', role: 'driver', pin: '3333', title: 'Multicab Driver / Courier', avatarColor: '#8b5cf6' }
+];
+
 // --- APPLICATION STATE ---
 const State = {
   activeView: 'pos',                // 'pos' | 'orders' | 'delivered' | 'reports' | 'dashboard' | 'settings'
@@ -59,6 +66,10 @@ const State = {
   reportPage: 1,                   // active report pagination page
   reportPageSize: 7,               // 7 items per page (matching Fixoria SaaS UI)
   reportFavorite: false,           // star toggle
+  staff: DEFAULT_STAFF,
+  currentUserId: 'usr_1',
+  isTerminalLocked: false,
+  auditLogs: [],
   inventory: {
     ready: 150,                    // Full clean carboys ready on rack
     returned: 34,                  // Empty jugs returned awaiting sanitizing
@@ -193,6 +204,7 @@ document.addEventListener('DOMContentLoaded', () => {
   initTheme();
   initSanitationProtocol();
   bindEvents();
+  initSecuritySystem();
   renderPresets();
   renderAll();
   initDroppyMascotCycle();
@@ -343,6 +355,34 @@ function loadSavedData() {
       }, JSON.parse(savedSettings));
     } catch (e) {}
   }
+
+  const savedStaff = localStorage.getItem('rr_pos_staff');
+  if (savedStaff) {
+    try {
+      const parsed = JSON.parse(savedStaff);
+      if (Array.isArray(parsed) && parsed.length > 0) {
+        State.staff = parsed;
+      }
+    } catch (e) {}
+  }
+
+  const savedUserId = localStorage.getItem('rr_pos_current_user_id');
+  if (savedUserId && State.staff.some(s => s.id === savedUserId)) {
+    State.currentUserId = savedUserId;
+  }
+
+  const savedAudit = localStorage.getItem('rr_pos_audit_logs');
+  if (savedAudit) {
+    try {
+      const parsed = JSON.parse(savedAudit);
+      if (Array.isArray(parsed)) State.auditLogs = parsed;
+    } catch (e) {}
+  }
+
+  if (localStorage.getItem('rr_pos_terminal_locked') === 'true') {
+    State.isTerminalLocked = true;
+  }
+
   applySettings();
 }
 
@@ -361,10 +401,24 @@ function saveInventory() {
   }
 }
 
+function saveStaff() {
+  if (State.staff) {
+    localStorage.setItem('rr_pos_staff', JSON.stringify(State.staff));
+  }
+}
+
+function saveAuditLogs() {
+  if (State.auditLogs) {
+    localStorage.setItem('rr_pos_audit_logs', JSON.stringify(State.auditLogs));
+  }
+}
+
 function saveStationData() {
   soundCtrl.playPaymentChime();
   saveOrders();
   saveInventory();
+  saveStaff();
+  saveAuditLogs();
   saveSettings();
   localStorage.setItem('rr_pos_theme', State.theme || 'light');
   localStorage.setItem('rr_pos_sanitation_checks', JSON.stringify(State.sanitationChecks || {}));
@@ -373,7 +427,7 @@ function saveStationData() {
     badge.textContent = 'Saved Just Now';
     badge.className = 'meta-badge green';
   }
-  showToast('✓ Station data, orders & settings saved to LocalStorage!');
+  showToast('✓ Station data, orders, staff & settings saved to LocalStorage!');
 }
 
 function initSanitationProtocol() {
@@ -976,27 +1030,11 @@ function bindEvents() {
     });
   }
 
-  // Reset shift log
+  // Reset shift log (Secured with Manager Auth)
   const btnResetShift = document.getElementById('btnResetShiftLog');
   if (btnResetShift) {
     btnResetShift.addEventListener('click', () => {
-      openConfirmModal(
-        'Start New Shift / Day?',
-        'This will clear today\'s active shift cash drawer and reset today\'s running sales counter to ₱0.00. Historical reports (Weekly, Monthly, Yearly) will remain securely archived.',
-        () => {
-          const todayStart = new Date();
-          todayStart.setHours(0, 0, 0, 0);
-          const todayMs = todayStart.getTime();
-
-          // Retain historical orders for reports while resetting today's shift drawer
-          const pastOrders = (State.storedOrders || []).filter(o => (o.timestamp || 0) < todayMs);
-          State.storedOrders = pastOrders;
-          saveOrders();
-          renderAll();
-          showToast('New day/shift started! Shift drawer reset to ₱0.00.');
-        },
-        'assets/droppy_question.png'
-      );
+      handleShiftResetRequest();
     });
   }
 
@@ -1006,7 +1044,7 @@ function bindEvents() {
     btnModalCancel.addEventListener('click', closeConfirmModal);
   }
 
-  // Header notifications & avatar actions
+  // Header notifications action
   const btnNotif = document.getElementById('btnNotifications');
   if (btnNotif) {
     btnNotif.addEventListener('click', () => {
@@ -1015,15 +1053,46 @@ function bindEvents() {
     });
   }
 
-  const cashierAvatar = document.querySelector('.cashier-avatar');
-  if (cashierAvatar) {
-    cashierAvatar.addEventListener('click', () => {
-      soundCtrl.playTap();
-      const name = (State.settings && State.settings.cashierName) || 'Neil';
-      const branch = (State.settings && State.settings.stationBranch) || 'Counter #1';
-      showToast(`Cashier: ${name} • ${branch} Active`);
+  // Lock Terminal Button
+  const btnLockTerm = document.getElementById('btnLockTerminal');
+  if (btnLockTerm) {
+    btnLockTerm.addEventListener('click', () => lockTerminal());
+  }
+
+  // Cashier Profile Dropdown Actions
+  const cashierProfileBtn = document.getElementById('cashierProfileBtn');
+  if (cashierProfileBtn) {
+    cashierProfileBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      toggleCashierMenu();
     });
   }
+
+  const btnMenuSwitch = document.getElementById('btnMenuSwitchUser');
+  if (btnMenuSwitch) {
+    btnMenuSwitch.addEventListener('click', () => openSwitchUserModal());
+  }
+
+  const btnMenuLock = document.getElementById('btnMenuLockTerminal');
+  if (btnMenuLock) {
+    btnMenuLock.addEventListener('click', () => lockTerminal());
+  }
+
+  const btnMenuAudit = document.getElementById('btnMenuViewAuditLog');
+  if (btnMenuAudit) {
+    btnMenuAudit.addEventListener('click', () => {
+      closeCashierDropdown();
+      switchView('settings');
+      activateSettingsTab('security');
+    });
+  }
+
+  document.addEventListener('click', (e) => {
+    const wrap = document.getElementById('cashierProfileWrapper');
+    if (wrap && !wrap.contains(e.target)) {
+      closeCashierDropdown();
+    }
+  });
 
   // Quick Restock 10 Gallons Action
   const btnRestock = document.getElementById('btnRestock10');
@@ -1041,27 +1110,51 @@ function bindEvents() {
     });
   }
 
-  // Settings Tab Navigation
+  // Settings Tab Navigation (Secured for non-managers)
   document.querySelectorAll('.settings-tab-btn').forEach(btn => {
     btn.addEventListener('click', () => {
       soundCtrl.playTap();
       const tabKey = btn.getAttribute('data-tab');
 
-      // Update active tab button
-      document.querySelectorAll('.settings-tab-btn').forEach(b => b.classList.remove('active'));
-      btn.classList.add('active');
+      // Restrict pricing, system, and security tabs to Managers
+      const user = getCurrentUser();
+      const protectedTabs = ['pricing', 'system', 'security'];
+      if (protectedTabs.includes(tabKey) && user.role !== 'manager') {
+        requestManagerAuth({
+          title: 'Manager Authorization Required',
+          description: `Accessing ${btn.textContent.trim()} requires Manager PIN approval.`,
+          requireReason: false,
+          onAuthorized: () => {
+            activateSettingsTab(tabKey);
+          }
+        });
+        return;
+      }
 
-      // Update active tab pane
-      document.querySelectorAll('.settings-tab-pane').forEach(p => p.classList.remove('active'));
-      const targetPane = document.getElementById('pane' + tabKey.charAt(0).toUpperCase() + tabKey.slice(1));
-      if (targetPane) targetPane.classList.add('active');
+      activateSettingsTab(tabKey);
     });
   });
 
-  // Save Settings Button
+  // Save Settings Button (Secured with Manager Auth)
   const btnSaveSettings = document.getElementById('btnSaveAllSettings');
   if (btnSaveSettings) {
-    btnSaveSettings.addEventListener('click', saveSettings);
+    btnSaveSettings.addEventListener('click', () => {
+      const user = getCurrentUser();
+      if (user.role !== 'manager') {
+        requestManagerAuth({
+          title: 'Authorize Settings Changes',
+          description: 'Saving station rates and terminal settings requires Manager PIN verification.',
+          requireReason: false,
+          onAuthorized: (reason, manager) => {
+            saveSettings();
+            logSecurityEvent('SETTINGS_CHANGE', 'Updated station configuration & rates', manager.name);
+          }
+        });
+      } else {
+        saveSettings();
+        logSecurityEvent('SETTINGS_CHANGE', 'Updated station configuration & rates', user.name);
+      }
+    });
   }
 
   // Sound Toggle in Settings
@@ -1166,27 +1259,11 @@ function bindEvents() {
     });
   }
 
-  // Reset Shift from Settings
+  // Reset Shift from Settings (Secured with Manager Auth)
   const btnResetSettings = document.getElementById('btnResetShiftFromSettings');
   if (btnResetSettings) {
     btnResetSettings.addEventListener('click', () => {
-      openConfirmModal(
-        'Start New Day / Reset Shift?',
-        'This will clear today\'s active shift cash drawer and reset today\'s running sales counter to ₱0.00. Historical reports (Weekly, Monthly, Yearly) will remain securely archived.',
-        () => {
-          const todayStart = new Date();
-          todayStart.setHours(0, 0, 0, 0);
-          const todayMs = todayStart.getTime();
-
-          // Retain historical orders for reports while resetting today's shift drawer
-          const pastOrders = (State.storedOrders || []).filter(o => (o.timestamp || 0) < todayMs);
-          State.storedOrders = pastOrders;
-          saveOrders();
-          renderAll();
-          showToast('New day/shift started! Shift drawer reset to ₱0.00.');
-        },
-        'assets/droppy_question.png'
-      );
+      handleShiftResetRequest();
     });
   }
 
@@ -1275,17 +1352,7 @@ function applySettings() {
   const pillNewSpan = document.querySelector('#pillProdNew span');
   if (pillNewSpan) pillNewSpan.textContent = `New Jug + Water (₱${Math.round(PRODUCTS.new_container.price).toLocaleString()})`;
 
-  // Update Cashier Welcome & Avatar
-  const welcomeTitle = document.querySelector('.welcome-title');
-  if (welcomeTitle && s.cashierName) {
-    welcomeTitle.textContent = `Welcome, ${s.cashierName}`;
-  }
-
-  const cashierAvatar = document.querySelector('.cashier-avatar');
-  if (cashierAvatar && s.cashierName) {
-    cashierAvatar.textContent = s.cashierName.charAt(0).toUpperCase();
-    cashierAvatar.title = `Cashier: ${s.cashierName} (Station Manager)`;
-  }
+  renderHeaderUser();
 
   const stationSubTag = document.querySelector('.station-sub-tag');
   if (stationSubTag && s.stationBranch) {
@@ -1411,12 +1478,15 @@ function calculateTotal() {
 }
 
 function renderAll() {
+  renderHeaderUser();
   renderOrderSummary();
   renderTopStats();
   renderStoredOrders();
   renderFleetDelivered();
   renderReports();
   renderInventory();
+  renderStaffSettingsList();
+  renderAuditLogTable();
   if (document.getElementById("miniOrdersDrawer")?.classList.contains("open")) {
     renderMiniOrders();
   }
@@ -1556,7 +1626,9 @@ function processPaymentAndStoreOrder() {
     status: isPending ? 'pending' : 'paid',
     tendered: paid,
     change: 0,
-    note: noteText
+    note: noteText,
+    cashierName: (typeof getCurrentUser === 'function' ? getCurrentUser().name : 'Neil'),
+    cashierRole: (typeof getCurrentUser === 'function' ? getCurrentUser().role : 'manager')
   };
 
   // Prepend to stored orders array (the specific part of the POS)
@@ -1928,18 +2000,25 @@ function confirmVoidOrder(orderNo) {
   if (!order) return;
 
   soundCtrl.playVoidTone();
-  openConfirmModal(
-    'Void Stored Order?',
-    `Are you sure you want to cancel ${order.orderNo} (${(Number(order.gallons) || 1).toLocaleString()} Gallons • ₱${formatPeso(order.total)}) recorded at ${order.time}? This will remove it from the stored orders and subtract the volume from today's totals.`,
-    () => {
+  requestManagerAuth({
+    title: 'Authorize Order Cancellation',
+    description: `Cancelling ${order.orderNo} requires Manager PIN approval to prevent unauthorized register shrinkage.`,
+    contextLabel: 'Target Order:',
+    contextVal: `${order.orderNo} (${(Number(order.gallons) || 1).toLocaleString()} Gal • ₱${formatPeso(order.total)})`,
+    requireReason: true,
+    onAuthorized: (reason, manager) => {
       State.storedOrders = State.storedOrders.filter(o => o.orderNo !== orderNo);
       saveOrders();
       renderAll();
-      showToast(`Order ${orderNo} voided.`);
-      updateDroppyMessage(`Order ${orderNo} voided. Running volume adjusted.`, 'assets/droppy_sad.png', 'Order Voided');
-    },
-    'assets/droppy_sad.png'
-  );
+      showToast(`Order ${orderNo} cancelled (Authorized by ${manager.name})`);
+      logSecurityEvent(
+        'VOID_ORDER',
+        `Cancelled ${order.orderNo} (${(Number(order.gallons) || 1).toLocaleString()} Gal • ₱${formatPeso(order.total)}). Reason: ${reason}`,
+        manager.name
+      );
+      updateDroppyMessage(`Order ${orderNo} cancelled by Manager ${manager.name}. Reason: ${reason}`, 'assets/droppy_sad.png', 'Order Voided');
+    }
+  });
 }
 
 // ==========================================================================
@@ -3748,4 +3827,851 @@ function renderMiniOrders(filter = currentMiniOrdersFilter) {
       renderMiniOrders(currentMiniOrdersFilter);
     });
   });
+}
+
+// ==========================================================================
+// SECURITY, PIN ACCESS CONTROL & AUDIT SYSTEM
+// ==========================================================================
+
+let activeAuthCallback = null;
+let activeAuthCancelCallback = null;
+let authPinBuffer = '';
+let staffLoginPinBuffer = '';
+let staffLoginSelectedId = null;
+let lockPinBuffer = '';
+
+function getCurrentUser() {
+  const staff = State.staff || DEFAULT_STAFF;
+  return staff.find(s => s.id === State.currentUserId) || staff[0];
+}
+
+function renderHeaderUser() {
+  const user = getCurrentUser();
+  const welcomeTitle = document.querySelector('.welcome-title');
+  if (welcomeTitle) {
+    welcomeTitle.textContent = `Welcome, ${user.name}`;
+  }
+
+  const headerAvatar = document.getElementById('headerCashierAvatar');
+  if (headerAvatar) {
+    headerAvatar.textContent = user.name.charAt(0).toUpperCase();
+    headerAvatar.style.background = user.avatarColor || '#0284c7';
+    headerAvatar.title = `Cashier: ${user.name} (${user.title || user.role})`;
+  }
+
+  const headerName = document.getElementById('headerCashierName');
+  if (headerName) headerName.textContent = user.name;
+
+  const headerRole = document.getElementById('headerCashierRole');
+  if (headerRole) {
+    headerRole.textContent = user.role.toUpperCase();
+    headerRole.className = `cashier-role-badge role-${user.role}`;
+  }
+
+  const dropdownAvatar = document.getElementById('dropdownCashierAvatar');
+  if (dropdownAvatar) {
+    dropdownAvatar.textContent = user.name.charAt(0).toUpperCase();
+    dropdownAvatar.style.background = user.avatarColor || '#0284c7';
+  }
+
+  const dropdownFull = document.getElementById('dropdownCashierFull');
+  if (dropdownFull) dropdownFull.textContent = user.name;
+
+  const dropdownTitle = document.getElementById('dropdownCashierTitle');
+  if (dropdownTitle) dropdownTitle.textContent = user.title || (user.role.toUpperCase());
+
+  // Also update standard cashier-avatar elements if present
+  document.querySelectorAll('.cashier-avatar:not(#headerCashierAvatar):not(#dropdownCashierAvatar):not(#lockUserAvatar):not(#selectedStaffAvatar)').forEach(el => {
+    el.textContent = user.name.charAt(0).toUpperCase();
+    el.title = `Cashier: ${user.name} (${user.title || user.role})`;
+  });
+}
+
+function toggleCashierMenu(forceState) {
+  const menu = document.getElementById('cashierDropdownMenu');
+  const wrap = document.getElementById('cashierProfileWrapper');
+  if (!menu || !wrap) return;
+
+  const isShowing = menu.classList.contains('show');
+  const nextState = typeof forceState === 'boolean' ? forceState : !isShowing;
+
+  if (nextState) {
+    soundCtrl.playTap();
+    menu.classList.add('show');
+    wrap.classList.add('menu-open');
+  } else {
+    menu.classList.remove('show');
+    wrap.classList.remove('menu-open');
+  }
+}
+
+function closeCashierDropdown() {
+  toggleCashierMenu(false);
+}
+
+// --- MANAGER PIN AUTHORIZATION ---
+function requestManagerAuth(options) {
+  const modal = document.getElementById('managerAuthModal');
+  if (!modal) {
+    if (options.onAuthorized) options.onAuthorized('Authorized', getCurrentUser());
+    return;
+  }
+
+  activeAuthCallback = options.onAuthorized;
+  activeAuthCancelCallback = options.onCancelled;
+  authPinBuffer = '';
+
+  const titleEl = document.getElementById('authModalTitle');
+  const descEl = document.getElementById('authModalDesc');
+  const contextBox = document.getElementById('authContextBox');
+  const contextLabel = document.getElementById('authContextLabel');
+  const contextVal = document.getElementById('authContextVal');
+  const reasonWrap = document.getElementById('authReasonWrapper');
+  const errorEl = document.getElementById('authPinError');
+
+  if (titleEl) titleEl.textContent = options.title || 'Manager Authorization Required';
+  if (descEl) descEl.textContent = options.description || 'Enter 4-digit Manager PIN to authorize this sensitive action.';
+
+  if (contextBox) {
+    if (options.contextLabel && options.contextVal) {
+      contextBox.style.display = 'flex';
+      if (contextLabel) contextLabel.textContent = options.contextLabel;
+      if (contextVal) contextVal.textContent = options.contextVal;
+    } else {
+      contextBox.style.display = 'none';
+    }
+  }
+
+  if (reasonWrap) {
+    reasonWrap.style.display = options.requireReason ? 'flex' : 'none';
+  }
+
+  if (errorEl) errorEl.textContent = '';
+  updateAuthPinDots(false);
+
+  modal.classList.add('show');
+}
+
+function updateAuthPinDots(isError = false) {
+  const dots = document.querySelectorAll('#authPinDots .pin-dot');
+  dots.forEach((dot, idx) => {
+    dot.className = 'pin-dot';
+    if (isError) {
+      dot.classList.add('error');
+    } else if (idx < authPinBuffer.length) {
+      dot.classList.add('filled');
+    }
+  });
+}
+
+function submitAuthPin() {
+  if (authPinBuffer.length < 4) {
+    const errorEl = document.getElementById('authPinError');
+    if (errorEl) errorEl.textContent = 'Please enter full 4-digit PIN.';
+    soundCtrl.playVoidTone();
+    return;
+  }
+
+  const staff = State.staff || DEFAULT_STAFF;
+  const manager = staff.find(s => s.role === 'manager' && s.pin === authPinBuffer);
+
+  if (manager) {
+    soundCtrl.playSuccessTone();
+    let reasonText = '';
+    const reasonSelect = document.getElementById('authVoidReasonSelect');
+    const customNote = document.getElementById('authVoidCustomNote');
+    if (reasonSelect) {
+      reasonText = reasonSelect.value;
+      if (customNote && customNote.value.trim()) {
+        reasonText += ` - ${customNote.value.trim()}`;
+      }
+    }
+    const cb = activeAuthCallback;
+    closeManagerAuthModal();
+    if (cb) cb(reasonText, manager);
+  } else {
+    soundCtrl.playVoidTone();
+    const errorEl = document.getElementById('authPinError');
+    if (errorEl) errorEl.textContent = 'Incorrect Manager PIN. Access denied.';
+    updateAuthPinDots(true);
+    const dotsWrap = document.getElementById('authPinDots');
+    if (dotsWrap) {
+      dotsWrap.classList.remove('pin-shake');
+      void dotsWrap.offsetWidth;
+      dotsWrap.classList.add('pin-shake');
+    }
+    setTimeout(() => {
+      authPinBuffer = '';
+      updateAuthPinDots(false);
+      if (dotsWrap) dotsWrap.classList.remove('pin-shake');
+    }, 700);
+  }
+}
+
+function closeManagerAuthModal() {
+  const modal = document.getElementById('managerAuthModal');
+  if (modal) modal.classList.remove('show');
+  authPinBuffer = '';
+  if (activeAuthCancelCallback) {
+    activeAuthCancelCallback();
+  }
+  activeAuthCallback = null;
+  activeAuthCancelCallback = null;
+}
+
+// --- TERMINAL LOCK SYSTEM ---
+function lockTerminal() {
+  soundCtrl.playTap();
+  State.isTerminalLocked = true;
+  localStorage.setItem('rr_pos_terminal_locked', 'true');
+  const overlay = document.getElementById('terminalLockOverlay');
+  if (overlay) {
+    overlay.style.display = 'flex';
+    updateLockScreenInfo();
+  }
+  lockPinBuffer = '';
+  updateLockPinDots(false);
+  closeCashierDropdown();
+  logSecurityEvent('LOCK', `Terminal locked at ${State.settings.stationBranch || 'Counter #1'}`);
+}
+
+function unlockTerminal() {
+  if (lockPinBuffer.length < 4) {
+    const errorEl = document.getElementById('lockPinError');
+    if (errorEl) errorEl.textContent = 'Please enter 4 digits.';
+    soundCtrl.playVoidTone();
+    return;
+  }
+
+  const staff = State.staff || DEFAULT_STAFF;
+  const currentUser = getCurrentUser();
+  const authorized = (currentUser.pin === lockPinBuffer) ||
+    staff.some(s => s.role === 'manager' && s.pin === lockPinBuffer);
+
+  if (authorized) {
+    soundCtrl.playSuccessTone();
+    State.isTerminalLocked = false;
+    localStorage.removeItem('rr_pos_terminal_locked');
+    const overlay = document.getElementById('terminalLockOverlay');
+    if (overlay) overlay.style.display = 'none';
+    lockPinBuffer = '';
+    showToast(`Welcome back, ${currentUser.name}! Terminal unlocked.`);
+    logSecurityEvent('UNLOCK', `Terminal unlocked by ${currentUser.name}`);
+  } else {
+    soundCtrl.playVoidTone();
+    const errorEl = document.getElementById('lockPinError');
+    if (errorEl) errorEl.textContent = 'Incorrect PIN. Try again.';
+    updateLockPinDots(true);
+    const dotsWrap = document.getElementById('lockPinDots');
+    if (dotsWrap) {
+      dotsWrap.classList.remove('pin-shake');
+      void dotsWrap.offsetWidth;
+      dotsWrap.classList.add('pin-shake');
+    }
+    setTimeout(() => {
+      lockPinBuffer = '';
+      updateLockPinDots(false);
+      if (dotsWrap) dotsWrap.classList.remove('pin-shake');
+    }, 700);
+  }
+}
+
+function updateLockScreenInfo() {
+  const user = getCurrentUser();
+  const userNameEl = document.getElementById('lockUserName');
+  const userRoleEl = document.getElementById('lockUserRole');
+  const userAvatarEl = document.getElementById('lockUserAvatar');
+  const timeEl = document.getElementById('lockTimeDisplay');
+  const dateEl = document.getElementById('lockDateDisplay');
+
+  if (userNameEl) userNameEl.textContent = user.name;
+  if (userRoleEl) userRoleEl.textContent = user.title || (user.role.toUpperCase());
+  if (userAvatarEl) {
+    userAvatarEl.textContent = user.name.charAt(0).toUpperCase();
+    userAvatarEl.style.background = user.avatarColor || '#0284c7';
+  }
+
+  const now = new Date();
+  if (timeEl) timeEl.textContent = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  if (dateEl) dateEl.textContent = now.toLocaleDateString([], { weekday: 'long', month: 'short', day: 'numeric', year: 'numeric' });
+}
+
+function updateLockPinDots(isError = false) {
+  const dots = document.querySelectorAll('#lockPinDots .pin-dot');
+  dots.forEach((dot, idx) => {
+    dot.className = 'pin-dot';
+    if (isError) {
+      dot.classList.add('error');
+    } else if (idx < lockPinBuffer.length) {
+      dot.classList.add('filled');
+    }
+  });
+}
+
+// --- SWITCH STAFF MODAL ---
+function openSwitchUserModal() {
+  soundCtrl.playTap();
+  closeCashierDropdown();
+  const modal = document.getElementById('switchUserModal');
+  const listEl = document.getElementById('staffPickerList');
+  const subview = document.getElementById('staffPinEntrySubview');
+  if (!modal) return;
+
+  if (subview) subview.style.display = 'none';
+  if (listEl) {
+    listEl.style.display = 'flex';
+    renderStaffPickerCards();
+  }
+
+  modal.classList.add('show');
+}
+
+function closeSwitchUserModal() {
+  const modal = document.getElementById('switchUserModal');
+  if (modal) modal.classList.remove('show');
+  staffLoginPinBuffer = '';
+  staffLoginSelectedId = null;
+}
+
+function renderStaffPickerCards() {
+  const listEl = document.getElementById('staffPickerList');
+  if (!listEl) return;
+  const staff = State.staff || DEFAULT_STAFF;
+
+  let html = '';
+  staff.forEach(s => {
+    const isCurrent = s.id === State.currentUserId;
+    html += `
+      <div class="staff-picker-card ${isCurrent ? 'active' : ''}" data-staffid="${s.id}">
+        <div class="staff-picker-left">
+          <div class="cashier-avatar sm" style="background: ${s.avatarColor || '#0284c7'};">${s.name.charAt(0).toUpperCase()}</div>
+          <div class="staff-picker-info">
+            <strong class="staff-picker-name">${escapeHtml(s.name)} ${isCurrent ? '(Active)' : ''}</strong>
+            <span class="staff-picker-title">${escapeHtml(s.title || s.role)}</span>
+          </div>
+        </div>
+        <span class="staff-picker-role-tag ${s.role}">${s.role}</span>
+      </div>
+    `;
+  });
+  listEl.innerHTML = html;
+
+  listEl.querySelectorAll('.staff-picker-card').forEach(card => {
+    card.addEventListener('click', () => {
+      const id = card.getAttribute('data-staffid');
+      startStaffPinLogin(id);
+    });
+  });
+}
+
+function startStaffPinLogin(staffId) {
+  const staff = State.staff || DEFAULT_STAFF;
+  const user = staff.find(s => s.id === staffId);
+  if (!user) return;
+
+  staffLoginSelectedId = staffId;
+  staffLoginPinBuffer = '';
+
+  const listEl = document.getElementById('staffPickerList');
+  const subview = document.getElementById('staffPinEntrySubview');
+  const avatarEl = document.getElementById('selectedStaffAvatar');
+  const nameEl = document.getElementById('selectedStaffName');
+  const roleEl = document.getElementById('selectedStaffRoleTitle');
+  const promptEl = document.getElementById('staffPromptName');
+  const errorEl = document.getElementById('staffLoginPinError');
+
+  if (listEl) listEl.style.display = 'none';
+  if (subview) subview.style.display = 'block';
+
+  if (avatarEl) {
+    avatarEl.textContent = user.name.charAt(0).toUpperCase();
+    avatarEl.style.background = user.avatarColor || '#0284c7';
+  }
+  if (nameEl) nameEl.textContent = user.name;
+  if (roleEl) roleEl.textContent = user.title || user.role;
+  if (promptEl) promptEl.textContent = user.name;
+  if (errorEl) errorEl.textContent = '';
+
+  updateStaffLoginPinDots(false);
+}
+
+function updateStaffLoginPinDots(isError = false) {
+  const dots = document.querySelectorAll('#staffLoginPinDots .pin-dot');
+  dots.forEach((dot, idx) => {
+    dot.className = 'pin-dot';
+    if (isError) {
+      dot.classList.add('error');
+    } else if (idx < staffLoginPinBuffer.length) {
+      dot.classList.add('filled');
+    }
+  });
+}
+
+function submitStaffLoginPin() {
+  if (staffLoginPinBuffer.length < 4) {
+    const errorEl = document.getElementById('staffLoginPinError');
+    if (errorEl) errorEl.textContent = 'Please enter 4 digits.';
+    soundCtrl.playVoidTone();
+    return;
+  }
+
+  const staff = State.staff || DEFAULT_STAFF;
+  const targetUser = staff.find(s => s.id === staffLoginSelectedId);
+
+  if (targetUser && targetUser.pin === staffLoginPinBuffer) {
+    soundCtrl.playSuccessTone();
+    State.currentUserId = targetUser.id;
+    localStorage.setItem('rr_pos_current_user_id', targetUser.id);
+    if (State.settings) State.settings.cashierName = targetUser.name;
+    saveSettings();
+    renderHeaderUser();
+    closeSwitchUserModal();
+
+    if (State.isTerminalLocked) {
+      State.isTerminalLocked = false;
+      localStorage.removeItem('rr_pos_terminal_locked');
+      const overlay = document.getElementById('terminalLockOverlay');
+      if (overlay) overlay.style.display = 'none';
+    }
+
+    showToast(`✓ Switched cashier: Signed in as ${targetUser.name} (${targetUser.role.toUpperCase()})`);
+    logSecurityEvent('LOGIN', `User signed in as ${targetUser.name} (${targetUser.title})`);
+    updateDroppyMessage(`Welcome back, ${targetUser.name}! Station ready for dispensing.`, 'assets/droppy_happy.png', 'Operator Active');
+  } else {
+    soundCtrl.playVoidTone();
+    const errorEl = document.getElementById('staffLoginPinError');
+    if (errorEl) errorEl.textContent = 'Incorrect PIN. Try again.';
+    updateStaffLoginPinDots(true);
+    const dotsWrap = document.getElementById('staffLoginPinDots');
+    if (dotsWrap) {
+      dotsWrap.classList.remove('pin-shake');
+      void dotsWrap.offsetWidth;
+      dotsWrap.classList.add('pin-shake');
+    }
+    setTimeout(() => {
+      staffLoginPinBuffer = '';
+      updateStaffLoginPinDots(false);
+      if (dotsWrap) dotsWrap.classList.remove('pin-shake');
+    }, 700);
+  }
+}
+
+// --- SHIFT RESET SECURED WITH MANAGER AUTH ---
+function handleShiftResetRequest() {
+  soundCtrl.playTap();
+  let todayVol = 0;
+  let todayCash = 0;
+  const todayStart = new Date();
+  todayStart.setHours(0, 0, 0, 0);
+  const todayMs = todayStart.getTime();
+
+  (State.storedOrders || []).forEach(o => {
+    if ((o.timestamp || 0) >= todayMs) {
+      todayVol += Number(o.gallons) || 0;
+      const isPaid = o.status === 'paid';
+      const paidVal = typeof o.paidAmount === 'number' ? o.paidAmount : (isPaid ? o.total : 0);
+      todayCash += paidVal;
+    }
+  });
+
+  requestManagerAuth({
+    title: 'Authorize Shift Close & Reset',
+    description: 'This will close the active shift drawer and reset today\'s running sales counter to ₱0.00. Historical reports remain securely archived.',
+    contextLabel: 'Closing Shift Ledger:',
+    contextVal: `₱${formatPeso(todayCash)} (${todayVol.toLocaleString()} Gallons)`,
+    requireReason: false,
+    onAuthorized: (reason, manager) => {
+      const pastOrders = (State.storedOrders || []).filter(o => (o.timestamp || 0) < todayMs);
+      State.storedOrders = pastOrders;
+      saveOrders();
+      renderAll();
+      showToast(`New day/shift started! Drawer reset to ₱0.00 (Authorized by ${manager.name}).`);
+      logSecurityEvent(
+        'SHIFT_RESET',
+        `Closed shift. Final output: ${todayVol.toLocaleString()} Gal, Cash remitted: ₱${formatPeso(todayCash)}`,
+        manager.name
+      );
+      updateDroppyMessage(`New shift started! Drawer reset to ₱0.00 by Manager ${manager.name}.`, 'assets/droppy_happy.png', 'Shift Reset');
+    }
+  });
+}
+
+// --- AUDIT LOGGING & SETTINGS PANELS ---
+function logSecurityEvent(action, details, managerOverrideName = null) {
+  const user = getCurrentUser();
+  const now = new Date();
+  const timeStr = formatReportDateTime(now.getTime());
+  const entry = {
+    id: 'sec_' + Date.now() + '_' + Math.random().toString(36).substr(2, 4),
+    timestamp: now.getTime(),
+    timeStr: timeStr,
+    action: action,
+    user: user.name,
+    role: user.role,
+    manager: managerOverrideName || (user.role === 'manager' ? user.name : '—'),
+    details: details
+  };
+  if (!Array.isArray(State.auditLogs)) State.auditLogs = [];
+  State.auditLogs.unshift(entry);
+  if (State.auditLogs.length > 250) State.auditLogs = State.auditLogs.slice(0, 250);
+  saveAuditLogs();
+  renderAuditLogTable();
+}
+
+function renderStaffSettingsList() {
+  const container = document.getElementById('settingsStaffList');
+  if (!container) return;
+  const staff = State.staff || DEFAULT_STAFF;
+
+  let html = '';
+  staff.forEach(s => {
+    html += `
+      <div class="staff-setting-row" data-staffid="${s.id}">
+        <div class="staff-row-left">
+          <div class="cashier-avatar sm" style="background: ${s.avatarColor || '#0284c7'};">${s.name.charAt(0).toUpperCase()}</div>
+          <div class="staff-row-details">
+            <strong>${escapeHtml(s.name)}</strong>
+            <span>${escapeHtml(s.title || s.role)} • PIN: ••••</span>
+          </div>
+        </div>
+        <div class="staff-row-right">
+          <span class="staff-picker-role-tag ${s.role}">${s.role}</span>
+          <button class="btn-edit-staff-pin" data-staffid="${s.id}">Change PIN</button>
+        </div>
+      </div>
+    `;
+  });
+  container.innerHTML = html;
+
+  container.querySelectorAll('.btn-edit-staff-pin').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const id = btn.getAttribute('data-staffid');
+      promptChangeStaffPin(id);
+    });
+  });
+}
+
+function promptChangeStaffPin(staffId) {
+  const staff = State.staff || DEFAULT_STAFF;
+  const target = staff.find(s => s.id === staffId);
+  if (!target) return;
+
+  requestManagerAuth({
+    title: `Change PIN: ${target.name}`,
+    description: `Enter Manager PIN to authorize setting a new security PIN for ${target.name}.`,
+    requireReason: false,
+    onAuthorized: () => {
+      const newPin = prompt(`Enter new 4-digit PIN for ${target.name}:`, target.pin);
+      if (newPin && /^\d{4}$/.test(newPin.trim())) {
+        target.pin = newPin.trim();
+        saveStaff();
+        renderStaffSettingsList();
+        showToast(`PIN updated for ${target.name}!`);
+        logSecurityEvent('PIN_CHANGE', `Updated 4-digit PIN for ${target.name} (${target.role})`);
+      } else if (newPin !== null) {
+        alert('PIN must be exactly 4 numeric digits.');
+      }
+    }
+  });
+}
+
+function renderAuditLogTable() {
+  const tbody = document.getElementById('auditLogTbody');
+  const countBadge = document.getElementById('auditCountBadge');
+  if (!tbody) return;
+
+  const logs = State.auditLogs || [];
+  if (countBadge) countBadge.textContent = `${logs.length} Recorded Events`;
+
+  if (logs.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="5" style="text-align:center; padding: 24px; color: var(--text-muted);">No security events recorded yet.</td></tr>`;
+    return;
+  }
+
+  let html = '';
+  logs.slice(0, 100).forEach(log => {
+    let badgeClass = 'lock';
+    if (log.action === 'VOID_ORDER') badgeClass = 'void';
+    else if (log.action === 'SHIFT_RESET') badgeClass = 'reset';
+    else if (log.action === 'LOGIN') badgeClass = 'login';
+    else if (log.action === 'PIN_CHANGE' || log.action === 'SETTINGS_CHANGE') badgeClass = 'price';
+
+    html += `
+      <tr>
+        <td style="font-family: var(--font-mono); font-size: 0.72rem; white-space: nowrap;">${escapeHtml(log.timeStr || '')}</td>
+        <td><span class="badge-audit ${badgeClass}">${escapeHtml(log.action || '')}</span></td>
+        <td><strong>${escapeHtml(log.user || '')}</strong> <span style="font-size: 0.7rem; color: var(--text-muted);">(${escapeHtml(log.role || '')})</span></td>
+        <td><span style="color: #0284c7; font-weight: 700;">${escapeHtml(log.manager || '—')}</span></td>
+        <td>${escapeHtml(log.details || '')}</td>
+      </tr>
+    `;
+  });
+  tbody.innerHTML = html;
+}
+
+function exportAuditLogCsv() {
+  const logs = State.auditLogs || [];
+  if (logs.length === 0) {
+    showToast('No audit events to export yet.');
+    return;
+  }
+
+  let csv = 'Timestamp,Event,Operator,Role,Manager Approval,Details\n';
+  logs.forEach(l => {
+    csv += `"${(l.timeStr || '').replace(/"/g, '""')}","${l.action || ''}","${l.user || ''}","${l.role || ''}","${l.manager || ''}","${(l.details || '').replace(/"/g, '""')}"\n`;
+  });
+
+  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `RR_Water_Security_Audit_Log_${new Date().toISOString().slice(0, 10)}.csv`;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
+  showToast('Security audit log exported as CSV!');
+}
+
+function activateSettingsTab(tabKey) {
+  document.querySelectorAll('.settings-tab-btn').forEach(b => {
+    b.classList.toggle('active', b.getAttribute('data-tab') === tabKey);
+  });
+  document.querySelectorAll('.settings-tab-pane').forEach(p => p.classList.remove('active'));
+  const targetPane = document.getElementById('pane' + tabKey.charAt(0).toUpperCase() + tabKey.slice(1));
+  if (targetPane) targetPane.classList.add('active');
+  if (tabKey === 'security') {
+    renderStaffSettingsList();
+    renderAuditLogTable();
+  }
+}
+
+function initSecuritySystem() {
+  // 1. Manager Auth Keypad clicks
+  document.querySelectorAll('.btn-auth-key[data-digit]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      soundCtrl.playTap();
+      const d = btn.getAttribute('data-digit');
+      if (authPinBuffer.length < 4) {
+        authPinBuffer += d;
+        updateAuthPinDots(false);
+        if (authPinBuffer.length === 4) {
+          setTimeout(submitAuthPin, 100);
+        }
+      }
+    });
+  });
+
+  const btnAuthClear = document.getElementById('btnAuthClear');
+  if (btnAuthClear) {
+    btnAuthClear.addEventListener('click', () => {
+      soundCtrl.playTap();
+      authPinBuffer = '';
+      updateAuthPinDots(false);
+    });
+  }
+
+  const btnAuthBack = document.getElementById('btnAuthBackspace');
+  if (btnAuthBack) {
+    btnAuthBack.addEventListener('click', () => {
+      soundCtrl.playTap();
+      authPinBuffer = authPinBuffer.slice(0, -1);
+      updateAuthPinDots(false);
+    });
+  }
+
+  const btnAuthCancel = document.getElementById('btnAuthCancel');
+  if (btnAuthCancel) btnAuthCancel.addEventListener('click', closeManagerAuthModal);
+
+  const btnAuthConfirm = document.getElementById('btnAuthConfirm');
+  if (btnAuthConfirm) btnAuthConfirm.addEventListener('click', submitAuthPin);
+
+  // 2. Switch User Keypad clicks
+  document.querySelectorAll('.btn-staff-login-key[data-digit]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      soundCtrl.playTap();
+      const d = btn.getAttribute('data-digit');
+      if (staffLoginPinBuffer.length < 4) {
+        staffLoginPinBuffer += d;
+        updateStaffLoginPinDots(false);
+        if (staffLoginPinBuffer.length === 4) {
+          setTimeout(submitStaffLoginPin, 100);
+        }
+      }
+    });
+  });
+
+  const btnStaffLoginClear = document.getElementById('btnStaffLoginClear');
+  if (btnStaffLoginClear) {
+    btnStaffLoginClear.addEventListener('click', () => {
+      soundCtrl.playTap();
+      staffLoginPinBuffer = '';
+      updateStaffLoginPinDots(false);
+    });
+  }
+
+  const btnStaffLoginBack = document.getElementById('btnStaffLoginBackspace');
+  if (btnStaffLoginBack) {
+    btnStaffLoginBack.addEventListener('click', () => {
+      soundCtrl.playTap();
+      staffLoginPinBuffer = staffLoginPinBuffer.slice(0, -1);
+      updateStaffLoginPinDots(false);
+    });
+  }
+
+  const btnBackStaff = document.getElementById('btnBackToStaffList');
+  if (btnBackStaff) {
+    btnBackStaff.addEventListener('click', () => {
+      soundCtrl.playTap();
+      const listEl = document.getElementById('staffPickerList');
+      const subview = document.getElementById('staffPinEntrySubview');
+      if (subview) subview.style.display = 'none';
+      if (listEl) listEl.style.display = 'flex';
+      staffLoginPinBuffer = '';
+      updateStaffLoginPinDots(false);
+    });
+  }
+
+  const btnSwitchCancel = document.getElementById('btnSwitchUserCancel');
+  if (btnSwitchCancel) btnSwitchCancel.addEventListener('click', closeSwitchUserModal);
+
+  // 3. Lock Screen Keypad clicks
+  document.querySelectorAll('.btn-lock-key[data-digit]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      soundCtrl.playTap();
+      const d = btn.getAttribute('data-digit');
+      if (lockPinBuffer.length < 4) {
+        lockPinBuffer += d;
+        updateLockPinDots(false);
+        if (lockPinBuffer.length === 4) {
+          setTimeout(unlockTerminal, 100);
+        }
+      }
+    });
+  });
+
+  const btnLockClear = document.getElementById('btnLockPinClear');
+  if (btnLockClear) {
+    btnLockClear.addEventListener('click', () => {
+      soundCtrl.playTap();
+      lockPinBuffer = '';
+      updateLockPinDots(false);
+    });
+  }
+
+  const btnLockBack = document.getElementById('btnLockPinBackspace');
+  if (btnLockBack) {
+    btnLockBack.addEventListener('click', () => {
+      soundCtrl.playTap();
+      lockPinBuffer = lockPinBuffer.slice(0, -1);
+      updateLockPinDots(false);
+    });
+  }
+
+  const btnLockSwitch = document.getElementById('btnLockSwitchStaff');
+  if (btnLockSwitch) {
+    btnLockSwitch.addEventListener('click', () => {
+      openSwitchUserModal();
+    });
+  }
+
+  // 4. Export Audit Log button
+  const btnExportAudit = document.getElementById('btnExportAuditLog');
+  if (btnExportAudit) {
+    btnExportAudit.addEventListener('click', exportAuditLogCsv);
+  }
+
+  // 5. Global Keyboard Listeners for PIN Entry and Lock Shortcut
+  document.addEventListener('keydown', (e) => {
+    // Ctrl+L or Alt+L: Lock Station
+    if ((e.ctrlKey || e.altKey) && e.key.toLowerCase() === 'l') {
+      e.preventDefault();
+      lockTerminal();
+      return;
+    }
+
+    // Lock Screen Active: Intercept typing
+    const lockOverlay = document.getElementById('terminalLockOverlay');
+    if (lockOverlay && lockOverlay.style.display === 'flex') {
+      if (e.key >= '0' && e.key <= '9') {
+        e.preventDefault();
+        soundCtrl.playTap();
+        if (lockPinBuffer.length < 4) {
+          lockPinBuffer += e.key;
+          updateLockPinDots(false);
+          if (lockPinBuffer.length === 4) setTimeout(unlockTerminal, 100);
+        }
+      } else if (e.key === 'Backspace') {
+        e.preventDefault();
+        soundCtrl.playTap();
+        lockPinBuffer = lockPinBuffer.slice(0, -1);
+        updateLockPinDots(false);
+      } else if (e.key === 'Enter') {
+        e.preventDefault();
+        unlockTerminal();
+      }
+      return;
+    }
+
+    // Manager Auth Modal Active
+    const authModal = document.getElementById('managerAuthModal');
+    if (authModal && authModal.classList.contains('show')) {
+      if (e.key >= '0' && e.key <= '9') {
+        e.preventDefault();
+        soundCtrl.playTap();
+        if (authPinBuffer.length < 4) {
+          authPinBuffer += e.key;
+          updateAuthPinDots(false);
+          if (authPinBuffer.length === 4) setTimeout(submitAuthPin, 100);
+        }
+      } else if (e.key === 'Backspace') {
+        e.preventDefault();
+        soundCtrl.playTap();
+        authPinBuffer = authPinBuffer.slice(0, -1);
+        updateAuthPinDots(false);
+      } else if (e.key === 'Escape') {
+        e.preventDefault();
+        closeManagerAuthModal();
+      } else if (e.key === 'Enter') {
+        e.preventDefault();
+        submitAuthPin();
+      }
+      return;
+    }
+
+    // Switch User Modal on PIN step
+    const switchModal = document.getElementById('switchUserModal');
+    const subview = document.getElementById('staffPinEntrySubview');
+    if (switchModal && switchModal.classList.contains('show') && subview && subview.style.display === 'block') {
+      if (e.key >= '0' && e.key <= '9') {
+        e.preventDefault();
+        soundCtrl.playTap();
+        if (staffLoginPinBuffer.length < 4) {
+          staffLoginPinBuffer += e.key;
+          updateStaffLoginPinDots(false);
+          if (staffLoginPinBuffer.length === 4) setTimeout(submitStaffLoginPin, 100);
+        }
+      } else if (e.key === 'Backspace') {
+        e.preventDefault();
+        soundCtrl.playTap();
+        staffLoginPinBuffer = staffLoginPinBuffer.slice(0, -1);
+        updateStaffLoginPinDots(false);
+      } else if (e.key === 'Escape') {
+        e.preventDefault();
+        closeSwitchUserModal();
+      } else if (e.key === 'Enter') {
+        e.preventDefault();
+        submitStaffLoginPin();
+      }
+    }
+  });
+
+  // If station was locked prior to refresh, restore lock
+  if (State.isTerminalLocked) {
+    const overlay = document.getElementById('terminalLockOverlay');
+    if (overlay) {
+      overlay.style.display = 'flex';
+      updateLockScreenInfo();
+    }
+  }
 }

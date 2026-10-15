@@ -150,8 +150,53 @@
           </button>
 
 
-          <!-- Cashier Avatar -->
-          <div class="cashier-avatar" title="Cashier: Neil (Station Manager)">N</div>
+          <!-- Lock Station Button -->
+          <button class="header-icon-btn" id="btnLockTerminal" title="Lock Station (Away / Privacy)" aria-label="Lock Station">
+            <svg class="ui-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+              <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+            </svg>
+          </button>
+
+          <!-- Cashier Profile Pill & Switcher -->
+          <div class="cashier-profile-wrapper" id="cashierProfileWrapper">
+            <button class="cashier-profile-btn" id="cashierProfileBtn" title="Current Staff Profile">
+              <div class="cashier-avatar" id="headerCashierAvatar">N</div>
+              <div class="cashier-profile-meta">
+                <span class="cashier-name-text" id="headerCashierName">Neil</span>
+                <span class="cashier-role-badge role-manager" id="headerCashierRole">Manager</span>
+              </div>
+              <svg class="cashier-chevron-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="6 9 12 15 18 9"></polyline>
+              </svg>
+            </button>
+
+            <!-- Dropdown Menu -->
+            <div class="cashier-dropdown-menu" id="cashierDropdownMenu">
+              <div class="cashier-dropdown-header">
+                <div class="dropdown-header-top">
+                  <div class="cashier-avatar sm" id="dropdownCashierAvatar">N</div>
+                  <div>
+                    <strong id="dropdownCashierFull">Neil</strong>
+                    <span id="dropdownCashierTitle">Station Manager</span>
+                  </div>
+                </div>
+              </div>
+              <div class="cashier-dropdown-divider"></div>
+              <button class="cashier-dropdown-item" id="btnMenuSwitchUser">
+                <svg class="ui-icon-xs" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="8.5" cy="7" r="4"></circle><line x1="20" y1="8" x2="20" y2="14"></line><line x1="23" y1="11" x2="17" y2="11"></line></svg>
+                <span>Switch Staff / Sign In</span>
+              </button>
+              <button class="cashier-dropdown-item" id="btnMenuLockTerminal">
+                <svg class="ui-icon-xs" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+                <span>Lock Station (Away)</span>
+              </button>
+              <button class="cashier-dropdown-item" id="btnMenuViewAuditLog">
+                <svg class="ui-icon-xs" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>
+                <span>Staff &amp; Security Logs</span>
+              </button>
+            </div>
+          </div>
         </div>
       </header>
 
@@ -927,6 +972,10 @@
               <svg class="ui-icon-xs" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect><line x1="8" y1="21" x2="16" y2="21"></line><line x1="12" y1="17" x2="12" y2="21"></line></svg>
               <span>Terminal &amp; Data</span>
             </button>
+            <button class="settings-tab-btn" data-tab="security" id="tabBtnSecurity">
+              <svg class="ui-icon-xs" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>
+              <span>Staff &amp; Security</span>
+            </button>
           </div>
 
           <!-- Tab Content 1: Station & Pricing -->
@@ -1414,6 +1463,74 @@
             </div>
           </div>
 
+          <!-- Tab Content 5: Staff & Security -->
+          <div class="settings-tab-pane" id="paneSecurity">
+            <div class="settings-cards-grid">
+              
+              <!-- Card 9: Staff Accounts & PIN Management -->
+              <div class="setting-card">
+                <div class="setting-card-header">
+                  <div class="card-icon-tag blue">
+                    <svg class="ui-icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+                  </div>
+                  <div>
+                    <h4>Staff Accounts &amp; Access PINs</h4>
+                    <p>Configure cashier roles, permissions, and 4-digit security PINs</p>
+                  </div>
+                </div>
+
+                <div class="staff-management-list" id="settingsStaffList">
+                  <!-- Dynamically rendered staff rows with change PIN buttons -->
+                </div>
+
+                <div class="settings-security-notice">
+                  <svg class="ui-icon-xs" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
+                  <span>Manager PIN (Default: <strong>1234</strong>) is required to authorize order voids, shift resets, and pricing changes.</span>
+                </div>
+              </div>
+
+              <!-- Card 10: Security & Operational Audit Trail -->
+              <div class="setting-card">
+                <div class="setting-card-header">
+                  <div class="card-icon-tag green">
+                    <svg class="ui-icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>
+                  </div>
+                  <div>
+                    <h4>Security &amp; Audit Trail</h4>
+                    <p>Tamper-evident log of voids, shift resets, and manager authorizations</p>
+                  </div>
+                </div>
+
+                <div class="audit-trail-wrapper">
+                  <div class="audit-trail-actions-bar">
+                    <span class="audit-count-badge" id="auditCountBadge">0 Recorded Events</span>
+                    <button class="btn-sub-action" id="btnExportAuditLog">
+                      <svg class="ui-icon-xs" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+                      <span>Export Audit Log</span>
+                    </button>
+                  </div>
+                  <div class="audit-table-scroll">
+                    <table class="audit-log-table">
+                      <thead>
+                        <tr>
+                          <th>Time</th>
+                          <th>Event</th>
+                          <th>Operator</th>
+                          <th>Approval</th>
+                          <th>Details &amp; Reason</th>
+                        </tr>
+                      </thead>
+                      <tbody id="auditLogTbody">
+                        <!-- Dynamically filled with audit log rows -->
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </div>
+
+            </div>
+          </div>
+
         </div>
       </div>
 
@@ -1495,6 +1612,206 @@
       <div class="modal-button-row">
         <button class="btn-modal-cancel" id="btnModalCancel">Cancel</button>
         <button class="btn-modal-confirm" id="btnModalConfirm">Confirm</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Manager PIN Authorization Modal -->
+  <div class="modal-backdrop" id="managerAuthModal">
+    <div class="modal-card auth-modal-card">
+      <div class="auth-modal-header">
+        <div class="auth-shield-icon">
+          <svg class="ui-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+          </svg>
+        </div>
+        <div>
+          <h3 id="authModalTitle">Manager Authorization</h3>
+          <p id="authModalDesc">Enter 4-digit Manager PIN to authorize this sensitive action.</p>
+        </div>
+      </div>
+
+      <!-- Action Context Box -->
+      <div class="auth-context-box" id="authContextBox" style="display: none;">
+        <span class="auth-context-label" id="authContextLabel">Target:</span>
+        <strong class="auth-context-val" id="authContextVal">Order #123456</strong>
+      </div>
+
+      <!-- Optional Void Reason Selection -->
+      <div class="auth-reason-wrapper" id="authReasonWrapper" style="display: none;">
+        <label for="authVoidReasonSelect">Select Cancellation Reason:</label>
+        <select id="authVoidReasonSelect" class="auth-reason-select">
+          <option value="Wrong gallon count entered">Wrong gallon count entered</option>
+          <option value="Customer cancelled / walked away">Customer cancelled / walked away</option>
+          <option value="Defective / leaking carboy replaced">Defective / leaking carboy replaced</option>
+          <option value="Duplicate order recorded">Duplicate order recorded</option>
+          <option value="Pricing / test transaction correction">Pricing / test transaction correction</option>
+          <option value="Other authorized override">Other authorized override</option>
+        </select>
+        <input type="text" id="authVoidCustomNote" class="auth-custom-input" placeholder="Optional audit note..." maxlength="60">
+      </div>
+
+      <!-- PIN Display Dots -->
+      <div class="pin-display-wrapper">
+        <div class="pin-display-dots" id="authPinDots">
+          <span class="pin-dot"></span>
+          <span class="pin-dot"></span>
+          <span class="pin-dot"></span>
+          <span class="pin-dot"></span>
+        </div>
+        <div class="pin-error-text" id="authPinError"></div>
+      </div>
+
+      <!-- Touch Keypad Grid -->
+      <div class="auth-keypad-grid">
+        <button class="btn-auth-key" data-digit="1">1</button>
+        <button class="btn-auth-key" data-digit="2">2</button>
+        <button class="btn-auth-key" data-digit="3">3</button>
+        <button class="btn-auth-key" data-digit="4">4</button>
+        <button class="btn-auth-key" data-digit="5">5</button>
+        <button class="btn-auth-key" data-digit="6">6</button>
+        <button class="btn-auth-key" data-digit="7">7</button>
+        <button class="btn-auth-key" data-digit="8">8</button>
+        <button class="btn-auth-key" data-digit="9">9</button>
+        <button class="btn-auth-key btn-auth-clear" id="btnAuthClear">C</button>
+        <button class="btn-auth-key" data-digit="0">0</button>
+        <button class="btn-auth-key btn-auth-backspace" id="btnAuthBackspace">⌫</button>
+      </div>
+
+      <div class="modal-button-row">
+        <button class="btn-modal-cancel" id="btnAuthCancel">Cancel</button>
+        <button class="btn-modal-confirm" id="btnAuthConfirm" style="background-color: var(--color-primary);">Authorize PIN</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Switch User / Staff Login Modal -->
+  <div class="modal-backdrop" id="switchUserModal">
+    <div class="modal-card switch-user-card">
+      <div class="switch-user-header">
+        <img src="assets/droppy_winking.png" alt="Droppy" class="modal-avatar">
+        <h3>Select Active Staff Member</h3>
+        <p>Switch terminal operator to track cashier shifts and delivery dispatches</p>
+      </div>
+
+      <div class="staff-picker-list" id="staffPickerList">
+        <!-- Injected dynamically: staff cards -->
+      </div>
+
+      <!-- Staff PIN Entry Subview -->
+      <div class="staff-pin-entry-subview" id="staffPinEntrySubview" style="display: none;">
+        <div class="staff-selected-banner">
+          <div class="cashier-avatar sm" id="selectedStaffAvatar">N</div>
+          <div>
+            <strong id="selectedStaffName">Neil</strong>
+            <span id="selectedStaffRoleTitle">Station Manager</span>
+          </div>
+          <button class="btn-change-staff-pick" id="btnBackToStaffList">Change</button>
+        </div>
+
+        <p class="staff-pin-prompt">Enter 4-digit PIN for <span id="staffPromptName">Neil</span>:</p>
+
+        <div class="pin-display-wrapper">
+          <div class="pin-display-dots" id="staffLoginPinDots">
+            <span class="pin-dot"></span>
+            <span class="pin-dot"></span>
+            <span class="pin-dot"></span>
+            <span class="pin-dot"></span>
+          </div>
+          <div class="pin-error-text" id="staffLoginPinError"></div>
+        </div>
+
+        <div class="auth-keypad-grid">
+          <button class="btn-staff-login-key" data-digit="1">1</button>
+          <button class="btn-staff-login-key" data-digit="2">2</button>
+          <button class="btn-staff-login-key" data-digit="3">3</button>
+          <button class="btn-staff-login-key" data-digit="4">4</button>
+          <button class="btn-staff-login-key" data-digit="5">5</button>
+          <button class="btn-staff-login-key" data-digit="6">6</button>
+          <button class="btn-staff-login-key" data-digit="7">7</button>
+          <button class="btn-staff-login-key" data-digit="8">8</button>
+          <button class="btn-staff-login-key" data-digit="9">9</button>
+          <button class="btn-staff-login-key btn-auth-clear" id="btnStaffLoginClear">C</button>
+          <button class="btn-staff-login-key" data-digit="0">0</button>
+          <button class="btn-staff-login-key btn-auth-backspace" id="btnStaffLoginBackspace">⌫</button>
+        </div>
+      </div>
+
+      <div class="modal-button-row" style="margin-top: 14px;">
+        <button class="btn-modal-cancel" id="btnSwitchUserCancel">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Fullscreen Station Terminal Lock Screen Overlay -->
+  <div class="terminal-lock-overlay" id="terminalLockOverlay" style="display: none;">
+    <div class="terminal-lock-card">
+      <div class="lock-brand-strip">
+        <div class="lock-logo-badge">
+          <svg class="ui-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"></path>
+          </svg>
+        </div>
+        <div class="lock-brand-text">
+          <h3>R&amp;R WATER REFILLING</h3>
+          <span>Counter #1 • Terminal Protected</span>
+        </div>
+      </div>
+
+      <div class="lock-mascot-row">
+        <img src="assets/droppy_sleep.png" alt="Droppy" class="lock-droppy-img" id="lockDroppyImg">
+        <div class="lock-status-chip">
+          <span class="status-pulse-dot amber"></span>
+          <span>Station Locked (Away)</span>
+        </div>
+      </div>
+
+      <div class="lock-time-display" id="lockTimeDisplay">10:45 AM</div>
+      <div class="lock-date-display" id="lockDateDisplay">Thursday, Oct 15, 2026</div>
+
+      <!-- Current Locked User Card -->
+      <div class="lock-user-card">
+        <div class="cashier-avatar" id="lockUserAvatar">N</div>
+        <div class="lock-user-info">
+          <span class="lock-user-label">Current Operator</span>
+          <strong class="lock-user-name" id="lockUserName">Neil</strong>
+          <span class="lock-user-role" id="lockUserRole">Station Manager</span>
+        </div>
+      </div>
+
+      <div class="lock-pin-section">
+        <p class="lock-prompt-text">Enter 4-digit PIN to unlock terminal:</p>
+        <div class="pin-display-wrapper">
+          <div class="pin-display-dots" id="lockPinDots">
+            <span class="pin-dot"></span>
+            <span class="pin-dot"></span>
+            <span class="pin-dot"></span>
+            <span class="pin-dot"></span>
+          </div>
+          <div class="pin-error-text" id="lockPinError"></div>
+        </div>
+
+        <div class="auth-keypad-grid">
+          <button class="btn-lock-key" data-digit="1">1</button>
+          <button class="btn-lock-key" data-digit="2">2</button>
+          <button class="btn-lock-key" data-digit="3">3</button>
+          <button class="btn-lock-key" data-digit="4">4</button>
+          <button class="btn-lock-key" data-digit="5">5</button>
+          <button class="btn-lock-key" data-digit="6">6</button>
+          <button class="btn-lock-key" data-digit="7">7</button>
+          <button class="btn-lock-key" data-digit="8">8</button>
+          <button class="btn-lock-key" data-digit="9">9</button>
+          <button class="btn-lock-key btn-auth-clear" id="btnLockPinClear">C</button>
+          <button class="btn-lock-key" data-digit="0">0</button>
+          <button class="btn-lock-key btn-auth-backspace" id="btnLockPinBackspace">⌫</button>
+        </div>
+      </div>
+
+      <div class="lock-footer-actions">
+        <button class="btn-lock-switch-user" id="btnLockSwitchStaff">
+          <svg class="ui-icon-xs" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="8.5" cy="7" r="4"></circle><line x1="20" y1="8" x2="20" y2="14"></line><line x1="23" y1="11" x2="17" y2="11"></line></svg>
+          <span>Switch Staff</span>
+        </button>
       </div>
     </div>
   </div>
