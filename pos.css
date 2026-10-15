@@ -382,12 +382,12 @@ body:not(.light-mode) .sidebar-droppy-card {
   display: block;
   font-size: 0.78rem;
   font-weight: 800;
-  color: #059669; /* Tarsi-style vibrant green */
+  color: #0284c7;
   margin-bottom: 2px;
 }
 
 body:not(.light-mode) .sidebar-droppy-name {
-  color: #34d399;
+  color: #38bdf8;
 }
 
 .sidebar-droppy-text {
@@ -395,6 +395,7 @@ body:not(.light-mode) .sidebar-droppy-name {
   color: var(--text-main);
   line-height: 1.35;
   margin: 0;
+  transition: opacity 0.2s ease;
 }
 
 .sidebar-droppy-mascot-row {
@@ -410,6 +411,17 @@ body:not(.light-mode) .sidebar-droppy-name {
   object-fit: contain;
   filter: drop-shadow(0 2px 6px rgba(56, 189, 248, 0.35));
   animation: droppy-float 3s ease-in-out infinite;
+  cursor: pointer;
+  transition: opacity 0.2s ease, transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.sidebar-droppy-img:hover {
+  transform: scale(1.15) rotate(-3deg);
+}
+
+.sidebar-droppy-img.avatar-updating,
+.sidebar-droppy-bubble.bubble-updating {
+  opacity: 0.25;
 }
 
 @keyframes droppy-float {

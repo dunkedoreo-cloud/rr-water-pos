@@ -196,6 +196,7 @@ document.addEventListener('DOMContentLoaded', () => {
   renderPresets();
   renderAll();
   initDroppyMascotCycle();
+  initSidebarDroppyCycle();
   if (State.activeView && State.activeView !== 'pos') {
     switchView(State.activeView);
   }
@@ -485,7 +486,6 @@ function applyTheme(theme) {
         <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
       `;
     }
-    if (sidebarDroppy) sidebarDroppy.src = 'assets/droppy_happy.png';
   } else {
     body.classList.remove('light-mode');
     if (themeSvg) {
@@ -493,7 +493,6 @@ function applyTheme(theme) {
         <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
       `;
     }
-    if (sidebarDroppy) sidebarDroppy.src = 'assets/droppy_winking.png';
   }
 }
 
@@ -3369,8 +3368,6 @@ function setDroppyDisplay(item, animate = true) {
   const msgEl = document.getElementById('droppyBannerMsg');
   const badgeEl = document.getElementById('droppyBannerBadge');
   const bubbleBox = document.querySelector('.droppy-speech-bubble-box');
-  const sidebarAvatar = document.getElementById('sidebarDroppy');
-  const sidebarMsg = document.getElementById('sidebarDroppyMsg');
 
   if (!msgEl) return;
 
@@ -3388,12 +3385,6 @@ function setDroppyDisplay(item, animate = true) {
       if (msgEl && item.text) {
         msgEl.textContent = item.text;
       }
-      if (sidebarAvatar && item.avatar) {
-        sidebarAvatar.src = item.avatar;
-      }
-      if (sidebarMsg && item.text) {
-        sidebarMsg.textContent = item.text;
-      }
 
       if (avatarEl) {
         avatarEl.classList.remove('avatar-updating');
@@ -3406,8 +3397,6 @@ function setDroppyDisplay(item, animate = true) {
     if (avatarEl && item.avatar) avatarEl.src = item.avatar;
     if (badgeEl && item.badge) badgeEl.textContent = item.badge;
     if (msgEl && item.text) msgEl.textContent = item.text;
-    if (sidebarAvatar && item.avatar) sidebarAvatar.src = item.avatar;
-    if (sidebarMsg && item.text) sidebarMsg.textContent = item.text;
   }
 }
 
@@ -3456,6 +3445,116 @@ function updateDroppyMessage(msg, avatar = null, badge = null, holdDuration = 60
   const chosenBadge = badge || 'Station Update';
   droppyOverrideUntil = Date.now() + holdDuration;
   setDroppyDisplay({ avatar: chosenAvatar, badge: chosenBadge, text: msg }, true);
+}
+
+// ==========================================================================
+// LITTLE SIDEBAR DROPPY (Independent System & Telemetry Monitor)
+// ==========================================================================
+const SIDEBAR_DROPPY_STATES = [
+  {
+    avatar: 'assets/droppy_happy.png',
+    status: '● Station Online',
+    tag: 'System Monitor',
+    text: 'Station is active & ready for refills!'
+  },
+  {
+    avatar: 'assets/droppy_winking.png',
+    status: '● UV Sterilizer',
+    tag: 'Purity: 8 PPM',
+    text: 'Filtration pure at 8 PPM TDS. UV sterilizers running.'
+  },
+  {
+    avatar: 'assets/droppy_love.png',
+    status: '● All Systems Good',
+    tag: 'Neighborhood Hub',
+    text: 'Supplying fresh, pure drinking water with care daily!'
+  },
+  {
+    avatar: 'assets/droppy_question.png',
+    status: '● Autosave Active',
+    tag: 'Local Persistence',
+    text: 'All shift logs & transactions saved safely in browser storage.'
+  },
+  {
+    avatar: 'assets/droppy_sleep.png',
+    status: '● Reservoir 88%',
+    tag: 'Pressure Nominal',
+    text: 'Main storage reservoir holding steady at 88% capacity.'
+  },
+  {
+    avatar: 'assets/droppy_happy.png',
+    status: '● Rack Inventory',
+    tag: '150 Carboys Ready',
+    text: '150 sanitized carboys clean and ready on the rack.'
+  },
+  {
+    avatar: 'assets/droppy_winking.png',
+    status: '● Fleet Active',
+    tag: 'Doorstep Delivery',
+    text: 'Multicab routes mapped. Pending balances tracked.'
+  }
+];
+
+let sidebarDroppyTimer = null;
+let sidebarDroppyIndex = 0;
+
+function setSidebarDroppyDisplay(item, animate = true) {
+  const avatar = document.getElementById('sidebarDroppy');
+  const msg = document.getElementById('sidebarDroppyMsg');
+  const status = document.getElementById('sidebarDroppyStatus');
+  const tag = document.getElementById('sidebarDroppyTag');
+  const bubble = document.querySelector('.sidebar-droppy-bubble');
+
+  if (!msg) return;
+
+  if (animate) {
+    if (avatar) avatar.classList.add('avatar-updating');
+    if (bubble) bubble.classList.add('bubble-updating');
+
+    setTimeout(() => {
+      if (avatar && item.avatar) avatar.src = item.avatar;
+      if (msg && item.text) msg.textContent = item.text;
+      if (status && item.status) status.textContent = item.status;
+      if (tag && item.tag) tag.textContent = item.tag;
+
+      if (avatar) avatar.classList.remove('avatar-updating');
+      if (bubble) bubble.classList.remove('bubble-updating');
+    }, 160);
+  } else {
+    if (avatar && item.avatar) avatar.src = item.avatar;
+    if (msg && item.text) msg.textContent = item.text;
+    if (status && item.status) status.textContent = item.status;
+    if (tag && item.tag) tag.textContent = item.tag;
+  }
+}
+
+function nextSidebarDroppyCycle() {
+  sidebarDroppyIndex = (sidebarDroppyIndex + 1) % SIDEBAR_DROPPY_STATES.length;
+  setSidebarDroppyDisplay(SIDEBAR_DROPPY_STATES[sidebarDroppyIndex], true);
+}
+
+function initSidebarDroppyCycle() {
+  if (sidebarDroppyTimer) {
+    clearInterval(sidebarDroppyTimer);
+  }
+  // Independent cadence: rotates every 7 seconds (7000ms), offset from the big mascot's 5s
+  sidebarDroppyTimer = setInterval(nextSidebarDroppyCycle, 7000);
+
+  // Set initial distinct state
+  setSidebarDroppyDisplay(SIDEBAR_DROPPY_STATES[0], false);
+
+  // Interactive tap on the little mascot
+  const avatar = document.getElementById('sidebarDroppy');
+  if (avatar && !avatar._boundCycle) {
+    avatar._boundCycle = true;
+    avatar.title = "Click Little Droppy to inspect station status!";
+    avatar.addEventListener('click', () => {
+      if (typeof soundCtrl !== 'undefined' && soundCtrl && soundCtrl.playTap) {
+        soundCtrl.playTap();
+      }
+      nextSidebarDroppyCycle();
+    });
+  }
 }
 
 function showToast(msg) {
