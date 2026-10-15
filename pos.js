@@ -257,10 +257,18 @@ function loadSavedData() {
   if (urlParams.get('period')) {
     State.reportPeriod = urlParams.get('period');
   }
+  if (urlParams.get('qty')) {
+    State.qty = parseInt(urlParams.get('qty'), 10) || 1;
+  }
+  if (urlParams.get('prod')) {
+    State.product = urlParams.get('prod');
+  }
   if (urlParams.get('open_mini') === 'true') {
     setTimeout(function() { openMiniOrdersDrawer(); }, 200);
   }
-  if (urlParams.get('demo')) {
+  if (urlParams.get('demo') === 'analytics' || urlParams.get('demo') === 'realistic') {
+    State.storedOrders = generateRealisticReportOrders();
+  } else if (urlParams.get('demo')) {
     State.storedOrders = [
       {
         orderNo: '#839102',
@@ -331,6 +339,11 @@ function loadSavedData() {
     } catch (e) {}
   }
   applySettings();
+}
+
+function formatPeso(val) {
+  const num = Number(val) || 0;
+  return num.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 }
 
 function saveOrders() {
@@ -1209,17 +1222,17 @@ function applySettings() {
 
   // Update product price tags on cards
   const cardPurifiedPrice = document.querySelector('#cardPurified .product-price-tag');
-  if (cardPurifiedPrice) cardPurifiedPrice.textContent = `₱ ${PRODUCTS.purified.price.toFixed(2)}`;
+  if (cardPurifiedPrice) cardPurifiedPrice.textContent = `₱ ${formatPeso(PRODUCTS.purified.price)}`;
 
   const cardNewPrice = document.querySelector('#cardNewContainer .product-price-tag');
-  if (cardNewPrice) cardNewPrice.textContent = `₱ ${PRODUCTS.new_container.price.toFixed(2)}`;
+  if (cardNewPrice) cardNewPrice.textContent = `₱ ${formatPeso(PRODUCTS.new_container.price)}`;
 
   // Update pills
   const pillPurifiedSpan = document.querySelector('#pillProdPurified span');
-  if (pillPurifiedSpan) pillPurifiedSpan.textContent = `Purified Refill Swap (₱${PRODUCTS.purified.price.toFixed(0)})`;
+  if (pillPurifiedSpan) pillPurifiedSpan.textContent = `Purified Refill Swap (₱${Math.round(PRODUCTS.purified.price).toLocaleString()})`;
 
   const pillNewSpan = document.querySelector('#pillProdNew span');
-  if (pillNewSpan) pillNewSpan.textContent = `New Jug + Water (₱${PRODUCTS.new_container.price.toFixed(0)})`;
+  if (pillNewSpan) pillNewSpan.textContent = `New Jug + Water (₱${Math.round(PRODUCTS.new_container.price).toLocaleString()})`;
 
   // Update Cashier Welcome & Avatar
   const welcomeTitle = document.querySelector('.welcome-title');
@@ -1299,7 +1312,7 @@ function selectProduct(key) {
   });
 
   const p = PRODUCTS[key];
-  updateDroppyMessage(`${p.name} selected at ₱${p.price.toFixed(2)}.`);
+  updateDroppyMessage(`${p.name} selected at ₱${formatPeso(p.price)}.`);
   renderPresets();
   renderOrderSummary();
 }
@@ -1421,8 +1434,8 @@ function renderOrderSummary() {
   const itemQty = document.getElementById('orderItemQtyText');
 
   if (itemTitle) itemTitle.textContent = prod.name;
-  if (itemRate) itemRate.textContent = `₱${prod.price.toFixed(2)} / ${prod.unit}`;
-  if (itemQty) itemQty.textContent = State.qty;
+  if (itemRate) itemRate.textContent = `₱${formatPeso(prod.price)} / ${prod.unit}`;
+  if (itemQty) itemQty.textContent = State.qty.toLocaleString();
 
   // 3. Amount & Paid / Unpaid Breakdown
   const totalAmountEl = document.getElementById('summaryTotalAmount');
@@ -1433,9 +1446,9 @@ function renderOrderSummary() {
   const paidAmount = isPending ? 0 : total;
   const unpaidAmount = isPending ? total : 0;
 
-  if (totalAmountEl) totalAmountEl.textContent = `₱ ${total.toFixed(2)}`;
-  if (paidTextEl) paidTextEl.textContent = `Paid: ₱${paidAmount.toFixed(2)}`;
-  if (unpaidTextEl) unpaidTextEl.textContent = `Unpaid: ₱${unpaidAmount.toFixed(2)}`;
+  if (totalAmountEl) totalAmountEl.textContent = `₱ ${formatPeso(total)}`;
+  if (paidTextEl) paidTextEl.textContent = `Paid: ₱${formatPeso(paidAmount)}`;
+  if (unpaidTextEl) unpaidTextEl.textContent = `Unpaid: ₱${formatPeso(unpaidAmount)}`;
 
   // 4. Primary Action Button Text & Theme
   const btnActionText = document.getElementById('btnSubmitActionText');
@@ -1443,14 +1456,14 @@ function renderOrderSummary() {
 
   if (btnActionText && btnSubmit) {
     if (State.channel === 'walkin') {
-      btnActionText.textContent = `Complete Sale • ₱${total.toFixed(2)} (Paid)`;
+      btnActionText.textContent = `Complete Sale • ₱${formatPeso(total)} (Paid)`;
       btnSubmit.classList.remove('pending-action');
     } else {
       if (isPending) {
-        btnActionText.textContent = `Dispatch Multicab • ₱${total.toFixed(2)} (Pending Payment)`;
+        btnActionText.textContent = `Dispatch Multicab • ₱${formatPeso(total)} (Pending Payment)`;
         btnSubmit.classList.add('pending-action');
       } else {
-        btnActionText.textContent = `Dispatch Multicab • ₱${total.toFixed(2)} (Pre-paid)`;
+        btnActionText.textContent = `Dispatch Multicab • ₱${formatPeso(total)} (Pre-paid)`;
         btnSubmit.classList.remove('pending-action');
       }
     }
@@ -1524,11 +1537,11 @@ function processPaymentAndStoreOrder() {
 
   // Toast feedback
   if (isPending) {
-    showToast(`Dispatched: ${newOrder.orderNo} • ${State.qty} Gal (Pending ₱${total.toFixed(2)})`);
-    updateDroppyMessage(`Multicab batch ${newOrder.orderNo} dispatched with ${State.qty} gallons! Payment pending remittance.`);
+    showToast(`Dispatched: ${newOrder.orderNo} • ${State.qty.toLocaleString()} Gal (Pending ₱${formatPeso(total)})`);
+    updateDroppyMessage(`Multicab batch ${newOrder.orderNo} dispatched with ${State.qty.toLocaleString()} gallons! Payment pending remittance.`);
   } else {
-    showToast(`Paid & Stored: ${newOrder.orderNo} • ${State.qty} Gal (₱${total.toFixed(2)})`);
-    updateDroppyMessage(`Order ${newOrder.orderNo} recorded and stored! ${State.qty} gallons logged.`);
+    showToast(`Paid & Stored: ${newOrder.orderNo} • ${State.qty.toLocaleString()} Gal (₱${formatPeso(total)})`);
+    updateDroppyMessage(`Order ${newOrder.orderNo} recorded and stored! ${State.qty.toLocaleString()} gallons logged.`);
   }
 
   if (State.settings && State.settings.autoPrint) {
@@ -1565,8 +1578,8 @@ function markOrderPaid(orderNo) {
   saveOrders();
 
   soundCtrl.playPaymentChime();
-  showToast(`Payment Collected: ${orderNo} • ₱${order.total.toFixed(2)} remitted to drawer!`);
-  updateDroppyMessage(`Delivery ${orderNo} marked PAID! ₱${order.total.toFixed(2)} added to Cash in Hand.`);
+  showToast(`Payment Collected: ${orderNo} • ₱${formatPeso(order.total)} remitted to drawer!`);
+  updateDroppyMessage(`Delivery ${orderNo} marked PAID! ₱${formatPeso(order.total)} added to Cash in Hand.`);
 
   renderAll();
 }
@@ -1609,13 +1622,13 @@ function renderTopStats() {
   const elPendingCount = document.getElementById('statPendingCount');
   const elDelivTotal = document.getElementById('statDeliveryGallonsTotal');
 
-  if (elAll) elAll.textContent = totalGallons;
-  if (elDispSub) elDispSub.textContent = `${walkinGallons} Walk-in • ${deliveryGallons} Multicab`;
-  if (elCash) elCash.textContent = `₱${cashCollected.toLocaleString('en-US', { minimumFractionDigits: 2 })}`;
-  if (elPendingCash) elPendingCash.textContent = `₱${pendingCash.toLocaleString('en-US', { minimumFractionDigits: 2 })}`;
-  if (elPendingBadge) elPendingBadge.textContent = `${pendingCount} ${pendingCount === 1 ? 'Drop' : 'Drops'}`;
-  if (elPendingCount) elPendingCount.textContent = `${pendingCount} Pending`;
-  if (elDelivTotal) elDelivTotal.textContent = `${deliveryGallons} Gals Dispatched`;
+  if (elAll) elAll.textContent = totalGallons.toLocaleString();
+  if (elDispSub) elDispSub.textContent = `${walkinGallons.toLocaleString()} Walk-in • ${deliveryGallons.toLocaleString()} Multicab`;
+  if (elCash) elCash.textContent = `₱${formatPeso(cashCollected)}`;
+  if (elPendingCash) elPendingCash.textContent = `₱${formatPeso(pendingCash)}`;
+  if (elPendingBadge) elPendingBadge.textContent = `${pendingCount.toLocaleString()} ${pendingCount === 1 ? 'Drop' : 'Drops'}`;
+  if (elPendingCount) elPendingCount.textContent = `${pendingCount.toLocaleString()} Pending`;
+  if (elDelivTotal) elDelivTotal.textContent = `${deliveryGallons.toLocaleString()} Gals Dispatched`;
 
   // Sidebar badges
   const sidebarOrdersBadge = document.getElementById('sidebarOrdersBadge');
@@ -1694,8 +1707,8 @@ function renderStoredOrders() {
 
   const shiftVol = document.getElementById('shiftVolumeVal');
   const shiftCash = document.getElementById('shiftCashVal');
-  if (shiftVol) shiftVol.textContent = `${totalGallons} Gallons`;
-  if (shiftCash) shiftCash.textContent = `₱${totalCash.toLocaleString('en-US', { minimumFractionDigits: 2 })}`;
+  if (shiftVol) shiftVol.textContent = `${totalGallons.toLocaleString()} Gallons`;
+  if (shiftCash) shiftCash.textContent = `₱${formatPeso(totalCash)}`;
 
   if (filtered.length === 0) {
     container.innerHTML = `
@@ -1726,8 +1739,8 @@ function renderStoredOrders() {
     else paidCount++;
 
     const prodTitle = order.prodKey === 'new_container'
-      ? `${galCount}x New Jug + Water`
-      : `${galCount}x Purified Refill`;
+      ? `${galCount.toLocaleString()}x New Jug + Water`
+      : `${galCount.toLocaleString()}x Purified Refill`;
 
     const prodSub = order.prodKey === 'new_container'
       ? 'Brand-new Sealed Bottle'
@@ -1775,8 +1788,8 @@ function renderStoredOrders() {
           ${statusTag}
         </td>
         <td class="td-amount font-num">
-          <div class="table-amount-main">₱ ${orderTotal.toFixed(2)}</div>
-          ${isPending ? `<div class="table-amount-sub-unpaid">Pending: ₱${unpaidVal.toFixed(2)}</div>` : ''}
+          <div class="table-amount-main">₱ ${formatPeso(orderTotal)}</div>
+          ${isPending ? `<div class="table-amount-sub-unpaid">Pending: ₱${formatPeso(unpaidVal)}</div>` : ''}
         </td>
         <td class="td-actions">
           <div class="table-actions-cell">
@@ -1810,10 +1823,10 @@ function renderStoredOrders() {
         </tbody>
         <tfoot>
           <tr>
-            <td colspan="3" class="tf-count">Total Filtered: ${filtered.length} Orders</td>
-            <td class="tf-gallons font-num">${filteredGallons} Gallons</td>
-            <td colspan="2" class="tf-status-counts">${paidCount} Paid • ${pendingCount} Pending</td>
-            <td class="tf-total-amount font-num">₱ ${filteredTotal.toFixed(2)}</td>
+            <td colspan="3" class="tf-count">Total Filtered: ${filtered.length.toLocaleString()} Orders</td>
+            <td class="tf-gallons font-num">${filteredGallons.toLocaleString()} Gallons</td>
+            <td colspan="2" class="tf-status-counts">${paidCount.toLocaleString()} Paid • ${pendingCount.toLocaleString()} Pending</td>
+            <td class="tf-total-amount font-num">₱ ${formatPeso(filteredTotal)}</td>
             <td class="tf-actions"></td>
           </tr>
         </tfoot>
@@ -1847,7 +1860,7 @@ function confirmVoidOrder(orderNo) {
   soundCtrl.playVoidTone();
   openConfirmModal(
     'Void Stored Order?',
-    `Are you sure you want to cancel ${order.orderNo} (${order.gallons} Gallons • ₱${order.total.toFixed(2)}) recorded at ${order.time}? This will remove it from the stored orders and subtract the volume from today's totals.`,
+    `Are you sure you want to cancel ${order.orderNo} (${(Number(order.gallons) || 1).toLocaleString()} Gallons • ₱${formatPeso(order.total)}) recorded at ${order.time}? This will remove it from the stored orders and subtract the volume from today's totals.`,
     () => {
       State.storedOrders = State.storedOrders.filter(o => o.orderNo !== orderNo);
       saveOrders();
@@ -1887,10 +1900,10 @@ function renderFleetDelivered() {
   const tripsEl = document.getElementById('fleetTripsCount');
   const revEl = document.getElementById('fleetRevenueVal');
 
-  if (countEl) countEl.textContent = `${totalGallons} Gallons`;
-  if (pendingEl) pendingEl.textContent = `₱${pendingRevenue.toFixed(2)}`;
-  if (tripsEl) tripsEl.textContent = `${completedDrops} Drops`;
-  if (revEl) revEl.textContent = `₱${totalRevenue.toLocaleString('en-US', { minimumFractionDigits: 2 })}`;
+  if (countEl) countEl.textContent = `${totalGallons.toLocaleString()} Gallons`;
+  if (pendingEl) pendingEl.textContent = `₱${formatPeso(pendingRevenue)}`;
+  if (tripsEl) tripsEl.textContent = `${completedDrops.toLocaleString()} Drops`;
+  if (revEl) revEl.textContent = `₱${formatPeso(totalRevenue)}`;
 
   if (deliveredOrders.length === 0) {
     container.innerHTML = `
@@ -1909,9 +1922,10 @@ function renderFleetDelivered() {
     const paidVal = typeof o.paidAmount === 'number' ? o.paidAmount : (isPending ? 0 : o.total);
     const unpaidVal = typeof o.unpaidAmount === 'number' ? o.unpaidAmount : (isPending ? o.total : 0);
 
+    const galCount = Number(o.gallons) || 1;
     const prodTitle = o.prodKey === 'new_container'
-      ? `${o.gallons}x New Jug + Water`
-      : `${o.gallons}x Purified Refill`;
+      ? `${galCount.toLocaleString()}x New Jug + Water`
+      : `${galCount.toLocaleString()}x Purified Refill`;
 
     const statusBadge = isPending
       ? `<span class="tag-status-pending"><svg class="ui-icon-xs" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg> Pending</span>`
@@ -1920,7 +1934,7 @@ function renderFleetDelivered() {
     const notePart = o.note ? `<span class="order-meta-sep">•</span><span class="order-meta-note"><svg class="ui-icon-xs" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg> ${escapeHtml(o.note)}</span>` : '';
 
     const markPaidBtn = isPending
-      ? `<button class="btn-mark-paid" data-orderno="${o.orderNo}">✓ Collect ₱${unpaidVal.toFixed(2)} &amp; Remit</button>`
+      ? `<button class="btn-mark-paid" data-orderno="${o.orderNo}">✓ Collect ₱${formatPeso(unpaidVal)} &amp; Remit</button>`
       : '';
 
     html += `
@@ -1947,8 +1961,8 @@ function renderFleetDelivered() {
 
         <div class="order-card-col-right">
           <div class="order-amounts-box">
-            <div class="order-amount-big">₱ ${o.total.toFixed(2)}</div>
-            ${isPending ? `<span class="tag-amount-unpaid">Pending: ₱${unpaidVal.toFixed(2)}</span>${markPaidBtn}` : ''}
+            <div class="order-amount-big">₱ ${formatPeso(o.total)}</div>
+            ${isPending ? `<span class="tag-amount-unpaid">Pending: ₱${formatPeso(unpaidVal)}</span>${markPaidBtn}` : ''}
           </div>
         </div>
       </div>
@@ -2378,7 +2392,7 @@ function renderReports() {
 
   if (kpiUncollectedEl) {
     if (State.reportPeriod === 'yearly' && filteredOrders.length >= 8) {
-      kpiUncollectedEl.textContent = '₱1,45,520';
+      kpiUncollectedEl.textContent = '₱145,520';
     } else {
       kpiUncollectedEl.textContent = '₱' + totalTax.toLocaleString('en-US');
     }
@@ -2466,7 +2480,8 @@ function renderReportsTable(filteredOrders) {
     if (o.channel === 'delivery') sourceText = 'Web Reservation';
     if (o.prodKey === 'new_container') sourceText = 'Group Reservation';
 
-    const guestsQty = String(o.gallons || 1).padStart(2, '0');
+    const numGals = Number(o.gallons) || 1;
+    const guestsQty = numGals >= 1000 ? numGals.toLocaleString() : String(numGals).padStart(2, '0');
     const guestName = escapeHtml(o.note || (o.channel === 'delivery' ? 'Delivery Client' : 'Walk-in Guest'));
     const dateTimeStr = formatReportDateTime(o.timestamp);
 
@@ -2482,9 +2497,9 @@ function renderReportsTable(filteredOrders) {
         <td class="td-qty font-num">${guestsQty}</td>
         <td class="td-source">${sourceText}</td>
         <td class="td-date">${dateTimeStr}</td>
-        <td class="td-fare font-num">₱${fareVal.toLocaleString('en-US')}</td>
-        <td class="td-tax font-num">₱${taxVal.toLocaleString('en-US')}</td>
-        <td class="td-total font-num">₱${totalVal.toLocaleString('en-US')}</td>
+        <td class="td-fare font-num">₱${formatPeso(fareVal)}</td>
+        <td class="td-tax font-num">₱${formatPeso(taxVal)}</td>
+        <td class="td-total font-num">₱${formatPeso(totalVal)}</td>
         <td class="td-status">${statusPill}</td>
         <td class="td-dots">
           <button class="td-action-dots-btn" data-orderno="${o.orderNo}" title="Order Actions">
@@ -2512,7 +2527,7 @@ function renderReportsTable(filteredOrders) {
       if (order.status === 'pending') {
         markOrderPaid(no);
       } else {
-        showToast(`Order ${no}: Paid in full (₱${order.total.toLocaleString()})`);
+        showToast(`Order ${no}: Paid in full (₱${formatPeso(order.total)})`);
       }
     });
   });
@@ -2643,12 +2658,12 @@ function exportReportExcelFile(allOrders = false) {
       <tr class="${idx % 2 === 0 ? 'cell-even' : 'cell-odd'}">
         <td class="cell-orderno">${escapeHtml(o.orderNo || '#ORD-0000')}</td>
         <td>${guestName}</td>
-        <td class="cell-num">${Number(o.gallons) || 1}</td>
+        <td class="cell-num">${(Number(o.gallons) || 1).toLocaleString()}</td>
         <td>${sourceText}</td>
         <td class="cell-date">${dateTimeStr}</td>
-        <td class="cell-currency">${fareVal.toFixed(2)}</td>
-        <td class="cell-currency">${taxVal.toFixed(2)}</td>
-        <td class="cell-currency cell-total">${totalVal.toFixed(2)}</td>
+        <td class="cell-currency">${formatPeso(fareVal)}</td>
+        <td class="cell-currency">${formatPeso(taxVal)}</td>
+        <td class="cell-currency cell-total">${formatPeso(totalVal)}</td>
         <td class="${isPaid ? 'pill-booked' : 'pill-refund'}">${isPaid ? 'Booked' : 'Refund'}</td>
         <td class="cell-notes">${notesStr}</td>
       </tr>
@@ -2976,17 +2991,17 @@ function exportReportAestheticCSV(allOrders = false) {
     return [
       `"${o.orderNo || '#ORD-0000'}"`,
       `"${guestName}"`,
-      Number(o.gallons) || 1,
+      `"${(Number(o.gallons) || 1).toLocaleString()}"`,
       `"${sourceText}"`,
       `"${dateTimeStr}"`,
-      fareVal.toFixed(2),
-      taxVal.toFixed(2),
-      totalVal.toFixed(2),
+      `"${formatPeso(fareVal)}"`,
+      `"${formatPeso(taxVal)}"`,
+      `"${formatPeso(totalVal)}"`,
       `"${isPaid ? 'Booked' : 'Refund'}"`,
       `"${remarks}"`
     ].join(',');
   }) : [
-    '"NO ORDERS RECORDED","---",0,"---","---",0.00,0.00,0.00,"N/A","Clean Shift State - No Orders Logged Yet"'
+    '"NO ORDERS RECORDED","---","0","---","---","0.00","0.00","0.00","N/A","Clean Shift State - No Orders Logged Yet"'
   ];
 
   const lines = [
@@ -2999,11 +3014,11 @@ function exportReportAestheticCSV(allOrders = false) {
     '#  Base Currency   : Philippine Peso (PHP - ₱)',
     '# ------------------------------------------------------------------------------',
     '#  EXECUTIVE METRICS OVERVIEW:',
-    `#  Total Orders Dispensed  : ${orders.length} Orders`,
+    `#  Total Orders Dispensed  : ${orders.length.toLocaleString()} Orders`,
     `#  Total Gallons Delivered : ${totalGallons.toLocaleString()} Gallons`,
-    `#  Gross Sales Revenue     : ₱${totalRevenue.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,
-    `#  Pending Receivables     : ₱${totalTax.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,
-    `#  Order Settlement Ratio  : ${settlementRate}% (${settledCount} of ${orders.length} Settled)`,
+    `#  Gross Sales Revenue     : ₱${formatPeso(totalRevenue)}`,
+    `#  Pending Receivables     : ₱${formatPeso(totalTax)}`,
+    `#  Order Settlement Ratio  : ${settlementRate}% (${settledCount.toLocaleString()} of ${orders.length.toLocaleString()} Settled)`,
     '# ==============================================================================',
     '',
     [
@@ -3022,12 +3037,12 @@ function exportReportAestheticCSV(allOrders = false) {
     [
       '"TOTAL AUDIT SUMMARY"',
       '"---"',
-      totalGallons,
+      `"${totalGallons.toLocaleString()}"`,
       '"---"',
-      `"${orders.length} Transactions"`,
-      totalFare.toFixed(2),
-      totalTax.toFixed(2),
-      totalRevenue.toFixed(2),
+      `"${orders.length.toLocaleString()} Transactions"`,
+      `"${formatPeso(totalFare)}"`,
+      `"${formatPeso(totalTax)}"`,
+      `"${formatPeso(totalRevenue)}"`,
       `"${settlementRate}% Settled"`,
       '"Ledger Audit Complete"'
     ].join(','),
@@ -3345,8 +3360,8 @@ function renderMiniOrders(filter = currentMiniOrdersFilter) {
 
   const elVol = document.getElementById('miniDrawerTotalVol');
   const elCash = document.getElementById('miniDrawerTotalCash');
-  if (elVol) elVol.textContent = `${totalVol} Gals`;
-  if (elCash) elCash.textContent = `₱${totalCash.toFixed(2)}`;
+  if (elVol) elVol.textContent = `${totalVol.toLocaleString()} Gals`;
+  if (elCash) elCash.textContent = `₱${formatPeso(totalCash)}`;
 
   if (filtered.length === 0) {
     container.innerHTML = `
@@ -3367,9 +3382,10 @@ function renderMiniOrders(filter = currentMiniOrdersFilter) {
     const isPending = order.status === 'pending';
     const isDeliv = order.channel === 'delivery';
 
+    const galCount = Number(order.gallons) || 1;
     const prodTitle = order.prodKey === 'new_container'
-      ? `${order.gallons}x New Jug + Water`
-      : `${order.gallons}x Purified Refill`;
+      ? `${galCount.toLocaleString()}x New Jug + Water`
+      : `${galCount.toLocaleString()}x Purified Refill`;
 
     const statusTag = isPending
       ? `<span class="tag-status-pending" style="font-size: 0.65rem; padding: 2px 6px;"><svg class="ui-icon-xs" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg> Pending</span>`
@@ -3382,7 +3398,7 @@ function renderMiniOrders(filter = currentMiniOrdersFilter) {
     const unpaidVal = typeof order.unpaidAmount === 'number' ? order.unpaidAmount : (isPending ? order.total : 0);
 
     const collectBtn = isPending
-      ? `<button class="mini-btn-collect" data-orderno="${order.orderNo}">✓ Collect ₱${unpaidVal.toFixed(2)}</button>`
+      ? `<button class="mini-btn-collect" data-orderno="${order.orderNo}">✓ Collect ₱${formatPeso(unpaidVal)}</button>`
       : '';
 
     html += `
@@ -3400,7 +3416,7 @@ function renderMiniOrders(filter = currentMiniOrdersFilter) {
           ${order.note ? `<div class="mini-card-note"><svg class="ui-icon-xs" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg> ${escapeHtml(order.note)}</div>` : ''}
         </div>
         <div class="mini-card-foot">
-          <div class="mini-card-amount">₱ ${order.total.toFixed(2)}</div>
+          <div class="mini-card-amount">₱ ${formatPeso(order.total)}</div>
           ${collectBtn}
         </div>
       </div>
