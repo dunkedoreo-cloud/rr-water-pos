@@ -195,6 +195,7 @@ document.addEventListener('DOMContentLoaded', () => {
   bindEvents();
   renderPresets();
   renderAll();
+  initDroppyMascotCycle();
   if (State.activeView && State.activeView !== 'pos') {
     switchView(State.activeView);
   }
@@ -716,7 +717,7 @@ function bindEvents() {
       switchView('orders');
       renderStoredOrders();
       showToast('Filtered: Showing Pending driver receivables');
-      updateDroppyMessage('Filtered to Pending orders awaiting driver remittance.');
+      updateDroppyMessage('Filtered to Pending orders awaiting driver remittance.', 'assets/droppy_question.png', 'Pending Orders');
     };
   }
   if (cardFleet) {
@@ -726,7 +727,7 @@ function bindEvents() {
       switchView('orders');
       renderStoredOrders();
       showToast('Filtered: Showing Multicab Fleet deliveries');
-      updateDroppyMessage('Filtered to Multicab delivery orders. View driver routes and collect pending balances.');
+      updateDroppyMessage('Filtered to Multicab delivery orders. View driver routes and collect pending balances.', 'assets/droppy_winking.png', 'Fleet Deliveries');
     };
   }
 
@@ -794,7 +795,7 @@ function bindEvents() {
       if (delivOptions) delivOptions.style.display = 'none';
       if (walkinOptions) walkinOptions.style.display = 'block';
       if (State.qty > 10) State.qty = 1;
-      updateDroppyMessage("Walk-in Refill mode. Swapping carboys at station counter.");
+      updateDroppyMessage("Walk-in Refill mode. Swapping carboys at station counter.", 'assets/droppy_winking.png', 'Walk-in Refills');
       renderPresets();
       renderOrderSummary();
     });
@@ -807,7 +808,7 @@ function bindEvents() {
       if (delivOptions) delivOptions.style.display = 'flex';
       if (walkinOptions) walkinOptions.style.display = 'none';
       if (State.qty < 5) State.qty = 10; // Convenient batch start
-      updateDroppyMessage("Multicab Batch Delivery mode. Payment will be marked Pending until driver remits.");
+      updateDroppyMessage("Multicab Batch Delivery mode. Payment will be marked Pending until driver remits.", 'assets/droppy_question.png', 'Multicab Mode');
       renderPresets();
       renderOrderSummary();
     });
@@ -1353,7 +1354,7 @@ function selectProduct(key) {
   });
 
   const p = PRODUCTS[key];
-  updateDroppyMessage(`${p.name} selected at ₱${formatPeso(p.price)}.`);
+  updateDroppyMessage(`${p.name} selected at ₱${formatPeso(p.price)}.`, 'assets/droppy_happy.png', 'Product Selected');
   renderPresets();
   renderOrderSummary();
 }
@@ -1579,10 +1580,10 @@ function processPaymentAndStoreOrder() {
   // Toast feedback
   if (isPending) {
     showToast(`Dispatched: ${newOrder.orderNo} • ${State.qty.toLocaleString()} Gal (Pending ₱${formatPeso(total)})`);
-    updateDroppyMessage(`Multicab batch ${newOrder.orderNo} dispatched with ${State.qty.toLocaleString()} gallons! Payment pending remittance.`);
+    updateDroppyMessage(`Multicab batch ${newOrder.orderNo} dispatched with ${State.qty.toLocaleString()} gallons! Payment pending remittance.`, 'assets/droppy_winking.png', 'Batch Dispatched');
   } else {
     showToast(`Paid & Stored: ${newOrder.orderNo} • ${State.qty.toLocaleString()} Gal (₱${formatPeso(total)})`);
-    updateDroppyMessage(`Order ${newOrder.orderNo} recorded and stored! ${State.qty.toLocaleString()} gallons logged.`);
+    updateDroppyMessage(`Order ${newOrder.orderNo} recorded and stored! ${State.qty.toLocaleString()} gallons logged.`, 'assets/droppy_happy.png', 'Order Complete');
   }
 
   if (State.settings && State.settings.autoPrint) {
@@ -1620,7 +1621,7 @@ function markOrderPaid(orderNo) {
 
   soundCtrl.playPaymentChime();
   showToast(`Payment Collected: ${orderNo} • ₱${formatPeso(order.total)} remitted to drawer!`);
-  updateDroppyMessage(`Delivery ${orderNo} marked PAID! ₱${formatPeso(order.total)} added to Cash in Hand.`);
+  updateDroppyMessage(`Delivery ${orderNo} marked PAID! ₱${formatPeso(order.total)} added to Cash in Hand.`, 'assets/droppy_love.png', 'Payment Collected');
 
   renderAll();
 }
@@ -1936,7 +1937,7 @@ function confirmVoidOrder(orderNo) {
       saveOrders();
       renderAll();
       showToast(`Order ${orderNo} voided.`);
-      updateDroppyMessage(`Order ${orderNo} voided. Running volume adjusted.`);
+      updateDroppyMessage(`Order ${orderNo} voided. Running volume adjusted.`, 'assets/droppy_sad.png', 'Order Voided');
     },
     'assets/droppy_sad.png'
   );
@@ -3304,13 +3305,157 @@ function exportOrdersCSV() {
 }
 
 // ==========================================================================
-// DROPPY MASCOT & MODAL
+// DROPPY MASCOT DYNAMIC 5-SECOND CYCLE & REACTIONS
 // ==========================================================================
-function updateDroppyMessage(msg) {
-  const el = document.getElementById('droppyBannerMsg');
-  if (el) el.textContent = msg;
-  const sEl = document.getElementById('sidebarDroppyMsg');
-  if (sEl) sEl.textContent = msg;
+const DROPPY_CYCLE_STATES = [
+  {
+    avatar: 'assets/droppy_winking.png',
+    badge: 'Station Assistant',
+    text: 'Purified filtration taps running. Tap presets or input quantity, then tap Complete Sale.'
+  },
+  {
+    avatar: 'assets/droppy_happy.png',
+    badge: 'Purity: 8 PPM TDS',
+    text: 'Reverse osmosis membranes & UV sterilizers humming at peak purity! 8 PPM TDS certified.'
+  },
+  {
+    avatar: 'assets/droppy_love.png',
+    badge: 'Hydration Love',
+    text: 'Customer favorite: Fresh alkaline & purified mineral refills keeping our neighborhood healthy!'
+  },
+  {
+    avatar: 'assets/droppy_question.png',
+    badge: 'Counter Tip',
+    text: 'Serving rush customers? Use the 1-Tap Fast Fill buttons below for instant 1 to 5 carboy sales.'
+  },
+  {
+    avatar: 'assets/droppy_happy.png',
+    badge: 'Ready On Rack',
+    text: '150 sealed 5-gallon blue carboys sanitized and ready for quick doorstep or counter swaps.'
+  },
+  {
+    avatar: 'assets/droppy_winking.png',
+    badge: 'Multicab Dispatch',
+    text: 'Need to dispatch a delivery? Switch to Multicab mode to track route drivers and collect balances.'
+  },
+  {
+    avatar: 'assets/droppy_sleep.png',
+    badge: 'Taps On Standby',
+    text: 'Filtration reservoir holding strong at 88% capacity. Pure water pressure steady across all taps.'
+  },
+  {
+    avatar: 'assets/droppy_love.png',
+    badge: 'Community Care',
+    text: 'Great work, Neil! Every bottle refilled provides clean, dependable hydration for our families.'
+  },
+  {
+    avatar: 'assets/droppy_question.png',
+    badge: 'Reports & Export',
+    text: 'Wrapping up your shift? Generate beautifully designed Excel and CSV reports from the Reports tab.'
+  },
+  {
+    avatar: 'assets/droppy_happy.png',
+    badge: 'Sanitized & Sealed',
+    text: 'All washing stations sanitized. Remember to wipe carboy shoulders before capping and sealing!'
+  }
+];
+
+let droppyCycleTimer = null;
+let droppyCycleIndex = 0;
+let droppyOverrideUntil = 0;
+
+function setDroppyDisplay(item, animate = true) {
+  const avatarEl = document.getElementById('droppyBannerAvatar');
+  const msgEl = document.getElementById('droppyBannerMsg');
+  const badgeEl = document.getElementById('droppyBannerBadge');
+  const bubbleBox = document.querySelector('.droppy-speech-bubble-box');
+  const sidebarAvatar = document.getElementById('sidebarDroppy');
+  const sidebarMsg = document.getElementById('sidebarDroppyMsg');
+
+  if (!msgEl) return;
+
+  if (animate) {
+    if (avatarEl) avatarEl.classList.add('avatar-updating');
+    if (bubbleBox) bubbleBox.classList.add('bubble-updating');
+
+    setTimeout(() => {
+      if (avatarEl && item.avatar) {
+        avatarEl.src = item.avatar;
+      }
+      if (badgeEl && item.badge) {
+        badgeEl.textContent = item.badge;
+      }
+      if (msgEl && item.text) {
+        msgEl.textContent = item.text;
+      }
+      if (sidebarAvatar && item.avatar) {
+        sidebarAvatar.src = item.avatar;
+      }
+      if (sidebarMsg && item.text) {
+        sidebarMsg.textContent = item.text;
+      }
+
+      if (avatarEl) {
+        avatarEl.classList.remove('avatar-updating');
+        avatarEl.classList.add('droppy-pop');
+        setTimeout(() => avatarEl.classList.remove('droppy-pop'), 400);
+      }
+      if (bubbleBox) bubbleBox.classList.remove('bubble-updating');
+    }, 160);
+  } else {
+    if (avatarEl && item.avatar) avatarEl.src = item.avatar;
+    if (badgeEl && item.badge) badgeEl.textContent = item.badge;
+    if (msgEl && item.text) msgEl.textContent = item.text;
+    if (sidebarAvatar && item.avatar) sidebarAvatar.src = item.avatar;
+    if (sidebarMsg && item.text) sidebarMsg.textContent = item.text;
+  }
+}
+
+function nextDroppyCycle() {
+  const now = Date.now();
+  if (now < droppyOverrideUntil) {
+    return;
+  }
+  droppyCycleIndex = (droppyCycleIndex + 1) % DROPPY_CYCLE_STATES.length;
+  setDroppyDisplay(DROPPY_CYCLE_STATES[droppyCycleIndex], true);
+}
+
+function initDroppyMascotCycle() {
+  if (droppyCycleTimer) {
+    clearInterval(droppyCycleTimer);
+  }
+
+  // Check URL parameter for initial pose index (allows instant previewing of poses)
+  const urlParams = new URLSearchParams(window.location.search);
+  const urlIdx = urlParams.get('droppyIndex');
+  if (urlIdx !== null && !isNaN(Number(urlIdx))) {
+    droppyCycleIndex = Number(urlIdx) % DROPPY_CYCLE_STATES.length;
+    setDroppyDisplay(DROPPY_CYCLE_STATES[droppyCycleIndex], false);
+  }
+
+  // Change pose, reaction badge, and dialogue text every 5 seconds (5000ms)
+  droppyCycleTimer = setInterval(nextDroppyCycle, 5000);
+
+  // Allow clicking on Droppy to immediately trigger next pose & reaction
+  const avatarEl = document.getElementById('droppyBannerAvatar');
+  if (avatarEl && !avatarEl._boundCycle) {
+    avatarEl._boundCycle = true;
+    avatarEl.title = "Click Droppy to cycle pose & reaction!";
+    avatarEl.addEventListener('click', () => {
+      if (typeof soundCtrl !== 'undefined' && soundCtrl && soundCtrl.playTap) {
+        soundCtrl.playTap();
+      }
+      droppyOverrideUntil = 0;
+      nextDroppyCycle();
+    });
+  }
+}
+
+function updateDroppyMessage(msg, avatar = null, badge = null, holdDuration = 6000) {
+  const chosenAvatar = avatar || 'assets/droppy_winking.png';
+  const chosenBadge = badge || 'Station Update';
+  droppyOverrideUntil = Date.now() + holdDuration;
+  setDroppyDisplay({ avatar: chosenAvatar, badge: chosenBadge, text: msg }, true);
 }
 
 function showToast(msg) {
@@ -3379,7 +3524,7 @@ function openMiniOrdersDrawer() {
   drawer.classList.add('open');
   backdrop.classList.add('active');
   renderMiniOrders(currentMiniOrdersFilter);
-  updateDroppyMessage("Viewing Quick Orders Log. Tap any pending order to collect or inspect.");
+  updateDroppyMessage("Viewing Quick Orders Log. Tap any pending order to collect or inspect.", 'assets/droppy_winking.png', 'Orders Log');
 }
 
 function closeMiniOrdersDrawer() {
