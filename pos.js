@@ -257,6 +257,9 @@ function loadSavedData() {
   if (urlParams.get('period')) {
     State.reportPeriod = urlParams.get('period');
   }
+  if (urlParams.get('filter')) {
+    State.ordersFilter = urlParams.get('filter');
+  }
   if (urlParams.get('qty')) {
     State.qty = parseInt(urlParams.get('qty'), 10) || 1;
   }
@@ -515,6 +518,10 @@ function updateSoundUI() {
 // VIEW SWITCHING (POS Machine vs Stored Orders Log)
 // ==========================================================================
 function switchView(viewName) {
+  if (viewName === 'delivered') {
+    State.ordersFilter = 'delivery';
+    viewName = 'orders';
+  }
   State.activeView = viewName;
   soundCtrl.playTap();
 
@@ -684,10 +691,44 @@ function bindEvents() {
   const cardPending = document.getElementById('cardPendingReceivables');
   const cardFleet = document.getElementById('cardFleetDrops');
 
-  if (cardDispensed) cardDispensed.onclick = () => { State.ordersFilter = 'all'; switchView('orders'); };
-  if (cardCash) cardCash.onclick = () => { State.ordersFilter = 'all'; switchView('orders'); };
-  if (cardPending) cardPending.onclick = () => { State.ordersFilter = 'pending'; switchView('orders'); };
-  if (cardFleet) cardFleet.onclick = () => { switchView('delivered'); };
+  if (cardDispensed) {
+    cardDispensed.onclick = () => {
+      soundCtrl.playTap();
+      State.ordersFilter = 'all';
+      switchView('orders');
+      renderStoredOrders();
+      showToast('Filtered: Showing all recorded station orders');
+    };
+  }
+  if (cardCash) {
+    cardCash.onclick = () => {
+      soundCtrl.playTap();
+      State.ordersFilter = 'all';
+      switchView('orders');
+      renderStoredOrders();
+      showToast('Filtered: Showing all recorded station orders');
+    };
+  }
+  if (cardPending) {
+    cardPending.onclick = () => {
+      soundCtrl.playTap();
+      State.ordersFilter = 'pending';
+      switchView('orders');
+      renderStoredOrders();
+      showToast('Filtered: Showing Pending driver receivables');
+      updateDroppyMessage('Filtered to Pending orders awaiting driver remittance.');
+    };
+  }
+  if (cardFleet) {
+    cardFleet.onclick = () => {
+      soundCtrl.playTap();
+      State.ordersFilter = 'delivery';
+      switchView('orders');
+      renderStoredOrders();
+      showToast('Filtered: Showing Multicab Fleet deliveries');
+      updateDroppyMessage('Filtered to Multicab delivery orders. View driver routes and collect pending balances.');
+    };
+  }
 
   // 4. Product Cards Selection
   document.querySelectorAll('.product-card').forEach(card => {
@@ -1696,6 +1737,23 @@ function renderStoredOrders() {
     if (optDelivery) optDelivery.textContent = `Multicab (${countDeliveryVal})`;
   }
 
+  // Sync segmented filter buttons
+  document.querySelectorAll('.log-filter-btn').forEach(btn => {
+    if (btn.getAttribute('data-filter') === State.ordersFilter) {
+      btn.classList.add('active');
+    } else {
+      btn.classList.remove('active');
+    }
+  });
+
+  // Sync metric cards active-filter visual highlight
+  const cardDisp = document.getElementById('cardDispensedGallons');
+  const cardPending = document.getElementById('cardPendingReceivables');
+  const cardFleet = document.getElementById('cardFleetDrops');
+  if (cardDisp) cardDisp.classList.toggle('active-filter', State.ordersFilter === 'all');
+  if (cardPending) cardPending.classList.toggle('active-filter', State.ordersFilter === 'pending');
+  if (cardFleet) cardFleet.classList.toggle('active-filter', State.ordersFilter === 'delivery');
+
   // Shift totals in footer
   let totalGallons = 0;
   let totalCash = 0;
@@ -1711,11 +1769,23 @@ function renderStoredOrders() {
   if (shiftCash) shiftCash.textContent = `₱${formatPeso(totalCash)}`;
 
   if (filtered.length === 0) {
+    let emptyTitle = 'No orders recorded yet';
+    let emptyDesc = 'Complete a sale on the POS Machine to log gallons and payments here.';
+    if (State.ordersFilter === 'delivery') {
+      emptyTitle = 'No Multicab Deliveries Recorded';
+      emptyDesc = 'Switch channel to "Multicab" on the POS Machine to dispatch delivery drops.';
+    } else if (State.ordersFilter === 'pending') {
+      emptyTitle = 'No Pending Receivables';
+      emptyDesc = 'All customer orders and multicab deliveries are fully paid!';
+    } else if (State.ordersFilter === 'walkin') {
+      emptyTitle = 'No Walk-in Orders Recorded';
+      emptyDesc = 'Log counter walk-in sales on the POS Machine.';
+    }
     container.innerHTML = `
       <div class="empty-orders-state">
         <img src="assets/droppy_sleep.png" alt="Empty">
-        <h4>No orders recorded yet</h4>
-        <p>Complete a sale on the POS Machine to log gallons and payments here.</p>
+        <h4>${emptyTitle}</h4>
+        <p>${emptyDesc}</p>
       </div>
     `;
     return;

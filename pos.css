@@ -735,6 +735,22 @@ a.header-icon-btn svg {
   border-color: var(--border-active);
 }
 
+.metric-card:active {
+  transform: scale(0.985);
+}
+
+.metric-card.active-filter {
+  border-color: var(--primary, #0284c7);
+  box-shadow: 0 0 0 2px rgba(2, 132, 199, 0.25), var(--shadow-sm);
+  background: rgba(2, 132, 199, 0.04);
+}
+
+[data-theme="dark"] .metric-card.active-filter {
+  border-color: #38bdf8;
+  box-shadow: 0 0 0 2px rgba(56, 189, 248, 0.35), 0 4px 16px rgba(0, 0, 0, 0.4);
+  background: rgba(14, 165, 233, 0.08);
+}
+
 .metric-card-header {
   display: flex;
   align-items: center;
