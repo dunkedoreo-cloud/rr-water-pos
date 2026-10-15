@@ -91,7 +91,18 @@ const State = {
   },
   theme: 'light',                  // 'light' | 'dark'
   soundEnabled: true,
-  modalCallback: null
+  modalCallback: null,
+  selectedTender: 'exact',         // 'exact' | 50 | 100 | 200 | 500 | 1000
+  tenderAmount: 0,
+  carboysLoaned: 0,
+  carboysReturned: 0,
+  customers: [
+    { id: 'cust_1', name: 'Aling Tess', contact: '0917-123-4567', address: 'Purok 1, Near Barangay Hall', carboysHeld: 3, depositAmount: 600 },
+    { id: 'cust_2', name: 'Mang Carlos', contact: '0928-876-5432', address: 'Purok 2, Yellow Gate', carboysHeld: 5, depositAmount: 1000 },
+    { id: 'cust_3', name: 'Bgy. Hall - Admin Desk', contact: '0919-555-0199', address: 'Barangay Center', carboysHeld: 12, depositAmount: 2400 }
+  ],
+  receiptFormat: '80mm',
+  activePrintOrder: null
 };
 
 // --- AUDIO SYNTHESIZER (Pleasant haptic feedback) ---
@@ -191,6 +202,26 @@ class SoundController {
   playSuccessTone() {
     this.playPaymentChime();
   }
+
+  playDrawerChime() {
+    if (!State.soundEnabled) return;
+    try {
+      this.init();
+      if (!this.ctx) return;
+      const t = this.ctx.currentTime;
+      const osc = this.ctx.createOscillator();
+      const gain = this.ctx.createGain();
+      osc.type = 'square';
+      osc.frequency.setValueAtTime(440, t);
+      osc.frequency.setValueAtTime(880, t + 0.05);
+      gain.gain.setValueAtTime(0.2, t);
+      gain.gain.exponentialRampToValueAtTime(0.01, t + 0.15);
+      osc.connect(gain);
+      gain.connect(this.ctx.destination);
+      osc.start(t);
+      osc.stop(t + 0.15);
+    } catch (e) {}
+  }
 }
 
 const soundCtrl = new SoundController();
@@ -205,10 +236,18 @@ document.addEventListener('DOMContentLoaded', () => {
   initSanitationProtocol();
   bindEvents();
   initSecuritySystem();
+  initQuickCashTender();
+  initCarboySteppers();
+  initThermalReceiptModal();
+  initCarboyEmptiesModal();
+  initKeyboardShortcuts();
+  initOfflinePWA();
   renderPresets();
   renderAll();
   initDroppyMascotCycle();
   initSidebarDroppyCycle();
+  updateCarboyHeaderBadge();
+  syncWithBackend();
   if (State.activeView && State.activeView !== 'pos') {
     switchView(State.activeView);
   }
@@ -379,6 +418,14 @@ function loadSavedData() {
     } catch (e) {}
   }
 
+  const savedCustomers = localStorage.getItem('rr_pos_customers');
+  if (savedCustomers) {
+    try {
+      const parsed = JSON.parse(savedCustomers);
+      if (Array.isArray(parsed) && parsed.length > 0) State.customers = parsed;
+    } catch (e) {}
+  }
+
   if (localStorage.getItem('rr_pos_terminal_locked') === 'true') {
     State.isTerminalLocked = true;
   }
@@ -413,12 +460,19 @@ function saveAuditLogs() {
   }
 }
 
+function saveCustomers() {
+  if (State.customers) {
+    localStorage.setItem('rr_pos_customers', JSON.stringify(State.customers));
+  }
+}
+
 function saveStationData() {
   soundCtrl.playPaymentChime();
   saveOrders();
   saveInventory();
   saveStaff();
   saveAuditLogs();
+  saveCustomers();
   saveSettings();
   localStorage.setItem('rr_pos_theme', State.theme || 'light');
   localStorage.setItem('rr_pos_sanitation_checks', JSON.stringify(State.sanitationChecks || {}));
@@ -427,7 +481,7 @@ function saveStationData() {
     badge.textContent = 'Saved Just Now';
     badge.className = 'meta-badge green';
   }
-  showToast('✓ Station data, orders, staff & settings saved to LocalStorage!');
+  showToast('✓ Station data, orders, staff, customers & settings saved to LocalStorage!');
 }
 
 function initSanitationProtocol() {
@@ -1583,6 +1637,9 @@ function renderOrderSummary() {
   // 5. Stored orders count badge on bottom button
   const bottomBadge = document.getElementById('ordersCountBadge');
   if (bottomBadge) bottomBadge.textContent = State.storedOrders.length;
+
+  // 6. Quick Cash Tender & Change Due Badge
+  updateTenderAndChange();
 }
 
 // ==========================================================================
@@ -1610,6 +1667,14 @@ function processPaymentAndStoreOrder() {
     ? (State.deliveryAddress.trim() || 'Multicab Delivery')
     : State.note.trim();
 
+  // Compute Tender & Change
+  const tenderVal = isPending
+    ? 0
+    : (State.selectedTender === 'exact' ? total : Number(State.selectedTender) || total);
+  const changeVal = isPending
+    ? 0
+    : (State.selectedTender === 'exact' ? 0 : Math.max(0, tenderVal - total));
+
   // Stored order record
   const newOrder = {
     orderNo: State.currentOrderNo,
@@ -1624,8 +1689,10 @@ function processPaymentAndStoreOrder() {
     paidAmount: paid,
     unpaidAmount: unpaid,
     status: isPending ? 'pending' : 'paid',
-    tendered: paid,
-    change: 0,
+    tendered: tenderVal,
+    change: changeVal,
+    carboysLoaned: State.carboysLoaned || 0,
+    carboysReturned: State.carboysReturned || 0,
     note: noteText,
     cashierName: (typeof getCurrentUser === 'function' ? getCurrentUser().name : 'Neil'),
     cashierRole: (typeof getCurrentUser === 'function' ? getCurrentUser().role : 'manager')
@@ -1634,6 +1701,14 @@ function processPaymentAndStoreOrder() {
   // Prepend to stored orders array (the specific part of the POS)
   State.storedOrders.unshift(newOrder);
   saveOrders();
+
+  // Process Carboy Borrow / Return Transactions
+  if (State.carboysLoaned > 0 || State.carboysReturned > 0) {
+    recordCarboyTransaction(newOrder);
+  }
+
+  // Sync order to SQLite backend
+  postOrderToBackend(newOrder);
 
   // Deduct station inventory & add swapped jugs
   if (State.inventory) {
@@ -1658,7 +1733,7 @@ function processPaymentAndStoreOrder() {
   }
 
   if (State.settings && State.settings.autoPrint) {
-    setTimeout(() => { window.print(); }, 400);
+    setTimeout(() => { openThermalReceiptModal(newOrder, isPending); }, 300);
   }
 
   // Randomize the order number for the next transaction
@@ -1667,6 +1742,17 @@ function processPaymentAndStoreOrder() {
   State.keypadBuffer = '';
   State.note = '';
   State.deliveryAddress = '';
+  State.carboysLoaned = 0;
+  State.carboysReturned = 0;
+  State.selectedTender = 'exact';
+
+  const valLoan = document.getElementById('carboysLoanedVal');
+  const valRet = document.getElementById('carboysReturnedVal');
+  if (valLoan) valLoan.textContent = '0';
+  if (valRet) valRet.textContent = '0';
+  document.querySelectorAll('.btn-quick-cash').forEach(b => {
+    b.classList.toggle('active', b.getAttribute('data-tender') === 'exact');
+  });
 
   const noteInput = document.getElementById('orderNoteInput');
   const delivInput = document.getElementById('orderDeliveryAddress');
@@ -1688,7 +1774,15 @@ function markOrderPaid(orderNo) {
   order.paidAmount = order.total;
   order.unpaidAmount = 0;
   order.tendered = order.total;
+  order.change = 0;
   saveOrders();
+
+  // Sync to backend SQLite database
+  fetch(`/api/orders/${encodeURIComponent(orderNo)}/pay`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ amount: order.total, paymentMethod: 'cash' })
+  }).catch(() => {});
 
   soundCtrl.playPaymentChime();
   showToast(`Payment Collected: ${orderNo} • ₱${formatPeso(order.total)} remitted to drawer!`);
@@ -1936,6 +2030,9 @@ function renderStoredOrders() {
         <td class="td-actions">
           <div class="table-actions-cell">
             ${markPaidBtn}
+            <button class="btn-order-print" data-orderno="${escapeHtml(order.orderNo || '')}" title="Print Thermal ESC/POS Receipt (F9)">
+              <svg class="ui-icon-xs" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><polyline points="6 9 6 2 18 2 18 9"></polyline><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path><rect x="6" y="14" width="12" height="8"></rect></svg>
+            </button>
             <button class="btn-order-void" data-orderno="${escapeHtml(order.orderNo || '')}" title="Void / Cancel Order">
               <svg viewBox="0 0 24 24"><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/></svg>
             </button>
@@ -1985,6 +2082,16 @@ function renderStoredOrders() {
     });
   });
 
+  // Bind Print Receipt actions
+  container.querySelectorAll('.btn-order-print').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const no = btn.getAttribute('data-orderno');
+      const order = State.storedOrders.find(o => o.orderNo === no);
+      if (order) openThermalReceiptModal(order);
+    });
+  });
+
   // Bind Void actions
   container.querySelectorAll('.btn-order-void').forEach(btn => {
     btn.addEventListener('click', (e) => {
@@ -2009,6 +2116,14 @@ function confirmVoidOrder(orderNo) {
     onAuthorized: (reason, manager) => {
       State.storedOrders = State.storedOrders.filter(o => o.orderNo !== orderNo);
       saveOrders();
+
+      // Sync void to SQLite backend
+      fetch(`/api/orders/${encodeURIComponent(orderNo)}/void`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ reason: reason, staffName: manager.name })
+      }).catch(() => {});
+
       renderAll();
       showToast(`Order ${orderNo} cancelled (Authorized by ${manager.name})`);
       logSecurityEvent(
@@ -4674,4 +4789,758 @@ function initSecuritySystem() {
       updateLockScreenInfo();
     }
   }
+}
+
+// ==========================================================================
+// 13. QUICK CASH TENDER & CHANGE DUE CALCULATOR
+// ==========================================================================
+function initQuickCashTender() {
+  document.querySelectorAll('.btn-quick-cash').forEach(btn => {
+    btn.addEventListener('click', () => {
+      soundCtrl.playTap();
+      document.querySelectorAll('.btn-quick-cash').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      const tender = btn.getAttribute('data-tender');
+      State.selectedTender = tender;
+      updateTenderAndChange();
+    });
+  });
+  updateTenderAndChange();
+}
+
+function updateTenderAndChange() {
+  const badge = document.getElementById('changeDueBadge');
+  if (!badge) return;
+
+  const total = calculateTotal();
+  const isPending = State.channel === 'delivery' && State.deliveryPayMode === 'pending';
+
+  if (isPending) {
+    badge.textContent = 'Pay on Delivery';
+    badge.className = 'change-due-badge exact';
+    return;
+  }
+
+  if (State.selectedTender === 'exact') {
+    badge.textContent = 'Change: ₱0.00';
+    badge.className = 'change-due-badge exact';
+  } else {
+    const tender = Number(State.selectedTender) || 0;
+    const diff = tender - total;
+    if (diff >= 0) {
+      badge.textContent = `Change: ₱${formatPeso(diff)}`;
+      badge.className = 'change-due-badge';
+    } else {
+      badge.textContent = `Short: ₱${formatPeso(Math.abs(diff))}`;
+      badge.className = 'change-due-badge insufficient';
+    }
+  }
+}
+
+// ==========================================================================
+// 14. CARBOY LOAN & RETURN STEPPERS ON REGISTER
+// ==========================================================================
+function initCarboySteppers() {
+  const btnLoanMinus = document.getElementById('btnLoanMinus');
+  const btnLoanPlus = document.getElementById('btnLoanPlus');
+  const btnReturnMinus = document.getElementById('btnReturnMinus');
+  const btnReturnPlus = document.getElementById('btnReturnPlus');
+
+  const valLoan = document.getElementById('carboysLoanedVal');
+  const valReturn = document.getElementById('carboysReturnedVal');
+
+  if (btnLoanMinus && btnLoanPlus && valLoan) {
+    btnLoanMinus.addEventListener('click', () => {
+      soundCtrl.playTap();
+      if (State.carboysLoaned > 0) {
+        State.carboysLoaned--;
+        valLoan.textContent = State.carboysLoaned;
+      }
+    });
+    btnLoanPlus.addEventListener('click', () => {
+      soundCtrl.playTap();
+      State.carboysLoaned++;
+      valLoan.textContent = State.carboysLoaned;
+    });
+  }
+
+  if (btnReturnMinus && btnReturnPlus && valReturn) {
+    btnReturnMinus.addEventListener('click', () => {
+      soundCtrl.playTap();
+      if (State.carboysReturned > 0) {
+        State.carboysReturned--;
+        valReturn.textContent = State.carboysReturned;
+      }
+    });
+    btnReturnPlus.addEventListener('click', () => {
+      soundCtrl.playTap();
+      State.carboysReturned++;
+      valReturn.textContent = State.carboysReturned;
+    });
+  }
+}
+
+function recordCarboyTransaction(order) {
+  const customerName = (order.note || '').trim() || (order.channel === 'delivery' ? 'Multicab Customer' : 'Walk-in Customer');
+  let customer = State.customers.find(c => c.name.toLowerCase() === customerName.toLowerCase());
+
+  const loaned = Number(order.carboysLoaned) || 0;
+  const returned = Number(order.carboysReturned) || 0;
+
+  if (!customer) {
+    customer = {
+      id: 'cust_' + Date.now(),
+      name: customerName,
+      contact: '',
+      address: order.channel === 'delivery' ? (order.note || 'Route Delivery') : 'Station Counter',
+      carboysHeld: Math.max(0, loaned - returned),
+      depositAmount: Math.max(0, loaned - returned) * 200
+    };
+    State.customers.push(customer);
+  } else {
+    customer.carboysHeld = Math.max(0, (customer.carboysHeld || 0) + loaned - returned);
+    customer.depositAmount = customer.carboysHeld * 200;
+  }
+
+  saveCustomers();
+  updateCarboyHeaderBadge();
+
+  // Sync to SQLite backend
+  fetch(`/api/customers/${encodeURIComponent(customer.id)}/empties`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      loanedDelta: loaned,
+      returnedDelta: returned,
+      note: `Order ${order.orderNo}`
+    })
+  }).catch(() => {});
+}
+
+// ==========================================================================
+// 15. THERMAL ESC/POS RECEIPT & MULTICAB DISPATCH SLIP MODAL
+// ==========================================================================
+function initThermalReceiptModal() {
+  const modal = document.getElementById('thermalReceiptModal');
+  const btnClose = document.getElementById('btnThermalClose');
+  const btnPrintNow = document.getElementById('btnThermalPrintNow');
+  const btnPrintSlip = document.getElementById('btnThermalPrintSlip');
+  const btnKickDrawer = document.getElementById('btnThermalKickDrawer');
+  const btnFmt80 = document.getElementById('btnPaperFormat80');
+  const btnFmt58 = document.getElementById('btnPaperFormat58');
+  const target = document.getElementById('thermalPrintTarget');
+
+  if (btnClose) {
+    btnClose.addEventListener('click', closeThermalReceiptModal);
+  }
+
+  if (modal) {
+    modal.addEventListener('click', (e) => {
+      if (e.target === modal) closeThermalReceiptModal();
+    });
+  }
+
+  if (btnPrintNow) {
+    btnPrintNow.addEventListener('click', () => {
+      soundCtrl.playTap();
+      if (State.activePrintOrder) renderThermalReceipt(State.activePrintOrder);
+      setTimeout(() => { window.print(); }, 150);
+    });
+  }
+
+  if (btnPrintSlip) {
+    btnPrintSlip.addEventListener('click', () => {
+      soundCtrl.playTap();
+      if (State.activePrintOrder) renderDispatchSlip(State.activePrintOrder);
+      setTimeout(() => { window.print(); }, 150);
+    });
+  }
+
+  if (btnKickDrawer) {
+    btnKickDrawer.addEventListener('click', () => {
+      kickCashDrawer();
+    });
+  }
+
+  if (btnFmt80 && btnFmt58 && target) {
+    btnFmt80.addEventListener('click', () => {
+      soundCtrl.playTap();
+      btnFmt80.classList.add('active');
+      btnFmt58.classList.remove('active');
+      target.classList.remove('format-58mm');
+      State.receiptFormat = '80mm';
+    });
+    btnFmt58.addEventListener('click', () => {
+      soundCtrl.playTap();
+      btnFmt58.classList.add('active');
+      btnFmt80.classList.remove('active');
+      target.classList.add('format-58mm');
+      State.receiptFormat = '58mm';
+    });
+  }
+}
+
+function openThermalReceiptModal(order, isTripTicket = false) {
+  const modal = document.getElementById('thermalReceiptModal');
+  if (!modal) return;
+
+  State.activePrintOrder = order || State.storedOrders[0] || null;
+  const headingEl = document.getElementById('thermalModalHeading');
+
+  if (isTripTicket) {
+    if (headingEl) headingEl.textContent = 'Multicab Trip Dispatch Ticket';
+    renderDispatchSlip(State.activePrintOrder);
+  } else {
+    if (headingEl) headingEl.textContent = 'Thermal ESC/POS Print';
+    renderThermalReceipt(State.activePrintOrder);
+  }
+
+  modal.style.display = 'flex';
+  modal.classList.add('show');
+}
+
+function closeThermalReceiptModal() {
+  const modal = document.getElementById('thermalReceiptModal');
+  if (modal) {
+    modal.style.display = 'none';
+    modal.classList.remove('show');
+  }
+}
+
+function renderThermalReceipt(order) {
+  const target = document.getElementById('thermalPrintTarget');
+  if (!target) return;
+
+  const o = order || State.storedOrders[0] || {
+    orderNo: State.currentOrderNo,
+    time: new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true }),
+    prodName: PRODUCTS[State.prodKey].name,
+    gallons: State.qty,
+    unitPrice: PRODUCTS[State.prodKey].price,
+    total: calculateTotal(),
+    status: State.channel === 'delivery' && State.deliveryPayMode === 'pending' ? 'pending' : 'paid',
+    channel: State.channel,
+    note: State.channel === 'delivery' ? State.deliveryAddress : State.note,
+    tendered: State.selectedTender === 'exact' ? calculateTotal() : Number(State.selectedTender) || calculateTotal(),
+    change: State.selectedTender === 'exact' ? 0 : Math.max(0, (Number(State.selectedTender) || calculateTotal()) - calculateTotal()),
+    cashierName: (typeof getCurrentUser === 'function' ? getCurrentUser().name : 'Neil')
+  };
+
+  const isPending = o.status === 'pending';
+  const tendered = typeof o.tendered === 'number' ? o.tendered : (isPending ? 0 : o.total);
+  const change = typeof o.change === 'number' ? o.change : 0;
+  const now = new Date(o.timestamp || Date.now());
+  const dateStr = now.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
+
+  const headingText = isPending ? 'DELIVERY RECEIPT / INVOICE' : 'OFFICIAL SALES RECEIPT';
+  const statusStamp = isPending ? 'PENDING PAYMENT' : 'PAID IN CASH';
+
+  let carboyLine = '';
+  if (o.carboysLoaned || o.carboysReturned) {
+    carboyLine = `
+      <div class="receipt-divider-dash"></div>
+      <div class="receipt-meta-grid" style="font-size: 11px;">
+        ${o.carboysLoaned ? `<div class="receipt-meta-row"><span>Blue Carboys Loaned:</span><span>+${o.carboysLoaned} jug(s)</span></div>` : ''}
+        ${o.carboysReturned ? `<div class="receipt-meta-row"><span>Empty Jugs Returned:</span><span>-${o.carboysReturned} jug(s)</span></div>` : ''}
+      </div>
+    `;
+  }
+
+  target.innerHTML = `
+    <div class="receipt-center-header">
+      <div class="receipt-store-title">R&amp;R WATER REFILLING</div>
+      <div class="receipt-subline">PURE RO &amp; ALKALINE MINERAL WATER</div>
+      <div class="receipt-subline">Purok 1, Main Road • Tel: 0917-829-4102</div>
+      <div class="receipt-subline" style="margin-top: 4px; font-weight: 700;">${headingText}</div>
+    </div>
+
+    <div class="receipt-divider-dash"></div>
+
+    <div class="receipt-meta-grid">
+      <div class="receipt-meta-row"><span>Order / Slip No:</span><strong>${escapeHtml(o.orderNo)}</strong></div>
+      <div class="receipt-meta-row"><span>Date &amp; Time:</span><span>${dateStr} ${escapeHtml(o.time)}</span></div>
+      <div class="receipt-meta-row"><span>Cashier:</span><span>${escapeHtml(o.cashierName || 'Neil')}</span></div>
+      <div class="receipt-meta-row"><span>Channel:</span><span>${o.channel === 'delivery' ? 'Multicab Delivery' : 'Station Walk-in'}</span></div>
+      ${o.note ? `<div class="receipt-meta-row"><span>Customer / Note:</span><span>${escapeHtml(o.note)}</span></div>` : ''}
+    </div>
+
+    <div class="receipt-divider-dash"></div>
+
+    <table class="receipt-items-table">
+      <thead>
+        <tr>
+          <th>Item / Gallons</th>
+          <th class="col-right">Rate</th>
+          <th class="col-right">Amount</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>${escapeHtml(o.prodName || '5-Gal Purified Refill')}<br><small>${Number(o.gallons || 1).toLocaleString()} gal @ ₱${formatPeso(o.unitPrice || 35)}</small></td>
+          <td class="col-right">₱${formatPeso(o.unitPrice || 35)}</td>
+          <td class="col-right">₱${formatPeso(o.total)}</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="receipt-divider-double"></div>
+
+    <div class="receipt-totals-box">
+      <div class="receipt-total-large">
+        <span>TOTAL DUE:</span>
+        <span>₱ ${formatPeso(o.total)}</span>
+      </div>
+      <div class="receipt-meta-row" style="margin-top: 4px;">
+        <span>Cash Tendered:</span>
+        <span>₱ ${formatPeso(tendered)}</span>
+      </div>
+      <div class="receipt-meta-row">
+        <span>Change Due:</span>
+        <span>₱ ${formatPeso(change)}</span>
+      </div>
+    </div>
+
+    ${carboyLine}
+
+    <div class="receipt-status-stamp">${statusStamp}</div>
+
+    <div class="receipt-footer-text">
+      <div>*** THANK YOU FOR YOUR PATRONAGE ***</div>
+      <div>Clean, Healthy Hydration for the Family</div>
+      <div style="margin-top: 4px; font-size: 9px; color: #6b7280;">Terminal #1 • Built for R&amp;R Water</div>
+    </div>
+  `;
+}
+
+function renderDispatchSlip(order) {
+  const target = document.getElementById('thermalPrintTarget');
+  if (!target) return;
+
+  const o = order || State.storedOrders.find(ord => ord.channel === 'delivery') || State.storedOrders[0] || {
+    orderNo: State.currentOrderNo,
+    time: new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true }),
+    prodName: PRODUCTS[State.prodKey].name,
+    gallons: State.qty,
+    total: calculateTotal(),
+    status: 'pending',
+    channel: 'delivery',
+    note: State.deliveryAddress || 'Multicab Route #1',
+    cashierName: (typeof getCurrentUser === 'function' ? getCurrentUser().name : 'Neil')
+  };
+
+  const isPending = o.status === 'pending';
+  const now = new Date(o.timestamp || Date.now());
+  const dateStr = now.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
+
+  target.innerHTML = `
+    <div class="receipt-center-header">
+      <div class="receipt-store-title">*** MULTICAB TRIP TICKET ***</div>
+      <div class="receipt-subline">R&amp;R WATER DELIVERY DISPATCH</div>
+      <div class="receipt-subline">Driver: Kuya Jun • Multicab Vehicle #1</div>
+    </div>
+
+    <div class="receipt-divider-dash"></div>
+
+    <div class="receipt-meta-grid">
+      <div class="receipt-meta-row"><span>Trip Ticket:</span><strong>${escapeHtml(o.orderNo)}</strong></div>
+      <div class="receipt-meta-row"><span>Dispatch Time:</span><span>${dateStr} ${escapeHtml(o.time)}</span></div>
+      <div class="receipt-meta-row"><span>Destination:</span><strong style="font-size: 13px;">${escapeHtml(o.note || 'Purok Delivery Route')}</strong></div>
+    </div>
+
+    <div class="receipt-divider-dash"></div>
+
+    <div style="margin: 8px 0; font-size: 13px; font-weight: 800;">
+      CARGO LOAD: ${Number(o.gallons || 1).toLocaleString()} Sealed 5-Gal Blue Carboys
+    </div>
+    <div style="font-size: 11px; color: #374151;">
+      Empties to Retrieve: ${Number(o.gallons || 1).toLocaleString()} empty swapped jugs
+    </div>
+
+    <div class="receipt-divider-double"></div>
+
+    <div class="receipt-totals-box">
+      ${isPending ? `
+        <div style="background: #fee2e2; border: 2px solid #ef4444; padding: 6px; text-align: center; border-radius: 4px;">
+          <div style="font-size: 11px; font-weight: 800; color: #b91c1c;">DRIVER ACTION REQUIRED:</div>
+          <div style="font-size: 17px; font-weight: 900; color: #b91c1c; margin-top: 2px;">COLLECT ₱ ${formatPeso(o.total)}</div>
+          <div style="font-size: 10px; color: #7f1d1d; margin-top: 2px;">Remit payment to Cashier upon return</div>
+        </div>
+      ` : `
+        <div style="background: #dcfce7; border: 2px solid #10b981; padding: 6px; text-align: center; border-radius: 4px;">
+          <div style="font-size: 11px; font-weight: 800; color: #047857;">PRE-PAID AT COUNTER</div>
+          <div style="font-size: 15px; font-weight: 900; color: #047857;">DO NOT COLLECT CASH</div>
+        </div>
+      `}
+    </div>
+
+    <div class="receipt-signature-line" style="margin-top: 24px;">
+      Driver Departure Sign-off: ___________________________
+    </div>
+    <div class="receipt-signature-line" style="margin-top: 18px;">
+      Customer Received Sign-off: ___________________________
+    </div>
+
+    <div class="receipt-footer-text" style="margin-top: 12px;">
+      <div>R&amp;R Water Refilling Station • Multicab Trip Slip</div>
+    </div>
+  `;
+}
+
+function kickCashDrawer() {
+  soundCtrl.playDrawerChime();
+  showToast('⚡ [ESC/POS] Cash drawer solenoid pulse fired (Drawer opened)');
+  logSecurityEvent(
+    'CASH_DRAWER_KICK',
+    'Triggered manual ESC/POS hardware cash drawer kick pulse',
+    (typeof getCurrentUser === 'function' ? getCurrentUser().name : 'Neil')
+  );
+}
+
+// ==========================================================================
+// 16. CARBOY & EMPTIES LEDGER MODAL
+// ==========================================================================
+function initCarboyEmptiesModal() {
+  const btnHeader = document.getElementById('btnHeaderEmpties');
+  const btnCloseIcon = document.getElementById('btnCloseEmptiesModal');
+  const btnCloseFooter = document.getElementById('btnEmptiesCloseFooter');
+  const modal = document.getElementById('carboyEmptiesModal');
+  const searchInput = document.getElementById('emptiesCustomerSearch');
+  const btnAddCustomer = document.getElementById('btnQuickAddCustomer');
+
+  if (btnHeader) {
+    btnHeader.addEventListener('click', () => {
+      soundCtrl.playTap();
+      openEmptiesModal();
+    });
+  }
+
+  if (btnCloseIcon) btnCloseIcon.addEventListener('click', closeEmptiesModal);
+  if (btnCloseFooter) btnCloseFooter.addEventListener('click', closeEmptiesModal);
+
+  if (modal) {
+    modal.addEventListener('click', (e) => {
+      if (e.target === modal) closeEmptiesModal();
+    });
+  }
+
+  if (searchInput) {
+    searchInput.addEventListener('input', (e) => {
+      renderEmptiesTable(e.target.value.toLowerCase().trim());
+    });
+  }
+
+  if (btnAddCustomer) {
+    btnAddCustomer.addEventListener('click', () => {
+      quickAddCustomer();
+    });
+  }
+}
+
+function openEmptiesModal() {
+  const modal = document.getElementById('carboyEmptiesModal');
+  if (!modal) return;
+  modal.style.display = 'flex';
+  modal.classList.add('show');
+  renderEmptiesTable();
+}
+
+function closeEmptiesModal() {
+  const modal = document.getElementById('carboyEmptiesModal');
+  if (modal) {
+    modal.style.display = 'none';
+    modal.classList.remove('show');
+  }
+}
+
+function toggleEmptiesModal() {
+  const modal = document.getElementById('carboyEmptiesModal');
+  if (!modal) return;
+  if (modal.style.display === 'flex' || modal.classList.contains('show')) {
+    closeEmptiesModal();
+  } else {
+    openEmptiesModal();
+  }
+}
+
+function renderEmptiesTable(filter = '') {
+  const tbody = document.getElementById('emptiesTableBody');
+  if (!tbody) return;
+
+  const customers = State.customers || [];
+  let filtered = customers;
+
+  if (filter) {
+    filtered = customers.filter(c => {
+      const matchName = (c.name || '').toLowerCase().includes(filter);
+      const matchContact = (c.contact || '').toLowerCase().includes(filter);
+      const matchAddr = (c.address || '').toLowerCase().includes(filter);
+      return matchName || matchContact || matchAddr;
+    });
+  }
+
+  // Update KPIs
+  let totalJugs = 0;
+  let activeBorrowers = 0;
+  let totalDeposits = 0;
+
+  customers.forEach(c => {
+    const held = Number(c.carboysHeld) || 0;
+    totalJugs += held;
+    if (held > 0) activeBorrowers++;
+    totalDeposits += (Number(c.depositAmount) || (held * 200));
+  });
+
+  const kpiJugs = document.getElementById('kpiTotalCarboysOut');
+  const kpiBorrowers = document.getElementById('kpiActiveBorrowers');
+  const kpiDeposits = document.getElementById('kpiTotalDepositsHeld');
+
+  if (kpiJugs) kpiJugs.textContent = totalJugs.toLocaleString();
+  if (kpiBorrowers) kpiBorrowers.textContent = activeBorrowers.toLocaleString();
+  if (kpiDeposits) kpiDeposits.textContent = `₱${formatPeso(totalDeposits)}`;
+
+  updateCarboyHeaderBadge();
+
+  if (filtered.length === 0) {
+    tbody.innerHTML = `
+      <tr>
+        <td colspan="5" style="text-align: center; padding: 24px; color: var(--text-muted);">
+          No customers found matching "${escapeHtml(filter)}". Tap "New Customer" to register one.
+        </td>
+      </tr>
+    `;
+    return;
+  }
+
+  let rows = '';
+  filtered.forEach(c => {
+    const held = Number(c.carboysHeld) || 0;
+    const dep = Number(c.depositAmount) || (held * 200);
+
+    rows += `
+      <tr>
+        <td>
+          <strong style="font-size: 0.88rem; color: var(--text-main);">${escapeHtml(c.name)}</strong>
+          ${c.contact ? `<div style="font-size: 0.74rem; color: var(--text-muted);">${escapeHtml(c.contact)}</div>` : ''}
+        </td>
+        <td style="font-size: 0.8rem; color: var(--text-muted);">${escapeHtml(c.address || '—')}</td>
+        <td style="text-align: center;">
+          <span class="order-id-badge" style="${held > 0 ? 'background: rgba(2, 132, 199, 0.15); color: #0284c7; font-size: 0.85rem;' : ''}">
+            ${held} jugs
+          </span>
+        </td>
+        <td style="text-align: right; font-family: var(--font-mono); font-weight: 700;">₱${formatPeso(dep)}</td>
+        <td style="text-align: center;">
+          <div style="display: flex; gap: 4px; justify-content: center;">
+            <button type="button" class="btn-loan-action return" data-custid="${c.id}" data-action="return" title="Customer returns 1 empty carboy">
+              -1 Ret
+            </button>
+            <button type="button" class="btn-loan-action borrow" data-custid="${c.id}" data-action="borrow" title="Customer borrows 1 extra carboy">
+              +1 Loan
+            </button>
+          </div>
+        </td>
+      </tr>
+    `;
+  });
+
+  tbody.innerHTML = rows;
+
+  // Bind Quick Actions
+  tbody.querySelectorAll('.btn-loan-action').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      soundCtrl.playTap();
+      const id = btn.getAttribute('data-custid');
+      const action = btn.getAttribute('data-action');
+      const cust = State.customers.find(c => c.id === id);
+      if (!cust) return;
+
+      if (action === 'borrow') {
+        cust.carboysHeld = (Number(cust.carboysHeld) || 0) + 1;
+        cust.depositAmount = cust.carboysHeld * 200;
+        showToast(`Loaned 1 carboy to ${cust.name}. Total held: ${cust.carboysHeld}`);
+        fetch(`/api/customers/${encodeURIComponent(cust.id)}/empties`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ loanedDelta: 1, returnedDelta: 0, note: 'Quick loan via ledger' })
+        }).catch(() => {});
+      } else {
+        if ((Number(cust.carboysHeld) || 0) > 0) {
+          cust.carboysHeld = Number(cust.carboysHeld) - 1;
+          cust.depositAmount = cust.carboysHeld * 200;
+          showToast(`Returned 1 empty from ${cust.name}. Remaining held: ${cust.carboysHeld}`);
+          fetch(`/api/customers/${encodeURIComponent(cust.id)}/empties`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ loanedDelta: 0, returnedDelta: 1, note: 'Quick return via ledger' })
+          }).catch(() => {});
+        } else {
+          showToast(`${cust.name} currently holds 0 carboys.`);
+        }
+      }
+
+      saveCustomers();
+      renderEmptiesTable(filter);
+    });
+  });
+}
+
+function updateCarboyHeaderBadge() {
+  const badge = document.getElementById('headerCarboyBadge');
+  if (!badge) return;
+  const customers = State.customers || [];
+  const totalHeld = customers.reduce((acc, c) => acc + (Number(c.carboysHeld) || 0), 0);
+  badge.textContent = totalHeld;
+}
+
+function quickAddCustomer() {
+  soundCtrl.playTap();
+  const name = prompt('Customer Full Name / Business:');
+  if (!name || !name.trim()) return;
+
+  const address = prompt('Delivery Address / Area (e.g. Purok 2):', 'Purok 1') || '';
+  const contact = prompt('Contact Phone Number (optional):', '0917-') || '';
+
+  const newCust = {
+    id: 'cust_' + Date.now(),
+    name: name.trim(),
+    contact: contact.trim(),
+    address: address.trim(),
+    carboysHeld: 0,
+    depositAmount: 0
+  };
+
+  State.customers.push(newCust);
+  saveCustomers();
+  renderEmptiesTable();
+  showToast(`Added customer: ${newCust.name}!`);
+
+  // Sync to SQLite backend
+  fetch('/api/customers', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(newCust)
+  }).catch(() => {});
+}
+
+// ==========================================================================
+// 17. BACKEND SQLITE & OFFLINE REST SYNCHRONIZATION
+// ==========================================================================
+function syncWithBackend() {
+  if (!navigator.onLine) return;
+
+  // 1. Fetch server status and inventory
+  fetch('/api/status')
+    .then(res => res.json())
+    .then(data => {
+      if (data && data.success) {
+        if (typeof data.carboysOnLoan === 'number') {
+          const badge = document.getElementById('headerCarboyBadge');
+          if (badge) badge.textContent = data.carboysOnLoan;
+        }
+      }
+    })
+    .catch(() => {});
+
+  // 2. Fetch customer registry
+  fetch('/api/customers')
+    .then(res => res.json())
+    .then(data => {
+      if (Array.isArray(data) && data.length > 0) {
+        State.customers = data;
+        saveCustomers();
+        updateCarboyHeaderBadge();
+        const emptiesModal = document.getElementById('carboyEmptiesModal');
+        if (emptiesModal && emptiesModal.style.display === 'flex') {
+          renderEmptiesTable();
+        }
+      }
+    })
+    .catch(() => {});
+
+  // 3. Sync offline orders
+  if (State.storedOrders && State.storedOrders.length > 0) {
+    fetch('/api/sync', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ orders: State.storedOrders })
+    }).catch(() => {});
+  }
+}
+
+function postOrderToBackend(order) {
+  fetch('/api/orders', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(order)
+  })
+    .then(res => res.json())
+    .then(data => {
+      if (data && data.order) {
+        // Backend successfully persisted order and updated inventory
+      }
+    })
+    .catch(err => {
+      console.warn('Backend SQLite sync queued in offline mode:', err);
+    });
+}
+
+// ==========================================================================
+// 18. KEYBOARD SHORTCUTS (POS Hardware Friendly)
+// ==========================================================================
+function initKeyboardShortcuts() {
+  window.addEventListener('keydown', (e) => {
+    // If typing in input, ignore function keys except escape
+    if (e.target.matches('input') && e.key !== 'Escape') return;
+
+    if (e.key === 'F1') {
+      e.preventDefault();
+      const bWalk = document.getElementById('btnChannelWalkin');
+      if (bWalk) bWalk.click();
+    } else if (e.key === 'F2') {
+      e.preventDefault();
+      const bDel = document.getElementById('btnChannelDelivery');
+      if (bDel) bDel.click();
+    } else if (e.key === 'F4') {
+      e.preventDefault();
+      const bClear = document.getElementById('btnBottomClear');
+      if (bClear) bClear.click();
+    } else if (e.key === 'F8') {
+      e.preventDefault();
+      toggleEmptiesModal();
+    } else if (e.key === 'F9') {
+      e.preventDefault();
+      openThermalReceiptModal(State.storedOrders[0] || null);
+    } else if (e.key === 'Escape') {
+      closeThermalReceiptModal();
+      closeEmptiesModal();
+      closeConfirmModal();
+    }
+  });
+}
+
+// ==========================================================================
+// 19. PROGRESSIVE WEB APP & OFFLINE-FIRST SERVICE WORKER
+// ==========================================================================
+function initOfflinePWA() {
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('/sw.js')
+        .then(reg => {
+          // PWA service worker registered
+        })
+        .catch(err => {
+          console.warn('ServiceWorker registration error:', err);
+        });
+    });
+  }
+
+  window.addEventListener('online', () => {
+    showToast('🟢 Online: Connected to Station Backend Database');
+    syncWithBackend();
+  });
+
+  window.addEventListener('offline', () => {
+    showToast('🟠 Offline: Operating in Offline-First Local Mode');
+  });
 }

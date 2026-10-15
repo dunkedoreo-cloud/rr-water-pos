@@ -8,6 +8,8 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700;800&display=swap" rel="stylesheet">
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#0284c7">
 </head>
 <body class="light-mode">
 
@@ -149,6 +151,16 @@
             </svg>
           </button>
 
+          <!-- Empties Ledger / Carboy Tracking Button (F8) -->
+          <button class="header-icon-btn btn-header-empties" id="btnHeaderEmpties" title="5-Gal Carboy Empties Ledger (F8)" aria-label="Carboy Ledger">
+            <svg class="ui-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M7 2h10v3H7z"></path>
+              <rect x="5" y="5" width="14" height="17" rx="3"></rect>
+              <line x1="9" y1="9" x2="15" y2="9"></line>
+              <line x1="9" y1="13" x2="15" y2="13"></line>
+            </svg>
+            <span class="header-badge-count" id="headerCarboyBadge">0</span>
+          </button>
 
           <!-- Lock Station Button -->
           <button class="header-icon-btn" id="btnLockTerminal" title="Lock Station (Away / Privacy)" aria-label="Lock Station">
@@ -411,6 +423,26 @@
               </div>
             </div>
 
+            <!-- Carboy & Empties Tracking (Loaned & Returned 5-Gallon Blue Jugs) -->
+            <div class="carboy-loan-row" id="carboyLoanRow">
+              <div class="carboy-loan-item">
+                <span class="carboy-loan-label">Loan Blue Jugs</span>
+                <div class="carboy-stepper">
+                  <button type="button" class="btn-carboy-step" id="btnLoanMinus" title="Decrease loaned jugs">-</button>
+                  <span class="carboy-step-val" id="carboysLoanedVal">0</span>
+                  <button type="button" class="btn-carboy-step" id="btnLoanPlus" title="Increase loaned jugs">+</button>
+                </div>
+              </div>
+              <div class="carboy-loan-item">
+                <span class="carboy-loan-label">Empty Jugs Returned</span>
+                <div class="carboy-stepper">
+                  <button type="button" class="btn-carboy-step" id="btnReturnMinus" title="Decrease returned jugs">-</button>
+                  <span class="carboy-step-val" id="carboysReturnedVal">0</span>
+                  <button type="button" class="btn-carboy-step" id="btnReturnPlus" title="Increase returned jugs">+</button>
+                </div>
+              </div>
+            </div>
+
             <!-- Numeric Keypad Grid (Direct & clean numeric gallon input) -->
             <div class="numeric-keypad-grid">
               <button class="keypad-key" data-key="7">7</button>
@@ -432,6 +464,22 @@
               <button class="keypad-key" data-key="0">0</button>
               <button class="keypad-key key-exact" id="btnKeypadReset">Reset</button>
               <button class="keypad-key key-clear" id="btnKeypadBackspace">⌫</button>
+            </div>
+
+            <!-- Quick Cash Tender & Live Change Due Calculator -->
+            <div class="quick-cash-tender-card" id="quickCashTenderCard">
+              <div class="cash-tender-header">
+                <span class="cash-tender-title">Cash Tender &amp; Change</span>
+                <span class="change-due-badge exact" id="changeDueBadge">Change: ₱0.00</span>
+              </div>
+              <div class="quick-cash-btn-row" id="quickCashBtnRow">
+                <button type="button" class="btn-quick-cash active" data-tender="exact">Exact</button>
+                <button type="button" class="btn-quick-cash" data-tender="50">₱50</button>
+                <button type="button" class="btn-quick-cash" data-tender="100">₱100</button>
+                <button type="button" class="btn-quick-cash" data-tender="200">₱200</button>
+                <button type="button" class="btn-quick-cash" data-tender="500">₱500</button>
+                <button type="button" class="btn-quick-cash" data-tender="1000">₱1,000</button>
+              </div>
             </div>
 
             <!-- Group 4: Total & Primary Action Button -->
@@ -1812,6 +1860,119 @@
           <svg class="ui-icon-xs" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="8.5" cy="7" r="4"></circle><line x1="20" y1="8" x2="20" y2="14"></line><line x1="23" y1="11" x2="17" y2="11"></line></svg>
           <span>Switch Staff</span>
         </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Thermal Receipt & Multicab Dispatch Slip Modal -->
+  <div class="modal-backdrop" id="thermalReceiptModal" style="display: none;">
+    <div class="thermal-modal-card">
+      <div class="thermal-modal-header">
+        <div class="thermal-modal-title">
+          <svg class="ui-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="6 9 6 2 18 2 18 9"></polyline>
+            <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path>
+            <rect x="6" y="14" width="12" height="8"></rect>
+          </svg>
+          <h3 id="thermalModalHeading">Thermal ESC/POS Print</h3>
+        </div>
+        <div class="thermal-format-toggle">
+          <button type="button" class="btn-format-pill active" id="btnPaperFormat80" data-format="80mm">80mm</button>
+          <button type="button" class="btn-format-pill" id="btnPaperFormat58" data-format="58mm">58mm</button>
+        </div>
+      </div>
+
+      <!-- Realistic Printable Thermal Preview -->
+      <div class="thermal-paper-viewport">
+        <div class="thermal-receipt-paper" id="thermalPrintTarget">
+          <!-- Dynamic receipt content rendered here -->
+        </div>
+      </div>
+
+      <!-- Action Buttons -->
+      <div class="thermal-modal-buttons">
+        <button type="button" class="btn-thermal-action btn-thermal-print" id="btnThermalPrintNow">
+          <svg class="ui-icon-xs" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><polyline points="6 9 6 2 18 2 18 9"></polyline><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path><rect x="6" y="14" width="12" height="8"></rect></svg>
+          <span>Print Receipt (F9)</span>
+        </button>
+        <button type="button" class="btn-thermal-action btn-thermal-slip" id="btnThermalPrintSlip">
+          <svg class="ui-icon-xs" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+          <span>Trip Dispatch Ticket</span>
+        </button>
+        <button type="button" class="btn-thermal-action btn-thermal-drawer" id="btnThermalKickDrawer" title="Trigger ESC/POS Cash Drawer Pulse">
+          <svg class="ui-icon-xs" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="2" y="4" width="20" height="16" rx="2"></rect><path d="M7 15h0.01"></path><path d="M2 10h20"></path></svg>
+          <span>Kick Drawer</span>
+        </button>
+        <button type="button" class="btn-modal-cancel" id="btnThermalClose" style="min-width: 80px;">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Carboy Empties & Customer Deposits Ledger Modal -->
+  <div class="modal-backdrop" id="carboyEmptiesModal" style="display: none;">
+    <div class="empties-modal-card">
+      <div class="thermal-modal-header">
+        <div class="thermal-modal-title">
+          <svg class="ui-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M7 2h10v3H7z"></path>
+            <rect x="5" y="5" width="14" height="17" rx="3"></rect>
+            <line x1="9" y1="9" x2="15" y2="9"></line>
+            <line x1="9" y1="13" x2="15" y2="13"></line>
+          </svg>
+          <div>
+            <h3 style="margin: 0; font-size: 1.15rem; font-weight: 800;">5-Gal Carboy &amp; Empties Ledger</h3>
+            <span style="font-size: 0.76rem; color: var(--text-muted);">Track loaned blue carboys, deposits, and unreturned empties</span>
+          </div>
+        </div>
+        <button class="modal-close-icon" id="btnCloseEmptiesModal" aria-label="Close">✕</button>
+      </div>
+
+      <!-- KPI Summary Row -->
+      <div class="empties-summary-row">
+        <div class="empties-kpi-card">
+          <span class="empties-kpi-val" id="kpiTotalCarboysOut">0</span>
+          <span class="empties-kpi-label">Total Jugs Outstanding</span>
+        </div>
+        <div class="empties-kpi-card">
+          <span class="empties-kpi-val" id="kpiActiveBorrowers">0</span>
+          <span class="empties-kpi-label">Active Borrowers</span>
+        </div>
+        <div class="empties-kpi-card">
+          <span class="empties-kpi-val" id="kpiTotalDepositsHeld">₱0</span>
+          <span class="empties-kpi-label">Deposits Held (₱200/ea)</span>
+        </div>
+      </div>
+
+      <!-- Search & Add Bar -->
+      <div class="empties-search-bar">
+        <svg class="ui-icon-xs" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+        <input type="text" id="emptiesCustomerSearch" class="empties-search-input" placeholder="Search customer name, contact, or address...">
+        <button type="button" class="btn-restock-pill" id="btnQuickAddCustomer" style="white-space: nowrap;">
+          <svg class="ui-icon-xs" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"></path></svg>
+          <span>New Customer</span>
+        </button>
+      </div>
+
+      <!-- Table Wrapper -->
+      <div class="empties-table-wrap">
+        <table class="orders-data-table" id="emptiesDataTable">
+          <thead>
+            <tr>
+              <th>Customer</th>
+              <th>Address / Area</th>
+              <th style="text-align: center;">Carboys Held</th>
+              <th style="text-align: right;">Deposit Val</th>
+              <th style="text-align: center;">Quick Action</th>
+            </tr>
+          </thead>
+          <tbody id="emptiesTableBody">
+            <!-- Dynamic customer empties rows injected here -->
+          </tbody>
+        </table>
+      </div>
+
+      <div class="modal-button-row" style="margin-top: 4px;">
+        <button type="button" class="btn-modal-cancel" id="btnEmptiesCloseFooter">Close Ledger (Esc)</button>
       </div>
     </div>
   </div>

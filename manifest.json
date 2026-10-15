@@ -1,0 +1,24 @@
+{
+  "name": "R&R Water Refilling Station POS",
+  "short_name": "R&R Water POS",
+  "description": "Smart Touchscreen Point of Sale & Multicab Delivery Dispatch for R&R Water Refilling Station",
+  "start_url": "/index.html",
+  "display": "standalone",
+  "background_color": "#071529",
+  "theme_color": "#0284c7",
+  "orientation": "any",
+  "icons": [
+    {
+      "src": "/assets/droppy_happy.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/assets/droppy_happy.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}

@@ -6646,3 +6646,568 @@ body:not(.light-mode) .meta-badge.emerald {
   color: #8b5cf6;
 }
 
+/* ==========================================================================
+   QUICK CASH TENDER & CHANGE DUE CALCULATOR
+   ========================================================================== */
+.quick-cash-tender-card {
+  background-color: var(--bg-card);
+  border: 1px solid var(--border-card);
+  border-radius: var(--radius-lg);
+  padding: 10px 14px;
+  margin-top: 8px;
+  margin-bottom: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.cash-tender-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.cash-tender-title {
+  font-size: 0.76rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--text-muted);
+}
+
+.change-due-badge {
+  font-family: var(--font-mono);
+  font-size: 0.88rem;
+  font-weight: 800;
+  color: #059669;
+  background: rgba(16, 185, 129, 0.12);
+  border: 1px solid rgba(16, 185, 129, 0.28);
+  padding: 2px 10px;
+  border-radius: var(--radius-full);
+  transition: all 0.2s ease;
+}
+
+.change-due-badge.exact {
+  color: var(--text-muted);
+  background: var(--bg-surface);
+  border-color: var(--border-subtle);
+}
+
+.change-due-badge.insufficient {
+  color: #ef4444;
+  background: rgba(239, 68, 68, 0.12);
+  border-color: rgba(239, 68, 68, 0.3);
+}
+
+.quick-cash-btn-row {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 6px;
+}
+
+.btn-quick-cash {
+  background-color: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  padding: 6px 2px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--text-main);
+  cursor: pointer;
+  transition: all 0.15s ease;
+  text-align: center;
+}
+
+.btn-quick-cash:hover {
+  background-color: var(--bg-card-hover);
+  border-color: var(--brand-primary);
+  color: var(--brand-primary);
+  transform: translateY(-1px);
+}
+
+.btn-quick-cash.active {
+  background-color: var(--brand-primary);
+  border-color: var(--brand-primary);
+  color: #ffffff;
+  box-shadow: 0 2px 6px rgba(2, 132, 199, 0.3);
+}
+
+/* ==========================================================================
+   CARBOY & EMPTIES LOAN TRACKING ON REGISTER
+   ========================================================================== */
+.carboy-loan-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin-top: 6px;
+  margin-bottom: 6px;
+}
+
+.carboy-loan-item {
+  background-color: var(--bg-card);
+  border: 1px solid var(--border-card);
+  border-radius: var(--radius-md);
+  padding: 6px 10px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.carboy-loan-label {
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.carboy-stepper {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.btn-carboy-step {
+  width: 22px;
+  height: 22px;
+  border-radius: var(--radius-sm);
+  background-color: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  color: var(--text-main);
+  font-size: 0.85rem;
+  font-weight: 700;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.15s ease;
+}
+
+.btn-carboy-step:hover {
+  background-color: var(--brand-primary);
+  border-color: var(--brand-primary);
+  color: #ffffff;
+}
+
+.carboy-step-val {
+  font-family: var(--font-mono);
+  font-size: 0.85rem;
+  font-weight: 800;
+  color: var(--text-main);
+  min-width: 18px;
+  text-align: center;
+}
+
+/* Header Carboy Counter Badge */
+.header-badge-count {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  background-color: #0284c7;
+  color: #ffffff;
+  font-size: 0.62rem;
+  font-weight: 800;
+  min-width: 16px;
+  height: 16px;
+  border-radius: var(--radius-full);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 4px;
+  border: 1.5px solid var(--bg-surface);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+}
+
+/* ==========================================================================
+   THERMAL RECEIPT & DISPATCH SLIP MODAL
+   ========================================================================== */
+.thermal-modal-card {
+  max-width: 480px;
+  width: 100%;
+  padding: 22px 20px;
+  background-color: var(--bg-surface);
+  border-radius: var(--radius-xl);
+  border: 1px solid var(--border-card);
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.35);
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  max-height: 92vh;
+  overflow-y: auto;
+}
+
+.thermal-modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid var(--border-subtle);
+  padding-bottom: 12px;
+}
+
+.thermal-modal-title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.thermal-modal-title h3 {
+  font-size: 1.1rem;
+  font-weight: 800;
+  margin: 0;
+  color: var(--text-main);
+}
+
+.thermal-format-toggle {
+  display: flex;
+  background-color: var(--bg-card);
+  padding: 3px;
+  border-radius: var(--radius-full);
+  border: 1px solid var(--border-subtle);
+}
+
+.btn-format-pill {
+  border: none;
+  background: transparent;
+  padding: 4px 10px;
+  border-radius: var(--radius-full);
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.btn-format-pill.active {
+  background-color: var(--brand-primary);
+  color: #ffffff;
+  box-shadow: 0 1px 3px rgba(2, 132, 199, 0.3);
+}
+
+/* Realistic Thermal Receipt Paper Preview */
+.thermal-paper-viewport {
+  background: #e2e8f0;
+  padding: 16px;
+  border-radius: var(--radius-lg);
+  display: flex;
+  justify-content: center;
+  overflow-x: auto;
+}
+
+[data-theme="light"] .thermal-paper-viewport {
+  background: #cbd5e1;
+}
+
+.thermal-receipt-paper {
+  background-color: #ffffff;
+  color: #111827;
+  font-family: 'Courier New', Courier, monospace;
+  font-size: 12px;
+  line-height: 1.35;
+  padding: 20px 16px;
+  width: 100%;
+  max-width: 320px; /* Default 80mm preview */
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.18);
+  position: relative;
+  border-radius: 2px;
+  box-sizing: border-box;
+}
+
+.thermal-receipt-paper.format-58mm {
+  max-width: 250px;
+  font-size: 11px;
+  padding: 16px 12px;
+}
+
+.receipt-center-header {
+  text-align: center;
+  margin-bottom: 12px;
+}
+
+.receipt-store-title {
+  font-size: 15px;
+  font-weight: 900;
+  letter-spacing: 0.05em;
+  margin-bottom: 2px;
+}
+
+.receipt-subline {
+  font-size: 11px;
+  color: #4b5563;
+}
+
+.receipt-divider-dash {
+  border-top: 1px dashed #6b7280;
+  margin: 8px 0;
+}
+
+.receipt-divider-double {
+  border-top: 2px double #111827;
+  margin: 8px 0;
+}
+
+.receipt-meta-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  font-size: 11px;
+}
+
+.receipt-meta-row {
+  display: flex;
+  justify-content: space-between;
+}
+
+.receipt-items-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 6px 0;
+}
+
+.receipt-items-table th {
+  text-align: left;
+  border-bottom: 1px dashed #6b7280;
+  padding-bottom: 4px;
+  font-weight: 700;
+}
+
+.receipt-items-table th.col-right,
+.receipt-items-table td.col-right {
+  text-align: right;
+}
+
+.receipt-items-table td {
+  padding: 4px 0;
+}
+
+.receipt-totals-box {
+  margin: 6px 0;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.receipt-total-large {
+  font-size: 16px;
+  font-weight: 900;
+  display: flex;
+  justify-content: space-between;
+  margin-top: 4px;
+}
+
+.receipt-status-stamp {
+  border: 2px solid #111827;
+  padding: 4px 8px;
+  font-weight: 900;
+  text-align: center;
+  text-transform: uppercase;
+  margin: 8px auto;
+  width: fit-content;
+  letter-spacing: 0.08em;
+}
+
+.receipt-signature-line {
+  margin-top: 18px;
+  padding-top: 4px;
+  border-top: 1px solid #111827;
+  text-align: center;
+  font-size: 10px;
+}
+
+.receipt-footer-text {
+  text-align: center;
+  font-size: 10px;
+  color: #4b5563;
+  margin-top: 10px;
+}
+
+.thermal-modal-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.btn-thermal-action {
+  flex: 1;
+  min-width: 120px;
+  padding: 10px 14px;
+  border-radius: var(--radius-lg);
+  font-size: 0.82rem;
+  font-weight: 700;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  transition: all 0.15s ease;
+}
+
+.btn-thermal-print {
+  background-color: var(--brand-primary);
+  border: 1px solid var(--brand-primary);
+  color: #ffffff;
+}
+
+.btn-thermal-print:hover {
+  background-color: var(--brand-primary-hover);
+  transform: translateY(-1px);
+}
+
+.btn-thermal-slip {
+  background-color: #8b5cf6;
+  border: 1px solid #8b5cf6;
+  color: #ffffff;
+}
+
+.btn-thermal-slip:hover {
+  background-color: #7c3aed;
+  transform: translateY(-1px);
+}
+
+.btn-thermal-drawer {
+  background-color: var(--bg-card);
+  border: 1px solid var(--border-card);
+  color: var(--text-main);
+}
+
+.btn-thermal-drawer:hover {
+  border-color: #10b981;
+  color: #10b981;
+}
+
+/* ==========================================================================
+   CARBOY & EMPTIES LEDGER MODAL
+   ========================================================================== */
+.empties-modal-card {
+  max-width: 680px;
+  width: 100%;
+  padding: 24px;
+  background-color: var(--bg-surface);
+  border-radius: var(--radius-xl);
+  border: 1px solid var(--border-card);
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.4);
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  max-height: 90vh;
+}
+
+.empties-summary-row {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+}
+
+.empties-kpi-card {
+  background-color: var(--bg-card);
+  border: 1px solid var(--border-card);
+  border-radius: var(--radius-lg);
+  padding: 12px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.empties-kpi-val {
+  font-family: var(--font-mono);
+  font-size: 1.4rem;
+  font-weight: 800;
+  color: var(--brand-primary);
+}
+
+.empties-kpi-label {
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--text-muted);
+  text-transform: uppercase;
+}
+
+.empties-search-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background-color: var(--bg-card);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  padding: 8px 12px;
+}
+
+.empties-search-input {
+  flex: 1;
+  border: none;
+  background: transparent;
+  color: var(--text-main);
+  font-size: 0.88rem;
+  outline: none;
+}
+
+.empties-table-wrap {
+  overflow-y: auto;
+  max-height: 380px;
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
+}
+
+.btn-loan-action {
+  padding: 4px 10px;
+  border-radius: var(--radius-sm);
+  font-size: 0.74rem;
+  font-weight: 700;
+  cursor: pointer;
+  border: 1px solid var(--border-subtle);
+  background: var(--bg-surface);
+  color: var(--text-main);
+  transition: all 0.15s ease;
+}
+
+.btn-loan-action.return {
+  color: #10b981;
+  border-color: rgba(16, 185, 129, 0.3);
+}
+
+.btn-loan-action.return:hover {
+  background-color: rgba(16, 185, 129, 0.15);
+}
+
+.btn-loan-action.borrow {
+  color: #0284c7;
+  border-color: rgba(2, 132, 199, 0.3);
+}
+
+.btn-loan-action.borrow:hover {
+  background-color: rgba(2, 132, 199, 0.15);
+}
+
+/* ==========================================================================
+   PRINT MEDIA STYLESHEET FOR 58mm / 80mm ESC/POS PRINTERS
+   ========================================================================== */
+@media print {
+  body * {
+    visibility: hidden;
+  }
+
+  #thermalPrintTarget,
+  #thermalPrintTarget * {
+    visibility: visible;
+  }
+
+  #thermalPrintTarget {
+    position: fixed;
+    left: 0;
+    top: 0;
+    width: 100% !important;
+    max-width: 80mm !important;
+    margin: 0 !important;
+    padding: 2mm !important;
+    background: #ffffff !important;
+    color: #000000 !important;
+    box-shadow: none !important;
+    border: none !important;
+  }
+
+  @page {
+    margin: 0;
+    size: auto;
+  }
+}
+
+
