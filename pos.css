@@ -973,20 +973,43 @@ a.header-icon-btn svg {
 .card-img-container {
   height: 140px;
   background: linear-gradient(135deg, #e0f2fe 0%, #bae6fd 100%);
+  border: 1px solid rgba(2, 132, 199, 0.12);
   border-radius: var(--radius-md);
   display: flex;
   align-items: center;
   justify-content: center;
   position: relative;
   overflow: hidden;
+  transition: background 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
 }
 
 .card-img-container.alkaline-bg {
   background: linear-gradient(135deg, #ede9fe 0%, #ddd6fe 100%);
+  border-color: rgba(124, 58, 237, 0.12);
 }
 
 .card-img-container.new-bg {
   background: linear-gradient(135deg, #ccfbf1 0%, #99f6e4 100%);
+  border-color: rgba(13, 148, 136, 0.12);
+}
+
+/* Dark Mode Dynamic Product Card Backgrounds */
+body:not(.light-mode) .card-img-container {
+  background: linear-gradient(135deg, #0b172a 0%, #0f2b48 55%, #163e66 100%);
+  border-color: rgba(56, 189, 248, 0.28);
+  box-shadow: inset 0 0 24px rgba(2, 132, 199, 0.22), 0 4px 14px rgba(0, 0, 0, 0.35);
+}
+
+body:not(.light-mode) .card-img-container.new-bg {
+  background: linear-gradient(135deg, #061c1a 0%, #08332d 55%, #0e4b41 100%);
+  border-color: rgba(45, 212, 191, 0.28);
+  box-shadow: inset 0 0 24px rgba(16, 185, 129, 0.22), 0 4px 14px rgba(0, 0, 0, 0.35);
+}
+
+body:not(.light-mode) .card-img-container.alkaline-bg {
+  background: linear-gradient(135deg, #130d24 0%, #241642 55%, #372061 100%);
+  border-color: rgba(192, 132, 252, 0.28);
+  box-shadow: inset 0 0 24px rgba(168, 85, 247, 0.22), 0 4px 14px rgba(0, 0, 0, 0.35);
 }
 
 .product-gallon-img {
@@ -994,7 +1017,11 @@ a.header-icon-btn svg {
   width: auto;
   object-fit: contain;
   filter: drop-shadow(0 6px 12px rgba(0, 0, 0, 0.15));
-  transition: transform 0.2s ease;
+  transition: transform 0.2s ease, filter 0.3s ease;
+}
+
+body:not(.light-mode) .product-gallon-img {
+  filter: drop-shadow(0 8px 16px rgba(0, 0, 0, 0.5)) drop-shadow(0 0 14px rgba(56, 189, 248, 0.25));
 }
 
 .product-card:hover .product-gallon-img {
@@ -1005,23 +1032,46 @@ a.header-icon-btn svg {
   position: absolute;
   top: 8px;
   left: 8px;
-  background-color: rgba(255, 255, 255, 0.9);
+  background-color: rgba(255, 255, 255, 0.92);
   color: #0369a1;
+  border: 1px solid rgba(2, 132, 199, 0.15);
   font-size: 0.65rem;
   font-weight: 800;
-  padding: 2px 7px;
+  padding: 2.5px 8px;
   border-radius: var(--radius-full);
   text-transform: uppercase;
   letter-spacing: 0.04em;
   backdrop-filter: blur(4px);
+  transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
 }
 
 .card-floating-badge.purple {
   color: #6d28d9;
+  border-color: rgba(109, 40, 217, 0.15);
 }
 
 .card-floating-badge.blue {
   color: #0f766e;
+  border-color: rgba(15, 118, 110, 0.15);
+}
+
+body:not(.light-mode) .card-floating-badge {
+  background-color: rgba(11, 20, 38, 0.88);
+  color: #38bdf8;
+  border-color: rgba(56, 189, 248, 0.35);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+}
+
+body:not(.light-mode) .card-floating-badge.blue {
+  background-color: rgba(6, 28, 26, 0.88);
+  color: #2dd4bf;
+  border-color: rgba(45, 212, 191, 0.35);
+}
+
+body:not(.light-mode) .card-floating-badge.purple {
+  background-color: rgba(19, 13, 36, 0.88);
+  color: #c084fc;
+  border-color: rgba(192, 132, 252, 0.35);
 }
 
 .card-details {
@@ -1624,9 +1674,16 @@ body:not(.light-mode) .preset-pill.active {
   width: 44px;
   height: 44px;
   background-color: #e0f2fe;
+  border: 1px solid #bae6fd;
   border-radius: var(--radius-sm);
   padding: 4px;
   object-fit: contain;
+  transition: background-color 0.3s ease, border-color 0.3s ease;
+}
+
+body:not(.light-mode) .selected-item-img {
+  background: linear-gradient(135deg, #0b172a 0%, #0f2b48 100%);
+  border-color: rgba(56, 189, 248, 0.28);
 }
 
 .selected-item-details h5 {
