@@ -41,14 +41,15 @@ function generateRandomOrderNo() {
 
 // --- SECURITY & STAFF ROLES ---
 const DEFAULT_STAFF = [
-  { id: 'usr_1', name: 'Neil', role: 'manager', pin: '1234', title: 'Station Manager', avatarColor: '#0284c7' },
+  { id: 'usr_1', name: 'Neil', role: 'manager', pin: '1234', title: 'Station Manager', avatarColor: 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)' },
   { id: 'usr_2', name: 'Sarah', role: 'cashier', pin: '2222', title: 'Front-Desk Cashier', avatarColor: '#10b981' },
   { id: 'usr_3', name: 'Kuya Jun', role: 'driver', pin: '3333', title: 'Multicab Driver / Courier', avatarColor: '#8b5cf6' }
 ];
 
 // --- APPLICATION STATE ---
 const State = {
-  activeView: 'pos',                // 'pos' | 'orders' | 'delivered' | 'reports' | 'dashboard' | 'settings'
+  activeView: 'pos',                // 'pos' | 'orders' | 'delivered' | 'reports' | 'dashboard' | 'settings' | 'profile'
+  sessionStartTime: Date.now(),    // Active shift start timestamp
   currentOrderNo: generateRandomOrderNo(), // User: "just randomize the order number"
   channel: 'walkin',               // 'walkin' | 'delivery'
   deliveryPayMode: 'pending',      // 'pending' (Pay on Delivery) | 'advance' (Pre-paid)
@@ -404,6 +405,10 @@ function loadSavedData() {
       }
     } catch (e) {}
   }
+  const neilUser = (State.staff || []).find(s => s.id === 'usr_1');
+  if (neilUser && (!neilUser.avatarColor || neilUser.avatarColor === '#0284c7')) {
+    neilUser.avatarColor = 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)';
+  }
 
   const savedUserId = localStorage.getItem('rr_pos_current_user_id');
   if (savedUserId && State.staff.some(s => s.id === savedUserId)) {
@@ -651,15 +656,20 @@ function switchView(viewName) {
   const stageDelivered = document.getElementById('stageDelivered');
   const stageReports = document.getElementById('stageReports');
   const stageSettings = document.getElementById('stageSettings');
+  const stageProfile = document.getElementById('stageProfile');
 
   if (stagePos) stagePos.classList.toggle('active', viewName === 'pos');
   if (stageOrders) stageOrders.classList.toggle('active', viewName === 'orders');
   if (stageDelivered) stageDelivered.classList.toggle('active', viewName === 'delivered');
   if (stageReports) stageReports.classList.toggle('active', viewName === 'reports' || viewName === 'dashboard');
   if (stageSettings) stageSettings.classList.toggle('active', viewName === 'settings');
+  if (stageProfile) stageProfile.classList.toggle('active', viewName === 'profile');
 
   if (viewName === 'settings') {
     initSettingsUI();
+  }
+  if (viewName === 'profile') {
+    renderProfileView();
   }
 
   renderAll();
@@ -1113,10 +1123,38 @@ function bindEvents() {
     btnLockTerm.addEventListener('click', () => lockTerminal());
   }
 
-  // Cashier Profile Dropdown Actions
+  // Cashier Profile Header & Dropdown Actions
+  const headerCashierAvatar = document.getElementById('headerCashierAvatar');
+  if (headerCashierAvatar) {
+    headerCashierAvatar.addEventListener('click', (e) => {
+      e.stopPropagation();
+      closeCashierDropdown();
+      switchView('profile');
+    });
+  }
+
+  const btnMenuViewProfile = document.getElementById('btnMenuViewProfile');
+  if (btnMenuViewProfile) {
+    btnMenuViewProfile.addEventListener('click', () => {
+      closeCashierDropdown();
+      switchView('profile');
+    });
+  }
+
+  const dropdownHeaderTop = document.querySelector('.dropdown-header-top');
+  if (dropdownHeaderTop) {
+    dropdownHeaderTop.style.cursor = 'pointer';
+    dropdownHeaderTop.title = 'Click to open operator profile & shift stats';
+    dropdownHeaderTop.addEventListener('click', () => {
+      closeCashierDropdown();
+      switchView('profile');
+    });
+  }
+
   const cashierProfileBtn = document.getElementById('cashierProfileBtn');
   if (cashierProfileBtn) {
     cashierProfileBtn.addEventListener('click', (e) => {
+      // If clicking avatar directly, it navigates via headerCashierAvatar listener
       e.stopPropagation();
       toggleCashierMenu();
     });
@@ -1341,6 +1379,9 @@ function bindEvents() {
 
   // 12. Fixoria SaaS Reports Event Bindings
   bindReportEvents();
+
+  // 13. Cashier Profile View Event Bindings
+  bindProfileEvents();
 }
 
 // ==========================================================================
@@ -1541,6 +1582,9 @@ function renderAll() {
   renderInventory();
   renderStaffSettingsList();
   renderAuditLogTable();
+  if (State.activeView === 'profile') {
+    renderProfileView();
+  }
   if (document.getElementById("miniOrdersDrawer")?.classList.contains("open")) {
     renderMiniOrders();
   }
@@ -4943,7 +4987,11 @@ function initThermalReceiptModal() {
   if (btnPrintNow) {
     btnPrintNow.addEventListener('click', () => {
       soundCtrl.playTap();
-      if (State.activePrintOrder) renderThermalReceipt(State.activePrintOrder);
+      if (State.activePrintMode === 'shift_summary') {
+        renderShiftSummaryReceipt(getCurrentUser());
+      } else if (State.activePrintOrder) {
+        renderThermalReceipt(State.activePrintOrder);
+      }
       setTimeout(() => { window.print(); }, 150);
     });
   }
@@ -4987,10 +5035,16 @@ function openThermalReceiptModal(order, isTripTicket = false) {
   State.activePrintOrder = order || State.storedOrders[0] || null;
   const headingEl = document.getElementById('thermalModalHeading');
 
-  if (isTripTicket) {
+  if (isTripTicket === 'shift_summary') {
+    State.activePrintMode = 'shift_summary';
+    if (headingEl) headingEl.textContent = 'Cashier Shift X-Report (Thermal ESC/POS)';
+    renderShiftSummaryReceipt(getCurrentUser());
+  } else if (isTripTicket === true || isTripTicket === 'slip') {
+    State.activePrintMode = 'slip';
     if (headingEl) headingEl.textContent = 'Multicab Trip Dispatch Ticket';
     renderDispatchSlip(State.activePrintOrder);
   } else {
+    State.activePrintMode = 'receipt';
     if (headingEl) headingEl.textContent = 'Thermal ESC/POS Print';
     renderThermalReceipt(State.activePrintOrder);
   }
@@ -5544,3 +5598,512 @@ function initOfflinePWA() {
     showToast('🟠 Offline: Operating in Offline-First Local Mode');
   });
 }
+
+// ==========================================================================
+// 20. PROFILE TAB, ACTIVE SHIFT PERFORMANCE & SECURITY CONTROLLER
+// ==========================================================================
+let profileActiveFilter = 'all';
+
+function renderProfileView() {
+  const user = getCurrentUser();
+  if (!user) return;
+
+  // 1. Hero Operator Elements
+  const heroAvatar = document.getElementById('profileHeroAvatar');
+  if (heroAvatar) {
+    heroAvatar.textContent = user.name.charAt(0).toUpperCase();
+    heroAvatar.style.background = user.avatarColor || 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)';
+  }
+
+  const opName = document.getElementById('profileOperatorName');
+  if (opName) opName.textContent = user.name;
+
+  const roleBadge = document.getElementById('profileRoleBadge');
+  if (roleBadge) {
+    roleBadge.textContent = user.role.toUpperCase();
+    roleBadge.className = `cashier-role-badge role-${user.role}`;
+  }
+
+  const staffIdEl = document.getElementById('profileStaffId');
+  if (staffIdEl) staffIdEl.textContent = `Staff ID: ${(user.id || 'usr_1').toUpperCase().replace('_', '-')}`;
+
+  const statusText = document.getElementById('profileShiftStatusText');
+  if (statusText) statusText.textContent = `On Duty • Counter #1`;
+
+  if (!State.sessionStartTime) {
+    State.sessionStartTime = Date.now();
+  }
+
+  const clockInEl = document.getElementById('profileClockInTime');
+  if (clockInEl) {
+    const d = new Date(State.sessionStartTime);
+    const timeFormatted = d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true });
+    clockInEl.textContent = `Shift Start: Today ${timeFormatted}`;
+  }
+
+  const durationEl = document.getElementById('profileShiftDuration');
+  if (durationEl) {
+    const elapsedMs = Math.max(0, Date.now() - State.sessionStartTime);
+    const hrs = Math.floor(elapsedMs / 3600000);
+    const mins = Math.floor((elapsedMs % 3600000) / 60000);
+    durationEl.textContent = `Shift Active: ${hrs}h ${mins}m`;
+  }
+
+  // 2. Performance Metrics
+  const allOrders = State.storedOrders || [];
+  // Attribute orders to active user (fallback to all orders if only single user in system)
+  const userOrders = allOrders.filter(o => !o.cashierName || o.cashierName === user.name);
+  const paidOrders = userOrders.filter(o => o.status === 'paid');
+  const pendingOrders = userOrders.filter(o => o.status === 'pending');
+
+  const totalRevenue = paidOrders.reduce((sum, o) => sum + (o.total || 0), 0);
+  const totalGallons = userOrders.reduce((sum, o) => sum + (o.qty || 0), 0);
+  const orderCount = userOrders.length;
+  const avgTicket = paidOrders.length > 0 ? (totalRevenue / paidOrders.length) : 0;
+  const cashHandled = paidOrders.reduce((sum, o) => sum + (o.tendered ? Math.min(o.tendered, o.total) : o.total), 0);
+  const changeGiven = paidOrders.reduce((sum, o) => sum + (o.change || 0), 0);
+  const carboysLoaned = userOrders.reduce((sum, o) => sum + (o.carboysLoaned || 0), 0);
+  const carboysReturned = userOrders.reduce((sum, o) => sum + (o.carboysReturned || 0), 0);
+  const deliveryCount = userOrders.filter(o => o.channel === 'delivery').length;
+  const pendingAmount = pendingOrders.reduce((sum, o) => sum + (o.unpaidAmount || o.total || 0), 0);
+
+  // Update Hero Stats
+  const heroSales = document.getElementById('profileHeroTotalSales');
+  if (heroSales) heroSales.textContent = `₱ ${formatPeso(totalRevenue)}`;
+
+  const heroCount = document.getElementById('profileHeroOrderCount');
+  if (heroCount) heroCount.textContent = `${orderCount} transactions completed`;
+
+  // Update KPIs
+  const kpiRev = document.getElementById('kpiProfileShiftRevenue');
+  if (kpiRev) kpiRev.textContent = `₱ ${formatPeso(totalRevenue)}`;
+
+  const kpiGals = document.getElementById('kpiProfileGallons');
+  if (kpiGals) kpiGals.textContent = `${totalGallons} Gals`;
+
+  const kpiCarboysFilled = document.getElementById('kpiProfileCarboysFilled');
+  if (kpiCarboysFilled) kpiCarboysFilled.textContent = `${totalGallons} Carboys`;
+
+  const kpiOrders = document.getElementById('kpiProfileOrderCount');
+  if (kpiOrders) kpiOrders.textContent = `${orderCount} Orders`;
+
+  const kpiAvg = document.getElementById('kpiProfileAvgTicket');
+  if (kpiAvg) kpiAvg.textContent = `₱ ${formatPeso(avgTicket)} / order`;
+
+  const kpiCash = document.getElementById('kpiProfileCashHandled');
+  if (kpiCash) kpiCash.textContent = `₱ ${formatPeso(cashHandled)}`;
+
+  const kpiChange = document.getElementById('kpiProfileChangeGiven');
+  if (kpiChange) kpiChange.textContent = `₱ ${formatPeso(changeGiven)} change`;
+
+  const kpiCarboys = document.getElementById('kpiProfileCarboyFlow');
+  if (kpiCarboys) kpiCarboys.textContent = `${carboysLoaned} Loan / ${carboysReturned} Ret`;
+
+  const kpiCarboyNet = document.getElementById('kpiProfileCarboyNet');
+  if (kpiCarboyNet) {
+    const net = carboysLoaned - carboysReturned;
+    kpiCarboyNet.textContent = `${net >= 0 ? '+' : ''}${net} Net Diff`;
+  }
+
+  const kpiDeliv = document.getElementById('kpiProfileDeliveries');
+  if (kpiDeliv) kpiDeliv.textContent = `${deliveryCount} Trips`;
+
+  const kpiPending = document.getElementById('kpiProfilePendingReceivables');
+  if (kpiPending) kpiPending.textContent = `₱ ${formatPeso(pendingAmount)} Pending`;
+
+  // Activity subtext
+  const actSub = document.getElementById('profileActivitySub');
+  if (actSub) actSub.textContent = `Orders processed by ${user.name} during this active session`;
+
+  // 3. Render Orders Table
+  renderProfileOrdersTable(profileActiveFilter, userOrders);
+
+  // 4. Quick Preferences
+  const soundToggle = document.getElementById('profilePrefSoundToggle');
+  if (soundToggle) soundToggle.checked = soundCtrl.isEnabled();
+
+  const autoPrintToggle = document.getElementById('profilePrefAutoPrint');
+  if (autoPrintToggle && State.settings) autoPrintToggle.checked = Boolean(State.settings.autoPrint);
+
+  const themeLabel = document.getElementById('profileThemeStatusLabel');
+  if (themeLabel) {
+    themeLabel.textContent = document.body.classList.contains('light-mode') ? 'Switch to Dark' : 'Switch to Light';
+  }
+}
+
+function renderProfileOrdersTable(filter = 'all', sourceOrders = null) {
+  const tbody = document.getElementById('profileOrdersTbody');
+  const emptyBox = document.getElementById('profileEmptyOrders');
+  if (!tbody) return;
+
+  const user = getCurrentUser();
+  const allOrders = sourceOrders || (State.storedOrders || []).filter(o => !o.cashierName || o.cashierName === user.name);
+
+  let filtered = allOrders;
+  if (filter === 'walkin') {
+    filtered = allOrders.filter(o => o.channel === 'walkin');
+  } else if (filter === 'delivery') {
+    filtered = allOrders.filter(o => o.channel === 'delivery');
+  }
+
+  if (filtered.length === 0) {
+    tbody.innerHTML = '';
+    if (emptyBox) emptyBox.style.display = 'flex';
+    return;
+  }
+
+  if (emptyBox) emptyBox.style.display = 'none';
+
+  tbody.innerHTML = filtered.slice(0, 20).map(o => {
+    const isDelivery = o.channel === 'delivery';
+    const channelBadge = isDelivery
+      ? `<span class="profile-channel-badge delivery">Multicab</span>`
+      : `<span class="profile-channel-badge walkin">Walk-in</span>`;
+    const statusBadge = `<span class="profile-status-tag ${o.status || 'paid'}">${(o.status || 'paid').toUpperCase()}</span>`;
+    const itemName = o.prodName || (PRODUCTS[o.prodKey] ? PRODUCTS[o.prodKey].name : 'Purified Refill');
+
+    return `
+      <tr>
+        <td class="profile-order-no">#${escapeHtml(o.orderNo || '')}</td>
+        <td>${escapeHtml(o.time || '--:--')}</td>
+        <td>${channelBadge}</td>
+        <td><strong>${o.qty || 1} Gals</strong> <span style="font-size: 0.72rem; color: var(--text-muted);">(${escapeHtml(itemName)})</span></td>
+        <td class="profile-order-total">₱ ${formatPeso(o.total || 0)}</td>
+        <td>${statusBadge}</td>
+        <td>
+          <button type="button" class="btn-profile-reprint" data-orderno="${escapeHtml(o.orderNo || '')}" title="Reprint Receipt (ESC/POS)">
+            <svg class="ui-icon-xs" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 6 2 18 2 18 9"></polyline><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path><rect x="6" y="14" width="12" height="8"></rect></svg>
+            <span>Receipt</span>
+          </button>
+        </td>
+      </tr>
+    `;
+  }).join('');
+
+  tbody.querySelectorAll('.btn-profile-reprint').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const orderNo = btn.getAttribute('data-orderno');
+      const order = State.storedOrders.find(o => String(o.orderNo) === String(orderNo));
+      if (order) {
+        openThermalReceiptModal(order, order.channel === 'delivery' && order.status === 'pending');
+      }
+    });
+  });
+}
+
+function bindProfileEvents() {
+  // Breadcrumb home return
+  const homeBtn = document.getElementById('profileBreadcrumbHome');
+  if (homeBtn) {
+    homeBtn.addEventListener('click', () => switchView('pos'));
+  }
+
+  // Top header action buttons
+  const btnXReport = document.getElementById('btnProfilePrintXReport');
+  if (btnXReport) {
+    btnXReport.addEventListener('click', printProfileShiftXReport);
+  }
+
+  const btnEndShiftPrint = document.getElementById('btnProfileEndShiftPrint');
+  if (btnEndShiftPrint) {
+    btnEndShiftPrint.addEventListener('click', printProfileShiftXReport);
+  }
+
+  const btnSwitchStaff = document.getElementById('btnProfileSwitchStaff');
+  if (btnSwitchStaff) {
+    btnSwitchStaff.addEventListener('click', () => openSwitchUserModal());
+  }
+
+  const btnLockTerm = document.getElementById('btnProfileLockTerminal');
+  if (btnLockTerm) {
+    btnLockTerm.addEventListener('click', () => lockTerminal());
+  }
+
+  const btnEndShiftSignOut = document.getElementById('btnProfileEndShiftSignOut');
+  if (btnEndShiftSignOut) {
+    btnEndShiftSignOut.addEventListener('click', () => {
+      soundCtrl.playTap();
+      const user = getCurrentUser();
+      if (confirm(`Close active shift for ${user.name} and return to cashier sign in?`)) {
+        lockTerminal();
+        openSwitchUserModal();
+      }
+    });
+  }
+
+  // Activity table filters
+  const filters = [
+    { id: 'profileFilterAll', key: 'all' },
+    { id: 'profileFilterWalkin', key: 'walkin' },
+    { id: 'profileFilterDelivery', key: 'delivery' }
+  ];
+
+  filters.forEach(({ id, key }) => {
+    const el = document.getElementById(id);
+    if (el) {
+      el.addEventListener('click', () => {
+        soundCtrl.playTap();
+        profileActiveFilter = key;
+        filters.forEach(f => {
+          const btn = document.getElementById(f.id);
+          if (btn) btn.classList.toggle('active', f.key === key);
+        });
+        renderProfileOrdersTable(key);
+      });
+    }
+  });
+
+  // Change PIN Form
+  const btnSavePin = document.getElementById('btnProfileSavePin');
+  if (btnSavePin) {
+    btnSavePin.addEventListener('click', handleProfileChangePin);
+  }
+
+  // Quick Preferences
+  const soundToggle = document.getElementById('profilePrefSoundToggle');
+  if (soundToggle) {
+    soundToggle.addEventListener('change', () => {
+      soundCtrl.toggle();
+      showToast(`Station audio ${soundCtrl.isEnabled() ? 'enabled' : 'muted'}.`);
+    });
+  }
+
+  const autoPrintToggle = document.getElementById('profilePrefAutoPrint');
+  if (autoPrintToggle) {
+    autoPrintToggle.addEventListener('change', () => {
+      if (!State.settings) State.settings = {};
+      State.settings.autoPrint = autoPrintToggle.checked;
+      saveSettings();
+      showToast(`Thermal receipt auto-print ${State.settings.autoPrint ? 'enabled' : 'disabled'}.`);
+    });
+  }
+
+  const btnToggleTheme = document.getElementById('btnProfileToggleTheme');
+  if (btnToggleTheme) {
+    btnToggleTheme.addEventListener('click', () => {
+      const themeBtn = document.getElementById('themeToggleBtn');
+      if (themeBtn) themeBtn.click();
+      const themeLabel = document.getElementById('profileThemeStatusLabel');
+      if (themeLabel) {
+        themeLabel.textContent = document.body.classList.contains('light-mode') ? 'Switch to Dark' : 'Switch to Light';
+      }
+    });
+  }
+}
+
+function handleProfileChangePin() {
+  const currentPinInput = document.getElementById('profileInputCurrentPin');
+  const newPinInput = document.getElementById('profileInputNewPin');
+  const confirmPinInput = document.getElementById('profileInputConfirmPin');
+  const feedback = document.getElementById('profilePinFeedback');
+
+  if (!currentPinInput || !newPinInput || !confirmPinInput || !feedback) return;
+
+  const currentPin = currentPinInput.value.trim();
+  const newPin = newPinInput.value.trim();
+  const confirmPin = confirmPinInput.value.trim();
+
+  const user = getCurrentUser();
+
+  if (currentPin !== user.pin) {
+    soundCtrl.playVoidTone();
+    feedback.className = 'profile-pin-feedback error';
+    feedback.textContent = 'Current PIN is incorrect.';
+    currentPinInput.focus();
+    return;
+  }
+
+  if (!/^\d{4}$/.test(newPin)) {
+    soundCtrl.playVoidTone();
+    feedback.className = 'profile-pin-feedback error';
+    feedback.textContent = 'New PIN must be exactly 4 digits (0-9).';
+    newPinInput.focus();
+    return;
+  }
+
+  if (newPin !== confirmPin) {
+    soundCtrl.playVoidTone();
+    feedback.className = 'profile-pin-feedback error';
+    feedback.textContent = 'New PIN and confirmation do not match.';
+    confirmPinInput.focus();
+    return;
+  }
+
+  // Update PIN
+  user.pin = newPin;
+  saveStaff();
+  soundCtrl.playSuccessTone();
+
+  feedback.className = 'profile-pin-feedback success';
+  feedback.textContent = 'PIN updated successfully!';
+  showToast(`✓ Cashier PIN updated for ${user.name}.`);
+
+  logSecurityEvent('PIN_CHANGE', `Operator ${user.name} updated security PIN`, user.name);
+
+  currentPinInput.value = '';
+  newPinInput.value = '';
+  confirmPinInput.value = '';
+
+  setTimeout(() => {
+    if (feedback) feedback.textContent = '';
+  }, 4000);
+}
+
+function printProfileShiftXReport() {
+  soundCtrl.playTap();
+  openThermalReceiptModal(null, 'shift_summary');
+}
+
+function renderShiftSummaryReceipt(currentUser) {
+  const target = document.getElementById('thermalPrintTarget');
+  if (!target) return;
+
+  const user = currentUser || getCurrentUser();
+  const allOrders = State.storedOrders || [];
+  const userOrders = allOrders.filter(o => !o.cashierName || o.cashierName === user.name);
+  const paidOrders = userOrders.filter(o => o.status === 'paid');
+  const pendingOrders = userOrders.filter(o => o.status === 'pending');
+
+  const totalSales = paidOrders.reduce((sum, o) => sum + (o.total || 0), 0);
+  const totalGallons = userOrders.reduce((sum, o) => sum + (o.qty || 0), 0);
+  const cashHandled = paidOrders.reduce((sum, o) => sum + (o.tendered ? Math.min(o.tendered, o.total) : o.total), 0);
+  const changeGiven = paidOrders.reduce((sum, o) => sum + (o.change || 0), 0);
+  const carboysLoaned = userOrders.reduce((sum, o) => sum + (o.carboysLoaned || 0), 0);
+  const carboysReturned = userOrders.reduce((sum, o) => sum + (o.carboysReturned || 0), 0);
+  const pendingAmount = pendingOrders.reduce((sum, o) => sum + (o.unpaidAmount || o.total || 0), 0);
+
+  const now = new Date();
+  const dateStr = now.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
+  const timeStr = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true });
+
+  const diffMs = Math.max(0, Date.now() - (State.sessionStartTime || Date.now()));
+  const hrs = Math.floor(diffMs / 3600000);
+  const mins = Math.floor((diffMs % 3600000) / 60000);
+
+  target.innerHTML = `
+    <div class="receipt-center-header">
+      <div class="receipt-brand-title">R&amp;R WATER REFILLING STATION</div>
+      <div class="receipt-sub-addr">Purified • Alkaline • Mineral Drinking Water</div>
+      <div class="receipt-sub-addr">Station Terminal #1 • Main Counter</div>
+      <div class="receipt-divider-double"></div>
+      <div class="receipt-slip-title" style="letter-spacing: 0.08em; font-size: 13px; font-weight: 900;">
+        CASHIER SHIFT X-REPORT
+      </div>
+      <div class="receipt-order-stamp" style="font-size: 11px; margin-top: 4px;">
+        OFFICIAL SHIFT SUMMARY
+      </div>
+    </div>
+
+    <div class="receipt-divider-dash"></div>
+
+    <div class="receipt-meta-grid">
+      <div class="receipt-meta-row">
+        <span>Report Date:</span>
+        <span>${escapeHtml(dateStr)}</span>
+      </div>
+      <div class="receipt-meta-row">
+        <span>Print Time:</span>
+        <span>${escapeHtml(timeStr)}</span>
+      </div>
+      <div class="receipt-meta-row">
+        <span>Operator:</span>
+        <span><strong>${escapeHtml(user.name)}</strong> (${escapeHtml(user.role.toUpperCase())})</span>
+      </div>
+      <div class="receipt-meta-row">
+        <span>Staff ID:</span>
+        <span>${escapeHtml((user.id || 'usr_1').toUpperCase().replace('_', '-'))}</span>
+      </div>
+      <div class="receipt-meta-row">
+        <span>Shift Duration:</span>
+        <span>${hrs}h ${mins}m active</span>
+      </div>
+    </div>
+
+    <div class="receipt-divider-dash"></div>
+
+    <div style="font-size: 11px; font-weight: 800; margin-bottom: 4px; text-transform: uppercase;">
+      ACTIVITY SUMMARY
+    </div>
+    <div class="receipt-meta-grid" style="font-size: 11px;">
+      <div class="receipt-meta-row">
+        <span>Total Transactions:</span>
+        <span>${userOrders.length} orders</span>
+      </div>
+      <div class="receipt-meta-row">
+        <span>Walk-in Refills:</span>
+        <span>${userOrders.filter(o => o.channel === 'walkin').length} orders</span>
+      </div>
+      <div class="receipt-meta-row">
+        <span>Multicab Deliveries:</span>
+        <span>${userOrders.filter(o => o.channel === 'delivery').length} trips</span>
+      </div>
+      <div class="receipt-meta-row">
+        <span>Total Gallons Dispensed:</span>
+        <span>${totalGallons} Gals</span>
+      </div>
+    </div>
+
+    <div class="receipt-divider-dash"></div>
+
+    <div style="font-size: 11px; font-weight: 800; margin-bottom: 4px; text-transform: uppercase;">
+      CASH &amp; FINANCIAL TOTALS
+    </div>
+    <div class="receipt-meta-grid" style="font-size: 11px;">
+      <div class="receipt-meta-row">
+        <span>Paid Sales Revenue:</span>
+        <span>₱ ${formatPeso(totalSales)}</span>
+      </div>
+      <div class="receipt-meta-row">
+        <span>Cash Tender Received:</span>
+        <span>₱ ${formatPeso(cashHandled)}</span>
+      </div>
+      <div class="receipt-meta-row">
+        <span>Total Change Disbursed:</span>
+        <span>-₱ ${formatPeso(changeGiven)}</span>
+      </div>
+      <div class="receipt-meta-row" style="font-weight: 800; border-top: 1px dashed #000; padding-top: 3px;">
+        <span>NET CASH IN DRAWER:</span>
+        <span>₱ ${formatPeso(Math.max(0, cashHandled - changeGiven))}</span>
+      </div>
+      ${pendingAmount > 0 ? `
+      <div class="receipt-meta-row" style="color: #b91c1c;">
+        <span>Pending Receivables:</span>
+        <span>₱ ${formatPeso(pendingAmount)}</span>
+      </div>
+      ` : ''}
+    </div>
+
+    <div class="receipt-divider-dash"></div>
+
+    <div style="font-size: 11px; font-weight: 800; margin-bottom: 4px; text-transform: uppercase;">
+      CARBOY EMPTIES MOVEMENT
+    </div>
+    <div class="receipt-meta-grid" style="font-size: 11px;">
+      <div class="receipt-meta-row">
+        <span>Blue Carboys Loaned:</span>
+        <span>+${carboysLoaned} jugs</span>
+      </div>
+      <div class="receipt-meta-row">
+        <span>Empty Jugs Returned:</span>
+        <span>-${carboysReturned} jugs</span>
+      </div>
+      <div class="receipt-meta-row">
+        <span>Net Empties Balance:</span>
+        <span>${carboysLoaned - carboysReturned}</span>
+      </div>
+    </div>
+
+    <div class="receipt-signature-line" style="margin-top: 24px;">
+      Operator Shift Sign-off: ___________________________
+    </div>
+    <div class="receipt-signature-line" style="margin-top: 18px;">
+      Manager / Verifier Sign-off: ___________________________
+    </div>
+
+    <div class="receipt-footer-text" style="margin-top: 14px;">
+      <div>End of Cashier Shift X-Report • Keep for station audit</div>
+      <div>*** R&amp;R WATER POS SYSTEM ***</div>
+    </div>
+  `;
+}
+

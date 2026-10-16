@@ -73,6 +73,15 @@
           <span>Settings</span>
         </button>
 
+        <!-- Profile -->
+        <button class="nav-item" data-view="profile" id="navProfile">
+          <svg class="ui-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+            <circle cx="12" cy="7" r="4"></circle>
+          </svg>
+          <span>Profile</span>
+        </button>
+
       </nav>
 
       <!-- Droppy Mascot in Sidebar (Mascot Speech Bubble Design) -->
@@ -195,6 +204,10 @@
                 </div>
               </div>
               <div class="cashier-dropdown-divider"></div>
+              <button class="cashier-dropdown-item" id="btnMenuViewProfile">
+                <svg class="ui-icon-xs" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+                <span>Operator Profile &amp; Shift</span>
+              </button>
               <button class="cashier-dropdown-item" id="btnMenuSwitchUser">
                 <svg class="ui-icon-xs" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="8.5" cy="7" r="4"></circle><line x1="20" y1="8" x2="20" y2="14"></line><line x1="23" y1="11" x2="17" y2="11"></line></svg>
                 <span>Switch Staff / Sign In</span>
@@ -1577,6 +1590,325 @@
               </div>
 
             </div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- ================================================================
+           VIEW STAGE 5: PROFILE (Cashier Profile, Shift Performance & Security)
+           ================================================================ -->
+      <div class="view-stage" id="stageProfile">
+        <div class="profile-view-wrapper">
+          
+          <!-- Top Breadcrumb & Action Bar -->
+          <div class="profile-top-bar">
+            <div class="profile-breadcrumb-box">
+              <a href="javascript:void(0)" class="profile-breadcrumb-home" id="profileBreadcrumbHome" title="Return to POS Terminal">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+                  <polyline points="9 22 9 12 15 12 15 22"></polyline>
+                </svg>
+                <span>Terminal POS</span>
+              </a>
+              <span class="profile-sep">/</span>
+              <span class="profile-crumb-current">Operator Profile &amp; Shift Stats</span>
+            </div>
+
+            <div class="profile-header-actions">
+              <button class="btn-profile-top-action" id="btnProfilePrintXReport" title="Print Cashier Shift X-Report Receipt (Thermal)">
+                <svg class="ui-icon-xs" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 6 2 18 2 18 9"></polyline><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path><rect x="6" y="14" width="12" height="8"></rect></svg>
+                <span>Print Shift X-Report</span>
+              </button>
+              <button class="btn-profile-top-action" id="btnProfileSwitchStaff" title="Switch Operator / Sign In">
+                <svg class="ui-icon-xs" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="8.5" cy="7" r="4"></circle><line x1="20" y1="8" x2="20" y2="14"></line><line x1="23" y1="11" x2="17" y2="11"></line></svg>
+                <span>Switch Staff</span>
+              </button>
+              <button class="btn-profile-top-action danger" id="btnProfileLockTerminal" title="Lock Terminal (Away / Privacy)">
+                <svg class="ui-icon-xs" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+                <span>Lock Terminal</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Hero Operator Profile Banner -->
+          <div class="profile-hero-card">
+            <div class="profile-hero-left">
+              <div class="profile-hero-avatar-wrap">
+                <div class="profile-hero-avatar" id="profileHeroAvatar">N</div>
+                <span class="profile-live-pulse-dot" title="Operator Shift is Active"></span>
+              </div>
+              <div class="profile-hero-details">
+                <div class="profile-hero-title-row">
+                  <h2 class="profile-operator-name" id="profileOperatorName">Neil</h2>
+                  <span class="cashier-role-badge role-manager" id="profileRoleBadge">Manager</span>
+                  <span class="profile-status-pill">
+                    <span class="pulse-indicator"></span>
+                    <span id="profileShiftStatusText">On Duty • Counter #1</span>
+                  </span>
+                </div>
+                <div class="profile-meta-tags">
+                  <span class="profile-meta-item">
+                    <svg class="ui-icon-xs" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path></svg>
+                    <span id="profileStaffId">Staff ID: STF-001</span>
+                  </span>
+                  <span class="profile-meta-item">
+                    <svg class="ui-icon-xs" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+                    <span id="profileClockInTime">Shift Start: Today 07:30 AM</span>
+                  </span>
+                  <span class="profile-meta-item highlight">
+                    <svg class="ui-icon-xs" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg>
+                    <span id="profileShiftDuration">Shift Active: 4h 15m</span>
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            <div class="profile-hero-right">
+              <div class="profile-quick-stat-box">
+                <span class="profile-quick-stat-label">Shift Sales</span>
+                <span class="profile-quick-stat-val" id="profileHeroTotalSales">₱0.00</span>
+                <span class="profile-quick-stat-sub" id="profileHeroOrderCount">0 transactions completed</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Shift Performance KPI Cards Grid -->
+          <div class="profile-kpis-grid">
+            
+            <!-- KPI 1: Shift Revenue -->
+            <div class="profile-kpi-card">
+              <div class="profile-kpi-top">
+                <span class="profile-kpi-title">Shift Revenue</span>
+                <div class="profile-kpi-icon-badge green">
+                  <svg class="ui-icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>
+                </div>
+              </div>
+              <div class="profile-kpi-main-val" id="kpiProfileShiftRevenue">₱0.00</div>
+              <div class="profile-kpi-sub-meta">
+                <span class="kpi-tag green" id="kpiProfileRevenuePct">100% of shift</span>
+                <span class="kpi-sub-text">Paid customer refills</span>
+              </div>
+            </div>
+
+            <!-- KPI 2: Gallons Dispensed -->
+            <div class="profile-kpi-card">
+              <div class="profile-kpi-top">
+                <span class="profile-kpi-title">Gallons Dispensed</span>
+                <div class="profile-kpi-icon-badge blue">
+                  <svg class="ui-icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"></path></svg>
+                </div>
+              </div>
+              <div class="profile-kpi-main-val" id="kpiProfileGallons">0 Gals</div>
+              <div class="profile-kpi-sub-meta">
+                <span class="kpi-tag blue" id="kpiProfileCarboysFilled">0 Carboys</span>
+                <span class="kpi-sub-text">Volume filled on shift</span>
+              </div>
+            </div>
+
+            <!-- KPI 3: Orders Handled -->
+            <div class="profile-kpi-card">
+              <div class="profile-kpi-top">
+                <span class="profile-kpi-title">Orders Handled</span>
+                <div class="profile-kpi-icon-badge purple">
+                  <svg class="ui-icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16.5 9.4 7.5 4.21"></polyline><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path></svg>
+                </div>
+              </div>
+              <div class="profile-kpi-main-val" id="kpiProfileOrderCount">0 Orders</div>
+              <div class="profile-kpi-sub-meta">
+                <span class="kpi-tag purple" id="kpiProfileAvgTicket">₱0.00 / order</span>
+                <span class="kpi-sub-text">Average ticket value</span>
+              </div>
+            </div>
+
+            <!-- KPI 4: Cash Drawer Handled -->
+            <div class="profile-kpi-card">
+              <div class="profile-kpi-top">
+                <span class="profile-kpi-title">Cash in Drawer</span>
+                <div class="profile-kpi-icon-badge amber">
+                  <svg class="ui-icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="6" width="20" height="12" rx="2"></rect><circle cx="12" cy="12" r="2"></circle><path d="M6 12h.01M18 12h.01"></path></svg>
+                </div>
+              </div>
+              <div class="profile-kpi-main-val" id="kpiProfileCashHandled">₱0.00</div>
+              <div class="profile-kpi-sub-meta">
+                <span class="kpi-tag amber" id="kpiProfileChangeGiven">₱0.00 change</span>
+                <span class="kpi-sub-text">Physical cash tendered</span>
+              </div>
+            </div>
+
+            <!-- KPI 5: 5-Gal Carboy Empties Movement -->
+            <div class="profile-kpi-card">
+              <div class="profile-kpi-top">
+                <span class="profile-kpi-title">5-Gal Carboy Flow</span>
+                <div class="profile-kpi-icon-badge cyan">
+                  <svg class="ui-icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 2h10v3H7z"></path><rect x="5" y="5" width="14" height="17" rx="3"></rect><line x1="9" y1="9" x2="15" y2="9"></line><line x1="9" y1="13" x2="15" y2="13"></line></svg>
+                </div>
+              </div>
+              <div class="profile-kpi-main-val" id="kpiProfileCarboyFlow">0 Loan / 0 Ret</div>
+              <div class="profile-kpi-sub-meta">
+                <span class="kpi-tag cyan" id="kpiProfileCarboyNet">0 Net Diff</span>
+                <span class="kpi-sub-text">Empties loaned &amp; swapped</span>
+              </div>
+            </div>
+
+            <!-- KPI 6: Delivery Dispatches -->
+            <div class="profile-kpi-card">
+              <div class="profile-kpi-top">
+                <span class="profile-kpi-title">Multicab Trips</span>
+                <div class="profile-kpi-icon-badge indigo">
+                  <svg class="ui-icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="3" width="15" height="13"></rect><polygon points="16 8 20 8 23 11 23 16 16 8"></polygon><circle cx="5.5" cy="18.5" r="2.5"></circle><circle cx="18.5" cy="18.5" r="2.5"></circle></svg>
+                </div>
+              </div>
+              <div class="profile-kpi-main-val" id="kpiProfileDeliveries">0 Trips</div>
+              <div class="profile-kpi-sub-meta">
+                <span class="kpi-tag indigo" id="kpiProfilePendingReceivables">₱0.00 Pending</span>
+                <span class="kpi-sub-text">Delivery orders booked</span>
+              </div>
+            </div>
+
+          </div>
+
+          <!-- Bottom Grid: Left = Operator Orders Activity, Right = Account & Security -->
+          <div class="profile-details-grid">
+
+            <!-- Left: Operator Recent Activity & Orders Table -->
+            <div class="profile-section-card orders-activity-card">
+              <div class="profile-card-header">
+                <div>
+                  <h4 class="profile-card-title">Shift Activity &amp; Transaction Log</h4>
+                  <p class="profile-card-sub" id="profileActivitySub">Orders processed by Neil during this active session</p>
+                </div>
+                <div class="profile-activity-filters">
+                  <button type="button" class="profile-filter-btn active" data-filter="all" id="profileFilterAll">All</button>
+                  <button type="button" class="profile-filter-btn" data-filter="walkin" id="profileFilterWalkin">Walk-in</button>
+                  <button type="button" class="profile-filter-btn" data-filter="delivery" id="profileFilterDelivery">Delivery</button>
+                </div>
+              </div>
+
+              <div class="profile-orders-table-wrapper">
+                <table class="profile-orders-table">
+                  <thead>
+                    <tr>
+                      <th>Order #</th>
+                      <th>Time</th>
+                      <th>Channel</th>
+                      <th>Gallons / Item</th>
+                      <th>Total</th>
+                      <th>Status</th>
+                      <th>Receipt</th>
+                    </tr>
+                  </thead>
+                  <tbody id="profileOrdersTbody">
+                    <!-- Populated dynamically via renderProfileOrdersTable() -->
+                  </tbody>
+                </table>
+                <div class="profile-empty-orders" id="profileEmptyOrders" style="display: none;">
+                  <svg class="ui-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="10"></circle><line x1="8" y1="12" x2="16" y2="12"></line></svg>
+                  <span>No transactions recorded yet for this operator shift.</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Right: Security, PIN & Preferences -->
+            <div class="profile-section-card security-card">
+              <div class="profile-card-header">
+                <div>
+                  <h4 class="profile-card-title">Operator Security &amp; Quick Settings</h4>
+                  <p class="profile-card-sub">Manage your cashier 4-digit PIN and station preferences</p>
+                </div>
+              </div>
+
+              <!-- Section: Change PIN Form -->
+              <div class="profile-sub-section">
+                <div class="sub-section-title">
+                  <svg class="ui-icon-xs" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+                  <span>Change 4-Digit Cashier PIN</span>
+                </div>
+
+                <form id="formProfileChangePin" class="profile-pin-form" onsubmit="return false;">
+                  <div class="profile-input-group">
+                    <label for="profileInputCurrentPin">Current PIN</label>
+                    <input type="password" id="profileInputCurrentPin" maxlength="4" placeholder="••••" autocomplete="off" inputmode="numeric">
+                  </div>
+                  <div class="profile-input-row">
+                    <div class="profile-input-group">
+                      <label for="profileInputNewPin">New 4-Digit PIN</label>
+                      <input type="password" id="profileInputNewPin" maxlength="4" placeholder="••••" autocomplete="off" inputmode="numeric">
+                    </div>
+                    <div class="profile-input-group">
+                      <label for="profileInputConfirmPin">Confirm New PIN</label>
+                      <input type="password" id="profileInputConfirmPin" maxlength="4" placeholder="••••" autocomplete="off" inputmode="numeric">
+                    </div>
+                  </div>
+                  <div class="profile-form-actions">
+                    <button type="button" class="btn-profile-primary" id="btnProfileSavePin">Update PIN</button>
+                    <span class="profile-pin-feedback" id="profilePinFeedback"></span>
+                  </div>
+                </form>
+              </div>
+
+              <!-- Section: Station Fast Preferences -->
+              <div class="profile-sub-section">
+                <div class="sub-section-title">
+                  <svg class="ui-icon-xs" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+                  <span>Operator Station Preferences</span>
+                </div>
+
+                <div class="profile-pref-row">
+                  <div class="profile-pref-info">
+                    <strong>Sound Effects Synthesizer</strong>
+                    <span>Audio feedback for keypad clicks, cart adds &amp; sales</span>
+                  </div>
+                  <label class="switch-toggle">
+                    <input type="checkbox" id="profilePrefSoundToggle">
+                    <span class="slider"></span>
+                  </label>
+                </div>
+
+                <div class="profile-pref-row">
+                  <div class="profile-pref-info">
+                    <strong>Auto-Print Thermal Receipt</strong>
+                    <span>Instantly trigger 58mm/80mm roll print upon checkout</span>
+                  </div>
+                  <label class="switch-toggle">
+                    <input type="checkbox" id="profilePrefAutoPrint">
+                    <span class="slider"></span>
+                  </label>
+                </div>
+
+                <div class="profile-pref-row">
+                  <div class="profile-pref-info">
+                    <strong>Station Theme Mode</strong>
+                    <span>Toggle Light Slate / Midnight Dark</span>
+                  </div>
+                  <button type="button" class="btn-sub-action" id="btnProfileToggleTheme">
+                    <svg class="ui-icon-xs" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"></circle></svg>
+                    <span id="profileThemeStatusLabel">Switch to Dark</span>
+                  </button>
+                </div>
+              </div>
+
+              <!-- Section: Shift Closeout & Handover -->
+              <div class="profile-sub-section danger-zone">
+                <div class="sub-section-title">
+                  <svg class="ui-icon-xs" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
+                  <span>Shift Closeout &amp; Terminal Lock</span>
+                </div>
+                <p class="danger-zone-desc">Ready to end shift or hand over counter to next cashier?</p>
+                <div class="danger-actions-row">
+                  <button type="button" class="btn-sub-action" id="btnProfileEndShiftPrint">
+                    <svg class="ui-icon-xs" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 6 2 18 2 18 9"></polyline><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path><rect x="6" y="14" width="12" height="8"></rect></svg>
+                    <span>Print Shift Summary</span>
+                  </button>
+                  <button type="button" class="btn-sub-action danger" id="btnProfileEndShiftSignOut">
+                    <svg class="ui-icon-xs" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
+                    <span>Sign Out Shift</span>
+                  </button>
+                </div>
+              </div>
+
+            </div>
+
           </div>
 
         </div>
