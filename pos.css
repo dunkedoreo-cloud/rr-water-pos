@@ -752,15 +752,13 @@ a.header-icon-btn svg {
 }
 
 .metric-card.active-filter {
-  border-color: var(--primary, #0284c7);
-  box-shadow: 0 0 0 2px rgba(2, 132, 199, 0.25), var(--shadow-sm);
-  background: rgba(2, 132, 199, 0.04);
+  border-color: #64748b;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
 }
 
 [data-theme="dark"] .metric-card.active-filter {
-  border-color: #38bdf8;
-  box-shadow: 0 0 0 2px rgba(56, 189, 248, 0.35), 0 4px 16px rgba(0, 0, 0, 0.4);
-  background: rgba(14, 165, 233, 0.08);
+  border-color: #94a3b8;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.25);
 }
 
 .metric-card-header {
@@ -809,11 +807,10 @@ a.header-icon-btn svg {
   letter-spacing: -0.01em;
 }
 
-.cash-collected-card .m-val {
-  color: #0284c7;
-}
-
-.m-badge-metric {
+/* Station Metric Badges - Clean, unified, de-saturated */
+.m-badge-metric,
+.m-badge-paid,
+.m-badge-fleet {
   font-size: 0.65rem;
   font-weight: 700;
   padding: 2px 7px;
@@ -825,46 +822,64 @@ a.header-icon-btn svg {
   border: 1px solid var(--border-subtle);
 }
 
-.m-badge-paid {
-  font-size: 0.65rem;
-  font-weight: 800;
-  padding: 2px 7px;
-  border-radius: var(--radius-full);
-  background: rgba(2, 132, 199, 0.12);
-  color: #0284c7;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-}
-
+/* Pending Receivables Card - Subtle & purposeful pending indicator (no AI slop) */
 .pending-card {
-  border-color: rgba(245, 158, 11, 0.35);
-  background: linear-gradient(to bottom right, var(--bg-surface), rgba(245, 158, 11, 0.04));
-}
-
-.pending-card .m-val {
-  color: #d97706;
+  border-color: var(--border-subtle);
+  background: var(--bg-surface);
+  transition: border-color 0.2s ease, border-left-width 0.2s ease;
 }
 
 .m-badge-pending {
+  display: inline-flex;
+  align-items: center;
   font-size: 0.65rem;
-  font-weight: 800;
+  font-weight: 700;
   padding: 2px 7px;
   border-radius: var(--radius-full);
-  background: rgba(245, 158, 11, 0.15);
-  color: #d97706;
+  background: var(--bg-card-subtle);
+  color: var(--text-muted);
   text-transform: uppercase;
   letter-spacing: 0.04em;
+  border: 1px solid var(--border-subtle);
+  transition: all 0.2s ease;
 }
 
-.m-badge-fleet {
-  font-size: 0.65rem;
-  font-weight: 800;
-  padding: 2px 7px;
-  border-radius: var(--radius-full);
-  background: rgba(139, 92, 246, 0.12);
-  color: #8b5cf6;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
+/* When there are active pending orders/receivables */
+.pending-card.has-pending {
+  border-left: 3px solid #b45309;
+}
+
+[data-theme="dark"] .pending-card.has-pending {
+  border-left: 3px solid #f59e0b;
+}
+
+.pending-card.has-pending .m-val {
+  color: #92400e;
+}
+
+[data-theme="dark"] .pending-card.has-pending .m-val {
+  color: #fbbf24;
+}
+
+.pending-card.has-pending .m-badge-pending {
+  background: rgba(217, 119, 6, 0.08);
+  color: #92400e;
+  border-color: rgba(217, 119, 6, 0.25);
+}
+
+[data-theme="dark"] .pending-card.has-pending .m-badge-pending {
+  background: rgba(245, 158, 11, 0.12);
+  color: #fcd34d;
+  border-color: rgba(245, 158, 11, 0.25);
+}
+
+.pending-status-dot {
+  display: inline-block;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: currentColor;
+  margin-right: 4px;
 }
 
 /* ==========================================================================

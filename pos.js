@@ -1873,11 +1873,22 @@ function renderTopStats() {
   const elPendingCount = document.getElementById('statPendingCount');
   const elDelivTotal = document.getElementById('statDeliveryGallonsTotal');
 
+  const elPendingCard = document.getElementById('cardPendingReceivables');
+  if (elPendingCard) {
+    elPendingCard.classList.toggle('has-pending', pendingCount > 0);
+  }
+
   if (elAll) elAll.textContent = totalGallons.toLocaleString();
   if (elDispSub) elDispSub.textContent = `${walkinGallons.toLocaleString()} Walk-in • ${deliveryGallons.toLocaleString()} Multicab`;
   if (elCash) elCash.textContent = `₱${formatPeso(cashCollected)}`;
   if (elPendingCash) elPendingCash.textContent = `₱${formatPeso(pendingCash)}`;
-  if (elPendingBadge) elPendingBadge.textContent = `${pendingCount.toLocaleString()} ${pendingCount === 1 ? 'Drop' : 'Drops'}`;
+  if (elPendingBadge) {
+    if (pendingCount > 0) {
+      elPendingBadge.innerHTML = `<span class="pending-status-dot"></span>${pendingCount.toLocaleString()} ${pendingCount === 1 ? 'Drop' : 'Drops'}`;
+    } else {
+      elPendingBadge.textContent = '0 Drops';
+    }
+  }
   if (elPendingCount) elPendingCount.textContent = `${pendingCount.toLocaleString()} Pending`;
   if (elDelivTotal) elDelivTotal.textContent = `${deliveryGallons.toLocaleString()} Gals Dispatched`;
 
