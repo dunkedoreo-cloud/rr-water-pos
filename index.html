@@ -757,7 +757,7 @@
            VIEW STAGE: REPORTS & ANALYTICS (FIXORIA SAAS UI DESIGN)
            ================================================================ -->
       <div class="view-stage" id="stageReports">
-        <div class="fixoria-report-view">
+        <div class="fixoria-report-view standard-report-view" id="reportsStandardView">
 
           <!-- 1. Top Breadcrumb Bar -->
           <div class="report-breadcrumb-bar">
@@ -782,25 +782,42 @@
             </button>
           </div>
 
-          <!-- 2. Hero Header with Dark Square Icon, Title, and Subtitle -->
+          <!-- 2. Hero Header with Dark Square Icon, Title, and Full Dive Trigger -->
           <div class="report-hero-header">
-            <div class="report-hero-icon-box">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
-                <rect x="3" y="12" width="4" height="8" rx="1"></rect>
-                <rect x="10" y="4" width="4" height="16" rx="1"></rect>
-                <rect x="17" y="8" width="4" height="12" rx="1"></rect>
-              </svg>
-            </div>
-            <div class="report-hero-text">
-              <div class="report-hero-title-row">
-                <h2>Station Sales Report</h2>
-                <button class="report-star-btn" id="btnFavoriteReport" title="Favorite Report">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
-                  </svg>
-                </button>
+            <div class="report-hero-left">
+              <div class="report-hero-icon-box">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
+                  <rect x="3" y="12" width="4" height="8" rx="1"></rect>
+                  <rect x="10" y="4" width="4" height="16" rx="1"></rect>
+                  <rect x="17" y="8" width="4" height="12" rx="1"></rect>
+                </svg>
               </div>
-              <span class="report-hero-sub" id="reportHeroSub">Auto-updates in real time</span>
+              <div class="report-hero-text">
+                <div class="report-hero-title-row">
+                  <h2>Station Sales Report</h2>
+                  <button class="report-star-btn" id="btnFavoriteReport" title="Favorite Report">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                      <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
+                    </svg>
+                  </button>
+                </div>
+                <span class="report-hero-sub" id="reportHeroSub">Auto-updates in real time</span>
+              </div>
+            </div>
+
+            <div class="report-hero-actions">
+              <button class="btn-full-dive-trigger" id="btnOpenDeepDiveReport" title="Go full dive for proper analytics report">
+                <svg class="ui-icon-xs" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                  <line x1="18" y1="20" x2="18" y2="10"></line>
+                  <line x1="12" y1="20" x2="12" y2="4"></line>
+                  <line x1="6" y1="20" x2="6" y2="14"></line>
+                </svg>
+                <span>Full Deep Dive Report</span>
+                <svg class="ui-icon-xs arrow-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                  <line x1="7" y1="17" x2="17" y2="7"></line>
+                  <polyline points="7 7 17 7 17 17"></polyline>
+                </svg>
+              </button>
             </div>
           </div>
 
@@ -995,8 +1012,484 @@
 
           </div>
 
-        </div>
-      </div>
+        </div><!-- /#reportsStandardView -->
+
+        <!-- ================================================================
+             DEEP DIVE ANALYTICS & EXECUTIVE REPORT (Full-Dive Proper Report)
+             Matching Reference Design & App Palette
+             ================================================================ -->
+        <div class="deep-dive-report-view" id="reportsDeepDiveView" style="display: none;">
+
+          <!-- Header with Welcome, Subtitle & Action Buttons -->
+          <div class="deep-dive-header">
+            <div class="deep-dive-header-left">
+              <div class="deep-dive-title-row">
+                <h2 id="deepDiveWelcomeTitle">Welcome, Neil 👋</h2>
+                <span class="deep-dive-live-badge">● Live Analytics</span>
+              </div>
+              <p class="deep-dive-subtitle">An overview of customer insights, sales performance, and revenue analytics.</p>
+            </div>
+            <div class="deep-dive-header-actions">
+              <button class="btn-dd-secondary" id="btnBackToStandardReport" title="Return to Table Report">
+                <svg class="ui-icon-xs" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
+                <span>Standard Report</span>
+              </button>
+              <button class="btn-dd-secondary" id="btnPrintDeepDiveReport" title="Print Executive Analytics Deep Dive">
+                <svg class="ui-icon-xs" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><polyline points="6 9 6 2 18 2 18 9"></polyline><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path><rect x="6" y="14" width="12" height="8"></rect></svg>
+                <span>Print Report</span>
+              </button>
+              <button class="btn-dd-primary" id="btnExportDeepDiveReport" title="Export Deep Dive CSV / Data">
+                <svg class="ui-icon-xs" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+                <span>Export Report</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Top Row: 4 KPI Summary Cards with Black Theme Icons -->
+          <div class="dd-kpi-grid">
+            <!-- 1. Total Sales -->
+            <div class="dd-kpi-card">
+              <div class="dd-kpi-top">
+                <span class="dd-kpi-label">Total Sales</span>
+                <div class="dd-kpi-icon-pill" title="Sales Velocity">
+                  <svg class="dd-black-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+                    <polyline points="23 6 13.5 15.5 8.5 10.5 1 18"></polyline>
+                    <polyline points="17 6 23 6 23 12"></polyline>
+                  </svg>
+                </div>
+              </div>
+              <div class="dd-kpi-val" id="ddTotalSalesVal">12,485</div>
+              <div class="dd-kpi-meta">
+                <span class="dd-trend positive">▲ +3.1% <span class="dd-trend-lbl">vs Last Week</span></span>
+                <a href="javascript:void(0)" class="dd-details-link" id="ddLinkSalesDetails">View Details ↗</a>
+              </div>
+              <p class="dd-kpi-explain">Total confirmed walk-in refills &amp; multicab delivery drops.</p>
+            </div>
+
+            <!-- 2. Active Customers -->
+            <div class="dd-kpi-card">
+              <div class="dd-kpi-top">
+                <span class="dd-kpi-label">Active Customers</span>
+                <div class="dd-kpi-icon-pill" title="Customer Accounts">
+                  <svg class="dd-black-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+                    <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                    <circle cx="9" cy="7" r="4"></circle>
+                    <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+                    <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+                  </svg>
+                </div>
+              </div>
+              <div class="dd-kpi-val" id="ddActiveCustomersVal">4,263</div>
+              <div class="dd-kpi-meta">
+                <span class="dd-trend positive">▲ +1.8% <span class="dd-trend-lbl">New Customers</span></span>
+                <a href="javascript:void(0)" class="dd-details-link" id="ddLinkCustomerDetails">View Details ↗</a>
+              </div>
+              <p class="dd-kpi-explain">Unique household accounts &amp; commercial repeat patrons.</p>
+            </div>
+
+            <!-- 3. Total Revenue -->
+            <div class="dd-kpi-card">
+              <div class="dd-kpi-top">
+                <span class="dd-kpi-label">Total Revenue</span>
+                <div class="dd-kpi-icon-pill" title="Revenue Collections">
+                  <svg class="dd-black-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+                    <line x1="12" y1="1" x2="12" y2="23"></line>
+                    <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
+                  </svg>
+                </div>
+              </div>
+              <div class="dd-kpi-val" id="ddTotalRevenueVal">₱68,837</div>
+              <div class="dd-kpi-meta">
+                <span class="dd-trend positive">▲ +2.4% <span class="dd-trend-lbl">vs Last Week</span></span>
+                <a href="javascript:void(0)" class="dd-details-link" id="ddLinkRevenueDetails">View Details ↗</a>
+              </div>
+              <p class="dd-kpi-explain">Gross collections from counter sales and paid deliveries.</p>
+            </div>
+
+            <!-- 4. Receivables & Pending -->
+            <div class="dd-kpi-card">
+              <div class="dd-kpi-top">
+                <span class="dd-kpi-label">Receivables &amp; Pending</span>
+                <div class="dd-kpi-icon-pill" title="Pending Receivables">
+                  <svg class="dd-black-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+                    <circle cx="12" cy="12" r="10"></circle>
+                    <polyline points="12 6 12 12 16 14"></polyline>
+                  </svg>
+                </div>
+              </div>
+              <div class="dd-kpi-val" id="ddRefundVal">187</div>
+              <div class="dd-kpi-meta">
+                <span class="dd-trend neutral">▼ -0.6% <span class="dd-trend-lbl">vs Last Week</span></span>
+                <a href="javascript:void(0)" class="dd-details-link" id="ddLinkReceivableDetails">View Details ↗</a>
+              </div>
+              <p class="dd-kpi-explain">Uncollected balances with multicab drivers in the field.</p>
+            </div>
+          </div>
+
+          <!-- Middle Row: Profit Overview (Wide) & Top Products (Narrow) -->
+          <div class="dd-middle-grid">
+            <!-- Left: Total Profit Overview & Interactive 12-Month Bar Chart -->
+            <div class="dd-card dd-profit-card">
+              <div class="dd-card-header">
+                <div class="dd-card-title-group">
+                  <h4>Total Profit Overview</h4>
+                  <div class="dd-profit-headline-row">
+                    <strong class="dd-headline-amt" id="ddProfitHeadlineAmt">₱98,643.24</strong>
+                    <span class="dd-trend-pill positive">+8.4% ↗</span>
+                  </div>
+                </div>
+                <div class="dd-card-header-right">
+                  <!-- Channels summary pills (Store & Truck) -->
+                  <div class="dd-channels-summary">
+                    <div class="dd-channel-badge">
+                      <div class="dd-channel-icon-box">
+                        <svg class="dd-black-icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                          <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+                        </svg>
+                      </div>
+                      <div>
+                        <span class="dd-ch-name">Walk-in Counter</span>
+                        <strong class="dd-ch-val" id="ddWalkinSalesCount">206 Sales</strong>
+                      </div>
+                    </div>
+                    <div class="dd-channel-badge">
+                      <div class="dd-channel-icon-box">
+                        <svg class="dd-black-icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                          <rect x="1" y="3" width="15" height="13"></rect>
+                          <polygon points="16 8 20 8 23 11 23 16 16 8"></polygon>
+                          <circle cx="5.5" cy="18.5" r="2.5"></circle>
+                          <circle cx="18.5" cy="18.5" r="2.5"></circle>
+                        </svg>
+                      </div>
+                      <div>
+                        <span class="dd-ch-name">Multicab Delivery</span>
+                        <strong class="dd-ch-val" id="ddDeliverySalesCount">400 Sales</strong>
+                      </div>
+                    </div>
+                  </div>
+                  <button class="dd-dots-btn" title="Options">•••</button>
+                </div>
+              </div>
+
+              <!-- Legend -->
+              <div class="dd-chart-legend">
+                <span class="dd-legend-item"><span class="dd-dot dot-light"></span> Total Dispensed Gallons</span>
+                <span class="dd-legend-item"><span class="dd-dot dot-primary"></span> Total Revenue (₱)</span>
+              </div>
+
+              <!-- 12-Month Bar Chart with Highlighted Active Month & Floating Tooltip -->
+              <div class="dd-chart-container">
+                <div class="dd-bar-chart" id="ddBarChart">
+                  <!-- Jan -->
+                  <div class="dd-bar-col" data-month="Jan" data-gals="42,100" data-rev="₱345,200">
+                    <div class="dd-bar-track"><div class="dd-bar-fill" style="height: 52%;"></div></div>
+                    <span class="dd-bar-month">Jan</span>
+                  </div>
+                  <!-- Feb -->
+                  <div class="dd-bar-col" data-month="Feb" data-gals="45,800" data-rev="₱380,400">
+                    <div class="dd-bar-track"><div class="dd-bar-fill" style="height: 58%;"></div></div>
+                    <span class="dd-bar-month">Feb</span>
+                  </div>
+                  <!-- Mar -->
+                  <div class="dd-bar-col" data-month="Mar" data-gals="56,300" data-rev="₱462,000">
+                    <div class="dd-bar-track"><div class="dd-bar-fill" style="height: 68%;"></div></div>
+                    <span class="dd-bar-month">Mar</span>
+                  </div>
+                  <!-- Apr -->
+                  <div class="dd-bar-col" data-month="Apr" data-gals="62,400" data-rev="₱518,000">
+                    <div class="dd-bar-track"><div class="dd-bar-fill" style="height: 74%;"></div></div>
+                    <span class="dd-bar-month">Apr</span>
+                  </div>
+                  <!-- May (Active highlighted month matching reference image) -->
+                  <div class="dd-bar-col active" data-month="May" data-gals="73,940" data-rev="₱637,738.83">
+                    <div class="dd-active-bar-tooltip">
+                      <strong>May 2026</strong>
+                      <span>● 73,940 Gals</span>
+                      <span>● ₱637,738.83</span>
+                    </div>
+                    <div class="dd-bar-track"><div class="dd-bar-fill" style="height: 88%;"></div></div>
+                    <span class="dd-bar-month">May</span>
+                  </div>
+                  <!-- Jun -->
+                  <div class="dd-bar-col" data-month="Jun" data-gals="58,900" data-rev="₱490,200">
+                    <div class="dd-bar-track"><div class="dd-bar-fill" style="height: 70%;"></div></div>
+                    <span class="dd-bar-month">Jun</span>
+                  </div>
+                  <!-- Jul -->
+                  <div class="dd-bar-col" data-month="Jul" data-gals="64,200" data-rev="₱538,000">
+                    <div class="dd-bar-track"><div class="dd-bar-fill" style="height: 76%;"></div></div>
+                    <span class="dd-bar-month">Jul</span>
+                  </div>
+                  <!-- Aug -->
+                  <div class="dd-bar-col" data-month="Aug" data-gals="71,500" data-rev="₱610,000">
+                    <div class="dd-bar-track"><div class="dd-bar-fill" style="height: 84%;"></div></div>
+                    <span class="dd-bar-month">Aug</span>
+                  </div>
+                  <!-- Sep -->
+                  <div class="dd-bar-col" data-month="Sep" data-gals="66,800" data-rev="₱558,400">
+                    <div class="dd-bar-track"><div class="dd-bar-fill" style="height: 78%;"></div></div>
+                    <span class="dd-bar-month">Sep</span>
+                  </div>
+                  <!-- Oct -->
+                  <div class="dd-bar-col" data-month="Oct" data-gals="69,400" data-rev="₱584,200">
+                    <div class="dd-bar-track"><div class="dd-bar-fill" style="height: 82%;"></div></div>
+                    <span class="dd-bar-month">Oct</span>
+                  </div>
+                  <!-- Nov -->
+                  <div class="dd-bar-col" data-month="Nov" data-gals="60,200" data-rev="₱508,000">
+                    <div class="dd-bar-track"><div class="dd-bar-fill" style="height: 72%;"></div></div>
+                    <span class="dd-bar-month">Nov</span>
+                  </div>
+                  <!-- Dec -->
+                  <div class="dd-bar-col" data-month="Dec" data-gals="78,500" data-rev="₱670,000">
+                    <div class="dd-bar-track"><div class="dd-bar-fill" style="height: 94%;"></div></div>
+                    <span class="dd-bar-month">Dec</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Small text explanation -->
+              <p class="dd-section-explain">
+                <svg class="ui-icon-xs" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
+                <span>Aggregated from recorded station shift logs and POS refills. Compares Walk-in counter vs Multicab Delivery channels across monthly dispensing cycles.</span>
+              </p>
+            </div>
+
+            <!-- Right: Top Products -->
+            <div class="dd-card dd-products-card">
+              <div class="dd-card-header">
+                <h4>Top Products</h4>
+                <button class="dd-dots-btn" title="Options">•••</button>
+              </div>
+
+              <div class="dd-products-list">
+                <!-- Product 1 -->
+                <div class="dd-prod-item">
+                  <div class="dd-prod-thumb">
+                    <svg class="dd-black-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"></path></svg>
+                  </div>
+                  <div class="dd-prod-info">
+                    <strong class="dd-prod-title">5-Gal Purified Refill</strong>
+                    <span class="dd-prod-sub">Round &amp; slim swap refills</span>
+                  </div>
+                  <div class="dd-prod-meta">
+                    <strong class="dd-prod-price">₱35.00</strong>
+                    <span class="dd-prod-vol">₱142,450 total</span>
+                  </div>
+                </div>
+
+                <!-- Product 2 -->
+                <div class="dd-prod-item">
+                  <div class="dd-prod-thumb">
+                    <svg class="dd-black-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="6" y="2" width="12" height="20" rx="3"></rect><line x1="10" y1="6" x2="14" y2="6"></line></svg>
+                  </div>
+                  <div class="dd-prod-info">
+                    <strong class="dd-prod-title">New Blue Slim Jug + Water</strong>
+                    <span class="dd-prod-sub">Brand new container sale</span>
+                  </div>
+                  <div class="dd-prod-meta">
+                    <strong class="dd-prod-price">₱250.00</strong>
+                    <span class="dd-prod-vol">₱32,500 total</span>
+                  </div>
+                </div>
+
+                <!-- Product 3 -->
+                <div class="dd-prod-item">
+                  <div class="dd-prod-thumb">
+                    <svg class="dd-black-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="13" r="8"></circle><path d="M12 2v3"></path></svg>
+                  </div>
+                  <div class="dd-prod-info">
+                    <strong class="dd-prod-title">New Round Dispenser Carboy</strong>
+                    <span class="dd-prod-sub">Heavy-duty water cooler jug</span>
+                  </div>
+                  <div class="dd-prod-meta">
+                    <strong class="dd-prod-price">₱250.00</strong>
+                    <span class="dd-prod-vol">₱18,250 total</span>
+                  </div>
+                </div>
+
+                <!-- Product 4 -->
+                <div class="dd-prod-item">
+                  <div class="dd-prod-thumb">
+                    <svg class="dd-black-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path></svg>
+                  </div>
+                  <div class="dd-prod-info">
+                    <strong class="dd-prod-title">Carboy Loan &amp; Deposit</strong>
+                    <span class="dd-prod-sub">Refundable container trust</span>
+                  </div>
+                  <div class="dd-prod-meta">
+                    <strong class="dd-prod-price">₱200.00</strong>
+                    <span class="dd-prod-vol">₱5,400 total</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Small text explanation -->
+              <p class="dd-section-explain">
+                <svg class="ui-icon-xs" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
+                <span>Ranked by unit dispensing velocity and gross station receipts this cycle.</span>
+              </p>
+            </div>
+          </div>
+
+          <!-- Bottom Row: Customer Orders Peak Hours & Delivery Route Distribution -->
+          <div class="dd-bottom-grid">
+            <!-- Left: Customer Orders Peak Velocity Area Wave -->
+            <div class="dd-card dd-orders-trend-card">
+              <div class="dd-card-header">
+                <div>
+                  <h4>Customer Orders &amp; Peak Hours</h4>
+                  <span class="dd-card-sub">Recent 30-Day Dispensing Flow</span>
+                </div>
+                <button class="dd-dots-btn" title="Options">•••</button>
+              </div>
+
+              <div class="dd-orders-stat-row">
+                <strong class="dd-orders-big-val" id="ddOrdersCycleVal">45,637</strong>
+                <div class="dd-orders-badges">
+                  <span class="dd-trend-pill positive">+9.4% ↗</span>
+                  <span class="dd-sub-pill">+245 today</span>
+                </div>
+              </div>
+
+              <!-- Wave Chart SVG -->
+              <div class="dd-area-chart-wrap">
+                <svg class="dd-wave-svg" viewBox="0 0 400 120" preserveAspectRatio="none">
+                  <defs>
+                    <linearGradient id="waveGrad" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stop-color="#0284c7" stop-opacity="0.32" />
+                      <stop offset="100%" stop-color="#0284c7" stop-opacity="0.0" />
+                    </linearGradient>
+                  </defs>
+                  <path fill="url(#waveGrad)" d="M 0 110 L 0 90 C 40 85, 70 95, 100 65 C 130 35, 160 50, 190 30 C 220 15, 250 45, 280 20 C 310 10, 340 50, 370 35 C 385 28, 395 32, 400 30 L 400 120 L 0 120 Z" />
+                  <path fill="none" stroke="#0284c7" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round" d="M 0 90 C 40 85, 70 95, 100 65 C 130 35, 160 50, 190 30 C 220 15, 250 45, 280 20 C 310 10, 340 50, 370 35 C 385 28, 395 32, 400 30" />
+                  <circle cx="280" cy="20" r="4.5" fill="#ffffff" stroke="#0284c7" stroke-width="3" />
+                </svg>
+                <div class="dd-chart-point-label" style="left: 67%; top: 4px;">2,345 gals</div>
+              </div>
+
+              <div class="dd-time-axis">
+                <span>6 AM</span>
+                <span>9 AM (Rush)</span>
+                <span>12 PM</span>
+                <span>3 PM (Delivery)</span>
+                <span>6 PM</span>
+                <span>8 PM</span>
+              </div>
+
+              <!-- Small text explanation -->
+              <p class="dd-section-explain">
+                <svg class="ui-icon-xs" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
+                <span>Peak dispensing velocity occurs between 9:00 AM – 11:30 AM (counter rush) and 2:00 PM – 4:30 PM (multicab dispatch).</span>
+              </p>
+            </div>
+
+            <!-- Right: Delivery Routes & Coverage (Matching "Sales by Countries" in Image 2) -->
+            <div class="dd-card dd-routes-card">
+              <div class="dd-card-header">
+                <div>
+                  <h4>Delivery Routes &amp; Coverage</h4>
+                  <span class="dd-card-sub">Keep track of multicab drops and purok volume</span>
+                </div>
+                <div class="dd-filter-selects">
+                  <select class="dd-mini-select" id="ddFilterRouteProduct" aria-label="Route Product">
+                    <option>All Products</option>
+                    <option>Purified Refill</option>
+                    <option>New Containers</option>
+                  </select>
+                  <select class="dd-mini-select" id="ddFilterRouteZone" aria-label="Route Zone">
+                    <option>Top Puroks</option>
+                    <option>All Zones</option>
+                  </select>
+                </div>
+              </div>
+
+              <div class="dd-routes-content">
+                <div class="dd-routes-summary-col">
+                  <span class="dd-routes-lbl">Top Performing Route</span>
+                  <strong class="dd-routes-highlight" id="ddTopRouteName">Purok 1 (Centro)</strong>
+                  <span class="dd-routes-amt" id="ddTopRouteAmt">₱120,000</span>
+                  <span class="dd-routes-sub">Commercial &amp; residential hub</span>
+
+                  <div class="dd-growth-badge-wrap">
+                    <span class="dd-routes-lbl">Revenue Growth</span>
+                    <span class="dd-growth-stat">+34%</span>
+                    <span class="dd-routes-sub">Leading town route delivery</span>
+                  </div>
+                </div>
+
+                <div class="dd-routes-list-col">
+                  <!-- Route 1 -->
+                  <div class="dd-route-row">
+                    <div class="dd-route-top">
+                      <span class="dd-route-badge-pin">📍 Purok 1 (Centro)</span>
+                      <strong class="dd-route-sum">₱120,000</strong>
+                    </div>
+                    <div class="dd-progress-track">
+                      <div class="dd-progress-bar" style="width: 42%;"></div>
+                    </div>
+                    <div class="dd-route-sub-meta">
+                      <span>42% of deliveries</span>
+                      <span>1,420 carboys</span>
+                    </div>
+                  </div>
+
+                  <!-- Route 2 -->
+                  <div class="dd-route-row">
+                    <div class="dd-route-top">
+                      <span class="dd-route-badge-pin">📍 Purok 2 (Poblacion East)</span>
+                      <strong class="dd-route-sum">₱85,450</strong>
+                    </div>
+                    <div class="dd-progress-track">
+                      <div class="dd-progress-bar" style="width: 28%;"></div>
+                    </div>
+                    <div class="dd-route-sub-meta">
+                      <span>28% of deliveries</span>
+                      <span>980 carboys</span>
+                    </div>
+                  </div>
+
+                  <!-- Route 3 -->
+                  <div class="dd-route-row">
+                    <div class="dd-route-top">
+                      <span class="dd-route-badge-pin">📍 Purok 3 (Riverside Subd)</span>
+                      <strong class="dd-route-sum">₱48,200</strong>
+                    </div>
+                    <div class="dd-progress-track">
+                      <div class="dd-progress-bar" style="width: 18%;"></div>
+                    </div>
+                    <div class="dd-route-sub-meta">
+                      <span>18% of deliveries</span>
+                      <span>560 carboys</span>
+                    </div>
+                  </div>
+
+                  <!-- Route 4 -->
+                  <div class="dd-route-row">
+                    <div class="dd-route-top">
+                      <span class="dd-route-badge-pin">📍 Highway &amp; Outskirts</span>
+                      <strong class="dd-route-sum">₱24,350</strong>
+                    </div>
+                    <div class="dd-progress-track">
+                      <div class="dd-progress-bar" style="width: 12%;"></div>
+                    </div>
+                    <div class="dd-route-sub-meta">
+                      <span>12% of deliveries</span>
+                      <span>280 carboys</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Small text explanation -->
+              <p class="dd-section-explain">
+                <svg class="ui-icon-xs" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
+                <span>Driver route efficiency calculated from completed multicab delivery tags and turn-around times.</span>
+              </p>
+            </div>
+          </div>
+
+        </div><!-- /#reportsDeepDiveView -->
 
       <!-- ================================================================
            VIEW STAGE 4: SYSTEM & STATION SETTINGS
