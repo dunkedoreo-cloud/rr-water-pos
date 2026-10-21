@@ -13,6 +13,11 @@
 </head>
 <body class="light-mode">
 
+  <!-- Flowing Water Moving Background -->
+  <div class="water-canvas-container" id="waterCanvasContainer" aria-hidden="true">
+    <canvas id="waterFlowCanvas"></canvas>
+  </div>
+
   <div class="pos-app-layout">
 
     <!-- ====================================================================
@@ -773,13 +778,24 @@
               <span class="breadcrumb-sep">/</span>
               <span class="breadcrumb-current">Station Sales Report</span>
             </div>
-            <button class="breadcrumb-more-btn" id="btnReportMenuMore" title="Report Options">
-              <svg viewBox="0 0 24 24" fill="currentColor">
-                <circle cx="5" cy="12" r="2"></circle>
-                <circle cx="12" cy="12" r="2"></circle>
-                <circle cx="19" cy="12" r="2"></circle>
-              </svg>
-            </button>
+            <div class="breadcrumb-actions-right">
+              <button type="button" class="btn-breadcrumb-deep-dive" id="btnBreadcrumbDeepDive" title="Open Executive Deep Dive Analytics">
+                <svg class="ui-icon-xs" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+                  <line x1="18" y1="20" x2="18" y2="10"></line>
+                  <line x1="12" y1="20" x2="12" y2="4"></line>
+                  <line x1="6" y1="20" x2="6" y2="14"></line>
+                </svg>
+                <span>Full Deep Dive</span>
+                <span class="breadcrumb-badge">New</span>
+              </button>
+              <button class="breadcrumb-more-btn" id="btnReportMenuMore" title="Report Options">
+                <svg viewBox="0 0 24 24" fill="currentColor">
+                  <circle cx="5" cy="12" r="2"></circle>
+                  <circle cx="12" cy="12" r="2"></circle>
+                  <circle cx="19" cy="12" r="2"></circle>
+                </svg>
+              </button>
+            </div>
           </div>
 
           <!-- 2. Hero Header with Dark Square Icon, Title, and Full Dive Trigger -->
@@ -813,20 +829,20 @@
                   <line x1="6" y1="20" x2="6" y2="14"></line>
                 </svg>
                 <span>Full Deep Dive Report</span>
-                <svg class="ui-icon-xs arrow-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-                  <line x1="7" y1="17" x2="17" y2="7"></line>
-                  <polyline points="7 7 17 7 17 17"></polyline>
-                </svg>
+                <span class="dive-pill-badge">Analytics ↗</span>
               </button>
             </div>
           </div>
 
-          <!-- 3. Top 3 KPI Summary Cards with Water Blue Sparklines -->
+          <!-- 3. Top 3 KPI Summary Cards with Water Blue Sparklines (Clickable to Deep Dive) -->
           <div class="sparkline-kpi-grid">
             <!-- Card 1: Total Volume / Dispensed -->
-            <div class="sparkline-card">
+            <div class="sparkline-card interactive" role="button" tabindex="0" title="Click to view deep dive charts &amp; analytics">
               <div class="sparkline-card-info">
-                <span class="kpi-label">Total Dispensed</span>
+                <div class="kpi-header-with-pill">
+                  <span class="kpi-label">Total Dispensed</span>
+                  <span class="sparkline-mini-cue">Charts ↗</span>
+                </div>
                 <strong class="kpi-value" id="kpiDispensedVal">1,612,132</strong>
                 <span class="kpi-subtext" id="kpiDispensedSub">Total Volume last 365 days</span>
               </div>
@@ -845,9 +861,12 @@
             </div>
 
             <!-- Card 2: Total Tax / Uncollected Receivables -->
-            <div class="sparkline-card">
+            <div class="sparkline-card interactive" role="button" tabindex="0" title="Click to view deep dive charts &amp; analytics">
               <div class="sparkline-card-info">
-                <span class="kpi-label">Total Uncollected</span>
+                <div class="kpi-header-with-pill">
+                  <span class="kpi-label">Total Uncollected</span>
+                  <span class="sparkline-mini-cue">Charts ↗</span>
+                </div>
                 <strong class="kpi-value" id="kpiUncollectedVal">₱1,45,520</strong>
                 <span class="kpi-subtext" id="kpiUncollectedSub">Pending driver balances</span>
               </div>
@@ -866,9 +885,12 @@
             </div>
 
             <!-- Card 3: Total Revenue / Amount -->
-            <div class="sparkline-card">
+            <div class="sparkline-card interactive" role="button" tabindex="0" title="Click to view deep dive charts &amp; analytics">
               <div class="sparkline-card-info">
-                <span class="kpi-label">Total Amount</span>
+                <div class="kpi-header-with-pill">
+                  <span class="kpi-label">Total Amount</span>
+                  <span class="sparkline-mini-cue">Charts ↗</span>
+                </div>
                 <strong class="kpi-value" id="kpiRevenueVal">₱2,012,132</strong>
                 <span class="kpi-subtext" id="kpiRevenueSub">Total Amount last 365 days</span>
               </div>
@@ -887,6 +909,33 @@
             </div>
           </div>
 
+          <!-- Deep Dive Callout Banner (High-Visibility Indicator) -->
+          <div class="deep-dive-callout-banner" id="deepDiveCalloutBanner">
+            <div class="dd-callout-left">
+              <div class="dd-callout-icon-box">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                  <line x1="18" y1="20" x2="18" y2="10"></line>
+                  <line x1="12" y1="20" x2="12" y2="4"></line>
+                  <line x1="6" y1="20" x2="6" y2="14"></line>
+                </svg>
+              </div>
+              <div class="dd-callout-text">
+                <div class="dd-callout-title-row">
+                  <h4 class="dd-callout-title">Executive Analytics &amp; Profit Deep Dive</h4>
+                  <span class="dd-callout-badge">Interactive 12-Month Charts</span>
+                </div>
+                <p class="dd-callout-desc">Full 12-month revenue bar chart with monthly tooltips, peak dispensing hour wave, top products, and multicab delivery routes.</p>
+              </div>
+            </div>
+            <button type="button" class="btn-callout-deep-dive" id="btnCalloutOpenDeepDive" title="Open Executive Deep Dive Report">
+              <span>Open Deep Dive Report</span>
+              <svg class="ui-icon-xs arrow-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="7" y1="17" x2="17" y2="7"></line>
+                <polyline points="7 7 17 7 17 17"></polyline>
+              </svg>
+            </button>
+          </div>
+
           <!-- 4. Report List Section & Filter Bar -->
           <div class="report-list-section">
             <h3 class="report-list-heading">Report List</h3>
@@ -897,24 +946,72 @@
                 <!-- Dropdown 1: Source Filter -->
                 <div class="select-pill-wrapper">
                   <select id="reportFilterSource" class="report-select-pill" aria-label="Filter Source">
-                    <option value="all">All Source</option>
-                    <option value="walkin">Front Desks</option>
-                    <option value="delivery">Web Reservation</option>
-                    <option value="container">Group Reservation</option>
+                    <option value="all">All Sources</option>
+                    <option value="walkin">Walk-In</option>
+                    <option value="delivery">Multicab</option>
                   </select>
                   <svg class="select-arrow-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"></polyline></svg>
                 </div>
 
-                <!-- Dropdown 2: Period Filter (Weekly, Monthly, Yearly, Today, All-Time) -->
-                <div class="select-pill-wrapper">
-                  <select id="reportFilterPeriod" class="report-select-pill" aria-label="Filter Period">
+                <!-- Dropdown 2: Modern Custom Period Dropdown (Today, Weekly, Monthly, Annually, All-Time) -->
+                <div class="custom-period-dropdown" id="reportPeriodDropdown">
+                  <button type="button" class="period-dropdown-btn" id="btnReportPeriodTrigger" aria-haspopup="listbox" aria-expanded="false" title="Filter by timeframe">
+                    <svg class="period-cal-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                      <line x1="16" y1="2" x2="16" y2="6"></line>
+                      <line x1="8" y1="2" x2="8" y2="6"></line>
+                      <line x1="3" y1="10" x2="21" y2="10"></line>
+                    </svg>
+                    <span class="period-label-text" id="reportPeriodActiveLabel">Monthly</span>
+                    <svg class="period-chevron-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <polyline points="6 9 12 15 18 9"></polyline>
+                    </svg>
+                  </button>
+                  <div class="period-dropdown-menu" id="reportPeriodMenu" role="listbox">
+                    <button type="button" class="period-menu-option" data-value="today" role="option">
+                      <div class="period-opt-info">
+                        <span class="period-opt-title">Today's Shift</span>
+                        <span class="period-opt-desc">Current cashier session</span>
+                      </div>
+                      <svg class="period-check-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                    </button>
+                    <button type="button" class="period-menu-option" data-value="weekly" role="option">
+                      <div class="period-opt-info">
+                        <span class="period-opt-title">Weekly</span>
+                        <span class="period-opt-desc">Past 7 days operations</span>
+                      </div>
+                      <svg class="period-check-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                    </button>
+                    <button type="button" class="period-menu-option active" data-value="monthly" role="option">
+                      <div class="period-opt-info">
+                        <span class="period-opt-title">Monthly</span>
+                        <span class="period-opt-desc">Past 30 days cycle</span>
+                      </div>
+                      <svg class="period-check-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                    </button>
+                    <button type="button" class="period-menu-option" data-value="yearly" role="option">
+                      <div class="period-opt-info">
+                        <span class="period-opt-title">Annually</span>
+                        <span class="period-opt-desc">Full 12 months fiscal</span>
+                      </div>
+                      <svg class="period-check-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                    </button>
+                    <button type="button" class="period-menu-option" data-value="all" role="option">
+                      <div class="period-opt-info">
+                        <span class="period-opt-title">All Time</span>
+                        <span class="period-opt-desc">All historical records</span>
+                      </div>
+                      <svg class="period-check-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                    </button>
+                  </div>
+                  <!-- Hidden native select for accessibility & fallback compatibility -->
+                  <select id="reportFilterPeriod" class="report-select-pill-hidden" style="display:none;" aria-hidden="true">
                     <option value="monthly" selected>Monthly</option>
                     <option value="weekly">Weekly</option>
-                    <option value="yearly">Yearly</option>
-                    <option value="today">Today / Shift</option>
+                    <option value="yearly">Annually</option>
+                    <option value="today">Today's Shift</option>
                     <option value="all">All Time</option>
                   </select>
-                  <svg class="select-arrow-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"></polyline></svg>
                 </div>
 
                 <!-- Filter funnel icon button -->
@@ -977,14 +1074,11 @@
                 <thead>
                   <tr>
                     <th class="th-cb"><input type="checkbox" id="reportSelectAllCb" title="Select All"></th>
-                    <th class="th-orderno">Booking No</th>
-                    <th class="th-guest">Name of Guest</th>
-                    <th class="th-qty">Guests</th>
+                    <th class="th-orderno">Order No</th>
+                    <th class="th-guest">Customer</th>
                     <th class="th-source">Source</th>
-                    <th class="th-date">Booking Date &amp; Time</th>
-                    <th class="th-fare">Fare</th>
-                    <th class="th-tax">Tax</th>
-                    <th class="th-total">Total Amount</th>
+                    <th class="th-date">Date &amp; Time</th>
+                    <th class="th-price">Price</th>
                     <th class="th-status">Status</th>
                     <th class="th-dots"></th>
                   </tr>

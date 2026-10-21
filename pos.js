@@ -231,6 +231,7 @@ const soundCtrl = new SoundController();
 // INITIALIZATION
 // ==========================================================================
 document.addEventListener('DOMContentLoaded', () => {
+  initFlowingWaterBackground();
   loadSavedData();
   initLiveClock();
   initTheme();
@@ -2042,8 +2043,8 @@ function renderStoredOrders() {
       : `<span class="tag-channel"><svg class="ui-icon-xs" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg> Walk-in</span>`;
 
     const statusTag = isPending
-      ? `<span class="tag-status-pending"><span class="status-pulse-dot"></span> PENDING</span>`
-      : `<span class="tag-paid">✓ PAID</span>`;
+      ? `<span class="tag-status-pending"><span class="status-pulse-dot"></span> Pending</span>`
+      : `<span class="tag-paid">Paid</span>`;
 
     const customerDisplay = order.note
       ? escapeHtml(order.note)
@@ -2678,6 +2679,25 @@ function renderReports() {
     sourceSelect.value = State.reportSource;
   }
 
+  // Sync Custom Period Dropdown UI
+  const periodLabel = document.getElementById('reportPeriodActiveLabel');
+  const periodMenu = document.getElementById('reportPeriodMenu');
+  if (periodMenu) {
+    const periodTitles = {
+      'today': "Today's Shift",
+      'weekly': "Weekly",
+      'monthly': "Monthly",
+      'yearly': "Annually",
+      'all': "All Time"
+    };
+    if (periodLabel && periodTitles[State.reportPeriod]) {
+      periodLabel.textContent = periodTitles[State.reportPeriod];
+    }
+    periodMenu.querySelectorAll('.period-menu-option').forEach(opt => {
+      opt.classList.toggle('active', opt.getAttribute('data-value') === State.reportPeriod);
+    });
+  }
+
   // Compute KPI Totals
   let totalGallons = 0;
   let totalTax = 0;
@@ -2911,7 +2931,7 @@ function renderReportsTable(filteredOrders) {
   if (filteredOrders.length === 0) {
     tbody.innerHTML = `
       <tr>
-        <td colspan="11" style="text-align: center; padding: 36px 16px; color: var(--text-muted);">
+        <td colspan="8" style="text-align: center; padding: 36px 16px; color: var(--text-muted);">
           <div style="display: flex; flex-direction: column; align-items: center; gap: 8px;">
             <svg style="width: 32px; height: 32px; color: #94a3b8;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="10"></circle><line x1="8" y1="12" x2="16" y2="12"></line></svg>
             <strong style="font-size: 0.95rem; color: var(--text-main);">No orders found for this period</strong>
@@ -2935,37 +2955,36 @@ function renderReportsTable(filteredOrders) {
   pageOrders.forEach(o => {
     const isPaid = o.status === 'paid';
     const statusPill = isPaid
-      ? '<span class="badge-status-booked">Booked</span>'
-      : '<span class="badge-status-refund">Refund</span>';
+      ? '<span class="badge-status-paid">Paid</span>'
+      : '<span class="badge-status-pending"><span class="status-dot-indicator"></span> Pending</span>';
 
-    // Source channel text matching Fixoria UI
-    let sourceText = 'Font Desks';
-    if (o.channel === 'delivery') sourceText = 'Web Reservation';
-    if (o.prodKey === 'new_container') sourceText = 'Group Reservation';
+    const isDelivery = o.channel === 'delivery';
+    const sourceLabel = isDelivery ? 'Multicab' : 'Walk-In';
+    const sourceClass = isDelivery ? 'source-delivery' : 'source-walkin';
 
     const numGals = Number(o.gallons) || 1;
-    const guestsQty = numGals >= 1000 ? numGals.toLocaleString() : String(numGals).padStart(2, '0');
-    const guestName = escapeHtml(o.note || (o.channel === 'delivery' ? 'Delivery Client' : 'Walk-in Guest'));
+    const galSub = `${numGals.toLocaleString()} ${numGals === 1 ? 'Gallon' : 'Gallons'}`;
+    const custName = escapeHtml(o.note || (isDelivery ? 'Multicab Route Customer' : 'Walk-in Customer'));
     const dateTimeStr = formatReportDateTime(o.timestamp);
 
-    const fareVal = typeof o.fare === 'number' ? o.fare : Math.round((o.total || 0) * 0.9);
-    const taxVal = typeof o.tax === 'number' ? o.tax : (o.unpaidAmount || (isPaid ? 0 : o.total));
-    const totalVal = o.total || (fareVal + taxVal);
+    const priceVal = typeof o.total === 'number' ? o.total : (numGals * 35);
 
     rowsHtml += `
       <tr>
-        <td class="td-cb"><input type="checkbox" class="report-row-cb" data-orderno="${o.orderNo}"></td>
-        <td class="td-orderno">${o.orderNo}</td>
-        <td class="td-guest">${guestName}</td>
-        <td class="td-qty font-num">${guestsQty}</td>
-        <td class="td-source">${sourceText}</td>
+        <td class="td-cb"><input type="checkbox" class="report-row-cb" data-orderno="${escapeHtml(o.orderNo || '')}"></td>
+        <td class="td-orderno">${escapeHtml(o.orderNo || '')}</td>
+        <td class="td-guest">
+          <div class="td-customer-wrap">
+            <span class="td-customer-name">${custName}</span>
+            <span class="td-customer-vol">${galSub}</span>
+          </div>
+        </td>
+        <td class="td-source"><span class="td-source-pill ${sourceClass}">${sourceLabel}</span></td>
         <td class="td-date">${dateTimeStr}</td>
-        <td class="td-fare font-num">₱${formatPeso(fareVal)}</td>
-        <td class="td-tax font-num">₱${formatPeso(taxVal)}</td>
-        <td class="td-total font-num">₱${formatPeso(totalVal)}</td>
+        <td class="td-price font-num">₱${formatPeso(priceVal)}</td>
         <td class="td-status">${statusPill}</td>
         <td class="td-dots">
-          <button class="td-action-dots-btn" data-orderno="${o.orderNo}" title="Order Actions">
+          <button class="td-action-dots-btn" data-orderno="${escapeHtml(o.orderNo || '')}" title="Order Actions">
             <svg viewBox="0 0 24 24" fill="currentColor">
               <circle cx="5" cy="12" r="2"></circle>
               <circle cx="12" cy="12" r="2"></circle>
@@ -3109,11 +3128,10 @@ function exportReportExcelFile(allOrders = false) {
   // Generate Styled MSO-HTML Spreadsheet (Native .xls format compatible with Excel, Sheets, Calc)
   const rowsHtml = orders.length > 0 ? orders.map((o, idx) => {
     const isPaid = o.status === 'paid';
-    const fareVal = typeof o.fare === 'number' ? o.fare : Math.round((Number(o.total) || 0) * 0.9);
-    const taxVal = typeof o.tax === 'number' ? o.tax : (Number(o.unpaidAmount) || (isPaid ? 0 : Number(o.total) || 0));
-    const totalVal = Number(o.total) || (fareVal + taxVal);
-    const sourceText = o.channel === 'delivery' ? 'Web Reservation' : (o.prodKey === 'new_container' ? 'Group Reservation' : 'Font Desks');
-    const guestName = escapeHtml(o.note || (o.channel === 'delivery' ? 'Delivery Client' : 'Walk-in Guest'));
+    const numGals = Number(o.gallons) || 1;
+    const priceVal = typeof o.total === 'number' ? o.total : (numGals * 35);
+    const sourceText = o.channel === 'delivery' ? 'Multicab' : 'Walk-In';
+    const guestName = escapeHtml(o.note || (o.channel === 'delivery' ? 'Multicab Route Customer' : 'Walk-in Customer'));
     const dateTimeStr = o.time ? `${todayDate} ${o.time}` : formatReportDateTime(o.timestamp);
     const notesStr = escapeHtml(o.note || (o.channel === 'delivery' ? 'Route Delivery' : 'Walk-in Counter'));
 
@@ -3121,19 +3139,17 @@ function exportReportExcelFile(allOrders = false) {
       <tr class="${idx % 2 === 0 ? 'cell-even' : 'cell-odd'}">
         <td class="cell-orderno">${escapeHtml(o.orderNo || '#ORD-0000')}</td>
         <td>${guestName}</td>
-        <td class="cell-num">${(Number(o.gallons) || 1).toLocaleString()}</td>
+        <td class="cell-num">${numGals.toLocaleString()}</td>
         <td>${sourceText}</td>
         <td class="cell-date">${dateTimeStr}</td>
-        <td class="cell-currency">${formatPeso(fareVal)}</td>
-        <td class="cell-currency">${formatPeso(taxVal)}</td>
-        <td class="cell-currency cell-total">${formatPeso(totalVal)}</td>
-        <td class="${isPaid ? 'pill-booked' : 'pill-refund'}">${isPaid ? 'Booked' : 'Refund'}</td>
+        <td class="cell-currency cell-total">${formatPeso(priceVal)}</td>
+        <td class="${isPaid ? 'pill-booked' : 'pill-refund'}">${isPaid ? 'Paid' : 'Pending'}</td>
         <td class="cell-notes">${notesStr}</td>
       </tr>
     `;
   }).join('') : `
     <tr class="cell-even">
-      <td colspan="10" style="text-align: center; color: #64748b; padding: 22px 12px; font-style: italic; background: #ffffff;">
+      <td colspan="8" style="text-align: center; color: #64748b; padding: 22px 12px; font-style: italic; background: #ffffff;">
         No active orders recorded for this period yet. Complete transactions at the POS to populate this ledger.
       </td>
     </tr>
@@ -3284,18 +3300,18 @@ function exportReportExcelFile(allOrders = false) {
           mso-number-format: "\\#\\,\\#\\#0";
         }
         .pill-booked {
-          background-color: #ecfdf5;
-          color: #047857;
+          background-color: #f1f5f9;
+          color: #0f172a;
           font-weight: bold;
           text-align: center;
-          border: 1px solid #a7f3d0;
+          border: 1px solid #e2e8f0;
         }
         .pill-refund {
-          background-color: #fffbeb;
-          color: #b45309;
+          background-color: #f8fafc;
+          color: #475569;
           font-weight: bold;
           text-align: center;
-          border: 1px solid #fde68a;
+          border: 1px solid #e2e8f0;
         }
         .cell-notes {
           color: #64748b;
@@ -3324,56 +3340,52 @@ function exportReportExcelFile(allOrders = false) {
         <col width="85">
         <col width="135">
         <col width="140">
-        <col width="110">
-        <col width="115">
         <col width="125">
         <col width="95">
         <col width="190">
 
         <!-- Station Branding Banner -->
         <tr>
-          <td colspan="10" class="station-title">R&amp;R WATER REFILLING STATION &mdash; EXECUTIVE SALES &amp; OPERATIONS LEDGER</td>
+          <td colspan="8" class="station-title">R&amp;R WATER REFILLING STATION &mdash; EXECUTIVE SALES &amp; OPERATIONS LEDGER</td>
         </tr>
         <tr>
-          <td colspan="10" class="station-subtitle">Standard Purified Operations &bull; Station POS Terminal #01 &bull; Financial Audit Report</td>
+          <td colspan="8" class="station-subtitle">Standard Purified Operations &bull; Station POS Terminal #01 &bull; Financial Audit Report</td>
         </tr>
         <tr class="meta-row">
-          <td colspan="5"><strong>Report Scope:</strong> ${periodLabel}</td>
-          <td colspan="5" style="text-align: right;"><strong>Export Generated:</strong> ${exportTime} &bull; <strong>Currency:</strong> Philippine Peso (&#8369;)</td>
+          <td colspan="4"><strong>Report Scope:</strong> ${periodLabel}</td>
+          <td colspan="4" style="text-align: right;"><strong>Export Generated:</strong> ${exportTime} &bull; <strong>Currency:</strong> Philippine Peso (&#8369;)</td>
         </tr>
-        <tr style="height: 12px;"><td colspan="10"></td></tr>
+        <tr style="height: 12px;"><td colspan="8"></td></tr>
 
         <!-- Executive KPI Cards -->
         <tr>
           <td colspan="2" class="kpi-title" style="border-top-color:#38bdf8; border-top-width:3px;">GROSS REVENUE</td>
-          <td colspan="3" class="kpi-title" style="border-top-color:#34d399; border-top-width:3px;">DISPENSED VOLUME</td>
-          <td colspan="2" class="kpi-title" style="border-top-color:#f59e0b; border-top-width:3px;">PENDING RECEIVABLES</td>
-          <td colspan="3" class="kpi-title" style="border-top-color:#0284c7; border-top-width:3px;">SETTLEMENT RATE</td>
+          <td colspan="2" class="kpi-title" style="border-top-color:#34d399; border-top-width:3px;">DISPENSED VOLUME</td>
+          <td colspan="2" class="kpi-title" style="border-top-color:#64748b; border-top-width:3px;">PENDING RECEIVABLES</td>
+          <td colspan="2" class="kpi-title" style="border-top-color:#0284c7; border-top-width:3px;">SETTLEMENT RATE</td>
         </tr>
         <tr>
           <td colspan="2" class="kpi-val cell-currency" style="color: #0284c7;">&#8369;${totalRevenue.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
-          <td colspan="3" class="kpi-val" style="color: #059669;">${totalGallons.toLocaleString()} Gals</td>
-          <td colspan="2" class="kpi-val cell-currency" style="color: #d97706;">&#8369;${totalTax.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
-          <td colspan="3" class="kpi-val" style="color: #0284c7;">${settlementRate}%</td>
+          <td colspan="2" class="kpi-val" style="color: #059669;">${totalGallons.toLocaleString()} Gals</td>
+          <td colspan="2" class="kpi-val cell-currency" style="color: #475569;">&#8369;${totalTax.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+          <td colspan="2" class="kpi-val" style="color: #0284c7;">${settlementRate}%</td>
         </tr>
         <tr>
           <td colspan="2" class="kpi-sub">Total Sales &amp; Collections</td>
-          <td colspan="3" class="kpi-sub">Purified Water Dispensed</td>
+          <td colspan="2" class="kpi-sub">Purified Water Dispensed</td>
           <td colspan="2" class="kpi-sub">Uncollected Receivables</td>
-          <td colspan="3" class="kpi-sub">${settledCount} of ${orders.length} Orders Settled</td>
+          <td colspan="2" class="kpi-sub">${settledCount} of ${orders.length} Orders Settled</td>
         </tr>
-        <tr style="height: 14px;"><td colspan="10"></td></tr>
+        <tr style="height: 14px;"><td colspan="8"></td></tr>
 
         <!-- Table Column Headers -->
         <tr>
-          <th class="th-header">Booking No</th>
-          <th class="th-header">Customer / Guest</th>
+          <th class="th-header">Order No</th>
+          <th class="th-header">Customer</th>
           <th class="th-header-num">Gallons</th>
-          <th class="th-header">Source Channel</th>
+          <th class="th-header">Source</th>
           <th class="th-header">Date &amp; Time</th>
-          <th class="th-header-num">Base Fare (&#8369;)</th>
-          <th class="th-header-num">Tax / Credit (&#8369;)</th>
-          <th class="th-header-num">Total Amount (&#8369;)</th>
+          <th class="th-header-num">Price (&#8369;)</th>
           <th class="th-header-center">Status</th>
           <th class="th-header">Notes / Destination</th>
         </tr>
@@ -3386,13 +3398,11 @@ function exportReportExcelFile(allOrders = false) {
           <td colspan="2" style="font-size: 10pt; text-transform: uppercase;">&bull; TOTAL AUDIT SUMMARY</td>
           <td class="cell-num" style="font-size: 10pt; text-align: right;">${totalGallons.toLocaleString()}</td>
           <td colspan="2" style="font-size: 9pt; color: #0369a1;">${orders.length} Audited Transactions</td>
-          <td class="cell-currency">&#8369;${totalFare.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
-          <td class="cell-currency" style="color: #b45309;">&#8369;${totalTax.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
           <td class="cell-currency" style="color: #0369a1; font-size: 11pt;">&#8369;${totalRevenue.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
           <td style="text-align: center; font-size: 9pt;">${settlementRate}% Paid</td>
           <td style="font-size: 8.5pt; color: #64748b;">Ledger Balance Verified</td>
         </tr>
-        <tr style="height: 18px;"><td colspan="10"></td></tr>
+        <tr style="height: 18px;"><td colspan="8"></td></tr>
 
         <!-- Audit Sign-off Row -->
         <tr class="signoff-row">
@@ -3400,7 +3410,6 @@ function exportReportExcelFile(allOrders = false) {
             <strong>Prepared By:</strong> Station Cashier / Attendant<br>
             <span>R&amp;R Water Automated Terminal Point</span>
           </td>
-          <td colspan="2"></td>
           <td colspan="4" style="border-top: 1px solid #cbd5e1; padding-top: 8px; text-align: right;">
             <strong>Audited &amp; Approved By:</strong> Operations Manager<br>
             <span>Certified Pure Water Quality Assurance</span>
@@ -3435,7 +3444,7 @@ function exportReportExcelFile(allOrders = false) {
 function exportReportAestheticCSV(allOrders = false) {
   soundCtrl.playTap();
   const data = getExportOrdersData(allOrders);
-  const { orders, periodLabel, totalGallons, totalFare, totalTax, totalRevenue, settledCount, settlementRate } = data;
+  const { orders, periodLabel, totalGallons, totalRevenue, totalTax, settledCount, settlementRate } = data;
 
   const now = new Date();
   const exportTime = `${now.toISOString().slice(0, 10)} ${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}:${String(now.getSeconds()).padStart(2, '0')}`;
@@ -3443,28 +3452,25 @@ function exportReportAestheticCSV(allOrders = false) {
 
   const dataRows = orders.length > 0 ? orders.map(o => {
     const isPaid = o.status === 'paid';
-    const fareVal = typeof o.fare === 'number' ? o.fare : Math.round((Number(o.total) || 0) * 0.9);
-    const taxVal = typeof o.tax === 'number' ? o.tax : (Number(o.unpaidAmount) || (isPaid ? 0 : Number(o.total) || 0));
-    const totalVal = Number(o.total) || (fareVal + taxVal);
-    const sourceText = o.channel === 'delivery' ? 'Web Reservation' : (o.prodKey === 'new_container' ? 'Group Reservation' : 'Font Desks');
-    const guestName = (o.note || (o.channel === 'delivery' ? 'Delivery Client' : 'Walk-in Guest')).replace(/"/g, '""');
+    const numGals = Number(o.gallons) || 1;
+    const priceVal = typeof o.total === 'number' ? o.total : (numGals * 35);
+    const sourceText = o.channel === 'delivery' ? 'Multicab' : 'Walk-In';
+    const guestName = (o.note || (o.channel === 'delivery' ? 'Multicab Route Customer' : 'Walk-in Customer')).replace(/"/g, '""');
     const dateTimeStr = o.time ? `${todayDate} ${o.time}` : formatReportDateTime(o.timestamp);
     const remarks = (o.note || '').replace(/"/g, '""');
 
     return [
       `"${o.orderNo || '#ORD-0000'}"`,
       `"${guestName}"`,
-      `"${(Number(o.gallons) || 1).toLocaleString()}"`,
+      `"${numGals.toLocaleString()}"`,
       `"${sourceText}"`,
       `"${dateTimeStr}"`,
-      `"${formatPeso(fareVal)}"`,
-      `"${formatPeso(taxVal)}"`,
-      `"${formatPeso(totalVal)}"`,
-      `"${isPaid ? 'Booked' : 'Refund'}"`,
+      `"${formatPeso(priceVal)}"`,
+      `"${isPaid ? 'Paid' : 'Pending'}"`,
       `"${remarks}"`
     ].join(',');
   }) : [
-    '"NO ORDERS RECORDED","---","0","---","---","0.00","0.00","0.00","N/A","Clean Shift State - No Orders Logged Yet"'
+    '"NO ORDERS RECORDED","---","0","---","---","0.00","N/A","Clean Shift State - No Orders Logged Yet"'
   ];
 
   const lines = [
@@ -3485,15 +3491,13 @@ function exportReportAestheticCSV(allOrders = false) {
     '# ==============================================================================',
     '',
     [
-      '"Booking No"',
-      '"Customer / Guest"',
+      '"Order No"',
+      '"Customer"',
       '"Dispensed (Gals)"',
-      '"Source Channel"',
+      '"Source"',
       '"Date & Time"',
-      '"Base Fare (PHP)"',
-      '"Tax / Pending (PHP)"',
-      '"Total Revenue (PHP)"',
-      '"Payment Status"',
+      '"Price (PHP)"',
+      '"Status"',
       '"Delivery Notes / Remarks"'
     ].join(','),
     ...dataRows,
@@ -3503,8 +3507,6 @@ function exportReportAestheticCSV(allOrders = false) {
       `"${totalGallons.toLocaleString()}"`,
       '"---"',
       `"${orders.length.toLocaleString()} Transactions"`,
-      `"${formatPeso(totalFare)}"`,
-      `"${formatPeso(totalTax)}"`,
       `"${formatPeso(totalRevenue)}"`,
       `"${settlementRate}% Settled"`,
       '"Ledger Audit Complete"'
@@ -3541,7 +3543,61 @@ function exportReportExcelCSV() {
 }
 
 function bindReportEvents() {
-  // Period filter dropdown (Monthly, Weekly, Yearly, Today, All Time)
+  // Custom Modern Period Dropdown Setup
+  const periodDropdown = document.getElementById('reportPeriodDropdown');
+  const btnPeriodTrigger = document.getElementById('btnReportPeriodTrigger');
+  const periodActiveLabel = document.getElementById('reportPeriodActiveLabel');
+  const periodMenu = document.getElementById('reportPeriodMenu');
+
+  if (periodDropdown && btnPeriodTrigger && periodMenu) {
+    btnPeriodTrigger.addEventListener('click', (e) => {
+      e.stopPropagation();
+      soundCtrl.playTap();
+      const isOpen = periodDropdown.classList.contains('open');
+      periodDropdown.classList.toggle('open', !isOpen);
+      btnPeriodTrigger.setAttribute('aria-expanded', String(!isOpen));
+    });
+
+    periodMenu.querySelectorAll('.period-menu-option').forEach(opt => {
+      opt.addEventListener('click', (e) => {
+        e.stopPropagation();
+        soundCtrl.playTap();
+        const val = opt.getAttribute('data-value');
+        const titleText = opt.querySelector('.period-opt-title')?.textContent || val;
+
+        periodMenu.querySelectorAll('.period-menu-option').forEach(o => o.classList.remove('active'));
+        opt.classList.add('active');
+        if (periodActiveLabel) periodActiveLabel.textContent = titleText;
+
+        periodDropdown.classList.remove('open');
+        btnPeriodTrigger.setAttribute('aria-expanded', 'false');
+
+        const periodSelect = document.getElementById('reportFilterPeriod');
+        if (periodSelect) periodSelect.value = val;
+
+        State.reportPeriod = val;
+        State.reportPage = 1;
+        renderReports();
+        showToast(`Switched report to ${titleText}`);
+      });
+    });
+
+    document.addEventListener('click', (e) => {
+      if (!periodDropdown.contains(e.target)) {
+        periodDropdown.classList.remove('open');
+        btnPeriodTrigger.setAttribute('aria-expanded', 'false');
+      }
+    });
+
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && periodDropdown.classList.contains('open')) {
+        periodDropdown.classList.remove('open');
+        btnPeriodTrigger.setAttribute('aria-expanded', 'false');
+      }
+    });
+  }
+
+  // Period filter dropdown fallback (Monthly, Weekly, Yearly, Today, All Time)
   const periodSelect = document.getElementById('reportFilterPeriod');
   if (periodSelect) {
     periodSelect.addEventListener('change', (e) => {
@@ -3652,7 +3708,7 @@ function bindReportEvents() {
     });
   }
 
-  // Full Deep Dive Report Button
+  // Full Deep Dive Report Buttons & Triggers
   const btnOpenDeepDive = document.getElementById('btnOpenDeepDiveReport');
   if (btnOpenDeepDive) {
     btnOpenDeepDive.addEventListener('click', () => {
@@ -3660,6 +3716,37 @@ function bindReportEvents() {
       toggleDeepDiveReport(true);
     });
   }
+
+  const btnCalloutDeepDive = document.getElementById('btnCalloutOpenDeepDive');
+  if (btnCalloutDeepDive) {
+    btnCalloutDeepDive.addEventListener('click', () => {
+      soundCtrl.playTap();
+      toggleDeepDiveReport(true);
+    });
+  }
+
+  const btnBreadcrumbDeepDive = document.getElementById('btnBreadcrumbDeepDive');
+  if (btnBreadcrumbDeepDive) {
+    btnBreadcrumbDeepDive.addEventListener('click', () => {
+      soundCtrl.playTap();
+      toggleDeepDiveReport(true);
+    });
+  }
+
+  // Interactive sparkline cards trigger deep dive
+  document.querySelectorAll('.sparkline-card.interactive').forEach(card => {
+    card.addEventListener('click', () => {
+      soundCtrl.playTap();
+      toggleDeepDiveReport(true);
+    });
+    card.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        soundCtrl.playTap();
+        toggleDeepDiveReport(true);
+      }
+    });
+  });
 
   // Back to Standard Report Button
   const btnBackStd = document.getElementById('btnBackToStandardReport');
@@ -6334,5 +6421,238 @@ function renderShiftSummaryReceipt(currentUser) {
       <div>*** R&amp;R WATER POS SYSTEM ***</div>
     </div>
   `;
+}
+
+/* ==========================================================================
+   ORGANIC FLOWING WATER MOVING BACKGROUND ANIMATION ENGINE
+   ========================================================================== */
+function initFlowingWaterBackground() {
+  const canvas = document.getElementById('waterFlowCanvas');
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+  if (!ctx) return;
+
+  let width = 0;
+  let height = 0;
+  let animFrameId = null;
+  let isRunning = true;
+  let time = 0;
+
+  // Wave ribbons with varying speeds, wavelengths, depths, and amplitudes
+  const waveLayers = [
+    { amp: 26, wavelength: 440, speed: 0.00072, yOffset: 0.18, opacityLight: 0.045, opacityDark: 0.08, color: [2, 132, 199] },
+    { amp: 36, wavelength: 680, speed: 0.00052, yOffset: 0.42, opacityLight: 0.055, opacityDark: 0.09, color: [56, 189, 248] },
+    { amp: 30, wavelength: 540, speed: -0.00062, yOffset: 0.66, opacityLight: 0.04, opacityDark: 0.07, color: [14, 165, 233] },
+    { amp: 42, wavelength: 820, speed: 0.00042, yOffset: 0.88, opacityLight: 0.048, opacityDark: 0.08, color: [3, 105, 161] }
+  ];
+
+  // Shimmering Caustics (sunlight refractions through flowing water)
+  const caustics = [
+    { xPhase: 0, yOffset: 0.32, width: 420, speed: 0.00078, amp: 18 },
+    { xPhase: 2.4, yOffset: 0.62, width: 480, speed: -0.00058, amp: 24 },
+    { xPhase: 4.8, yOffset: 0.82, width: 360, speed: 0.00095, amp: 15 }
+  ];
+
+  // Drifting buoyant micro-bubbles
+  const bubbleCount = 24;
+  const bubbles = [];
+  for (let i = 0; i < bubbleCount; i++) {
+    bubbles.push({
+      x: Math.random() * (window.innerWidth || 1200),
+      y: Math.random() * (window.innerHeight || 800),
+      r: 1.5 + Math.random() * 3.5,
+      speedX: 0.18 + Math.random() * 0.42,
+      speedY: -0.12 - Math.random() * 0.28,
+      wobbleSpeed: 0.0018 + Math.random() * 0.003,
+      wobbleAmp: 10 + Math.random() * 16,
+      alpha: 0.2 + Math.random() * 0.4
+    });
+  }
+
+  // Interactive radial water ripples (gentle splash/ripple upon clicking or tapping)
+  const ripples = [];
+  function addRipple(x, y) {
+    if (ripples.length > 8) ripples.shift();
+    ripples.push({
+      x,
+      y,
+      radius: 0,
+      maxRadius: Math.min(width || 800, height || 600) * 0.35,
+      alpha: 0.4,
+      speed: 2.8,
+      rings: [0, 0.3, 0.6]
+    });
+  }
+
+  document.addEventListener('pointerdown', (e) => {
+    if (e.button === 0 || e.pointerType === 'touch') {
+      addRipple(e.clientX, e.clientY);
+    }
+  }, { passive: true });
+
+  function resize() {
+    const dpr = Math.min(window.devicePixelRatio || 1, 2);
+    width = window.innerWidth;
+    height = window.innerHeight;
+    canvas.width = Math.floor(width * dpr);
+    canvas.height = Math.floor(height * dpr);
+    canvas.style.width = width + 'px';
+    canvas.style.height = height + 'px';
+    ctx.setTransform(1, 0, 0, 1, 0, 0);
+    ctx.scale(dpr, dpr);
+  }
+
+  window.addEventListener('resize', resize, { passive: true });
+  resize();
+
+  // Animation Loop
+  let lastTimestamp = performance.now();
+
+  function draw(now) {
+    if (!isRunning) return;
+    const delta = Math.min(now - lastTimestamp, 100);
+    lastTimestamp = now;
+    time += delta;
+
+    ctx.clearRect(0, 0, width, height);
+
+    const isLight = document.body.classList.contains('light-mode');
+
+    // 1. Draw flowing multi-frequency wave layers
+    for (let i = 0; i < waveLayers.length; i++) {
+      const l = waveLayers[i];
+      const opacity = isLight ? l.opacityLight : l.opacityDark;
+      const baseColor = l.color;
+      const centerY = height * l.yOffset;
+      const phase = time * l.speed;
+
+      ctx.beginPath();
+      ctx.moveTo(0, height);
+      ctx.lineTo(0, centerY);
+
+      // Draw sinusoidal current with harmonic perturbation
+      const step = 24;
+      for (let x = 0; x <= width + step; x += step) {
+        const wave1 = Math.sin((x / l.wavelength) * Math.PI * 2 + phase) * l.amp;
+        const wave2 = Math.cos((x / (l.wavelength * 0.55)) * Math.PI * 2 + phase * 1.3) * (l.amp * 0.35);
+        const y = centerY + wave1 + wave2;
+        ctx.lineTo(x, y);
+      }
+
+      ctx.lineTo(width, height);
+      ctx.closePath();
+
+      // Soft vertical aquatic gradient
+      const grad = ctx.createLinearGradient(0, centerY - l.amp, 0, height);
+      grad.addColorStop(0, `rgba(${baseColor[0]}, ${baseColor[1]}, ${baseColor[2]}, ${opacity})`);
+      grad.addColorStop(0.5, `rgba(${baseColor[0]}, ${baseColor[1]}, ${baseColor[2]}, ${opacity * 0.5})`);
+      grad.addColorStop(1, `rgba(${baseColor[0]}, ${baseColor[1]}, ${baseColor[2]}, 0)`);
+
+      ctx.fillStyle = grad;
+      ctx.fill();
+    }
+
+    // 2. Draw gentle shimmering caustics (sunlight refractions)
+    for (let c = 0; c < caustics.length; c++) {
+      const item = caustics[c];
+      const cPhase = time * item.speed + item.xPhase;
+      const yMid = height * item.yOffset;
+      const shimmerAlpha = (0.5 + 0.5 * Math.sin(time * 0.0012 + item.xPhase)) * (isLight ? 0.035 : 0.06);
+
+      ctx.save();
+      ctx.beginPath();
+      for (let x = 0; x <= width; x += 36) {
+        const cy = yMid + Math.sin((x / item.width) * Math.PI * 2 + cPhase) * item.amp + Math.cos(cPhase * 0.7) * 8;
+        if (x === 0) ctx.moveTo(x, cy);
+        else ctx.lineTo(x, cy);
+      }
+      ctx.strokeStyle = isLight
+        ? `rgba(56, 189, 248, ${shimmerAlpha})`
+        : `rgba(186, 230, 253, ${shimmerAlpha * 1.3})`;
+      ctx.lineWidth = 14;
+      ctx.lineCap = 'round';
+      ctx.lineJoin = 'round';
+      ctx.filter = 'blur(10px)';
+      ctx.stroke();
+      ctx.restore();
+    }
+
+    // 3. Draw drifting buoyant micro-bubbles
+    for (let b = 0; b < bubbles.length; b++) {
+      const bub = bubbles[b];
+      bub.x += bub.speedX;
+      bub.y += bub.speedY;
+
+      // Wrap around bounds
+      if (bub.x > width + 20) {
+        bub.x = -20;
+        bub.y = Math.random() * height;
+      }
+      if (bub.y < -20) {
+        bub.y = height + 20;
+        bub.x = Math.random() * width;
+      }
+
+      const wobble = Math.sin(time * bub.wobbleSpeed) * 3;
+      const currentX = bub.x + wobble;
+
+      ctx.beginPath();
+      ctx.arc(currentX, bub.y, bub.r, 0, Math.PI * 2);
+
+      const bColor = isLight ? 'rgba(2, 132, 199, ' : 'rgba(56, 189, 248, ';
+      ctx.fillStyle = `${bColor}${bub.alpha * (isLight ? 0.25 : 0.35)})`;
+      ctx.fill();
+
+      // Bubble highlight dot
+      ctx.beginPath();
+      ctx.arc(currentX - bub.r * 0.3, bub.y - bub.r * 0.3, bub.r * 0.35, 0, Math.PI * 2);
+      ctx.fillStyle = isLight ? 'rgba(255, 255, 255, 0.4)' : 'rgba(255, 255, 255, 0.6)';
+      ctx.fill();
+    }
+
+    // 4. Draw interactive water ripples
+    for (let r = ripples.length - 1; r >= 0; r--) {
+      const rip = ripples[r];
+      rip.radius += rip.speed;
+      rip.alpha -= 0.007;
+
+      if (rip.alpha <= 0 || rip.radius >= rip.maxRadius) {
+        ripples.splice(r, 1);
+        continue;
+      }
+
+      for (let ringIdx = 0; ringIdx < rip.rings.length; ringIdx++) {
+        const ringRadius = rip.radius * (1 - rip.rings[ringIdx] * 0.3);
+        if (ringRadius > 0) {
+          ctx.beginPath();
+          ctx.arc(rip.x, rip.y, ringRadius, 0, Math.PI * 2);
+          const ringAlpha = rip.alpha * (1 - ringIdx * 0.28) * (isLight ? 0.3 : 0.45);
+          ctx.strokeStyle = isLight
+            ? `rgba(2, 132, 199, ${ringAlpha})`
+            : `rgba(56, 189, 248, ${ringAlpha})`;
+          ctx.lineWidth = Math.max(1, 2.5 - (rip.radius / rip.maxRadius) * 1.5);
+          ctx.stroke();
+        }
+      }
+    }
+
+    animFrameId = requestAnimationFrame(draw);
+  }
+
+  // Auto-pause when page/tab is hidden to save battery & CPU
+  document.addEventListener('visibilitychange', () => {
+    if (document.hidden) {
+      isRunning = false;
+      if (animFrameId) cancelAnimationFrame(animFrameId);
+    } else {
+      if (!isRunning) {
+        isRunning = true;
+        lastTimestamp = performance.now();
+        animFrameId = requestAnimationFrame(draw);
+      }
+    }
+  });
+
+  animFrameId = requestAnimationFrame(draw);
 }
 
