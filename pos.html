@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>R&R Water - Station POS</title>
-  <link rel="stylesheet" href="pos.css">
+  <link rel="stylesheet" href="pos.css?v=2.6.0">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700;800&display=swap" rel="stylesheet">
@@ -164,6 +164,12 @@
               <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
             </svg>
             <span class="header-status-indicator" title="Live Station Systems Active"></span>
+          </button>
+
+          <!-- Station Live Summary Header Mini-Tab Pill -->
+          <button type="button" class="header-summary-pill-btn" id="btnHeaderSummaryPill" title="Station Live Summary &amp; All Functions (Sales, Drivers, Shift, Shortcuts)" aria-label="Open Station Summary">
+            <span class="header-summary-pulse-dot">●</span>
+            <span class="header-summary-pill-label">Summary</span>
           </button>
 
           <!-- Empties Ledger / Carboy Tracking Button (F8) -->
@@ -3153,6 +3159,6 @@
     </div>
   </aside>
 
-  <script src="pos.js"></script>
+  <script src="pos.js?v=2.6.0"></script>
 </body>
 </html>

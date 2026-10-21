@@ -220,9 +220,9 @@ body:not(.light-mode) .kp-mode-tab.active .ui-icon-xs {
    ========================================================================== */
 .sidebar {
   width: 220px;
-  background-color: var(--bg-sidebar);
-  backdrop-filter: blur(14px);
-  -webkit-backdrop-filter: blur(14px);
+  background-color: rgba(229, 232, 240, 0.85);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
   border-right: 1px solid var(--border-subtle);
   display: flex;
   flex-direction: column;
@@ -9360,21 +9360,24 @@ body:not(.light-mode) .meta-badge.emerald {
    STATION LIVE SUMMARY SIDE DRAWER & FLOATING MINITAB
    ========================================================================== */
 
-/* Header Bell Button Highlight */
+/* Header Bell Button Highlight (Circular button matching user image) */
 .btn-header-summary {
   position: relative;
-  border-color: #38bdf8 !important;
-  box-shadow: 0 0 0 1px rgba(56, 189, 248, 0.25) !important;
+  border: 1.5px solid #38bdf8 !important;
+  box-shadow: 0 0 0 2px rgba(56, 189, 248, 0.22) !important;
+  background-color: var(--bg-surface) !important;
 }
 
 body:not(.light-mode) .btn-header-summary {
-  border-color: #0284c7 !important;
-  box-shadow: 0 0 0 1px rgba(2, 132, 199, 0.35) !important;
+  border: 1.5px solid #0284c7 !important;
+  box-shadow: 0 0 0 2px rgba(2, 132, 199, 0.32) !important;
+  background-color: var(--bg-card) !important;
 }
 
 .btn-header-summary:hover {
   border-color: var(--color-primary) !important;
-  box-shadow: 0 0 0 2px rgba(2, 132, 199, 0.25) !important;
+  box-shadow: 0 0 0 3px rgba(2, 132, 199, 0.28) !important;
+  transform: translateY(-1px);
 }
 
 .header-status-indicator {
@@ -9387,6 +9390,49 @@ body:not(.light-mode) .btn-header-summary {
   background-color: #10b981;
   box-shadow: 0 0 0 1.5px var(--bg-surface);
   animation: pulseStatusDot 2s infinite ease-in-out;
+}
+
+/* Header Summary Mini-Tab Pill Button */
+.header-summary-pill-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  background-color: var(--bg-surface);
+  border: 1.5px solid #38bdf8;
+  border-radius: var(--radius-full);
+  padding: 6px 14px;
+  font-family: var(--font-sans);
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--text-main);
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.05);
+  outline: none;
+  user-select: none;
+}
+
+body:not(.light-mode) .header-summary-pill-btn {
+  background-color: var(--bg-card);
+  border-color: #0284c7;
+}
+
+.header-summary-pill-btn:hover {
+  border-color: var(--color-primary);
+  background-color: var(--bg-card-hover);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 14px rgba(2, 132, 199, 0.2);
+}
+
+.header-summary-pulse-dot {
+  font-size: 0.75rem;
+  color: #10b981;
+  line-height: 1;
+  animation: pulseStatusDot 2s infinite ease-in-out;
+}
+
+.header-summary-pill-label {
+  letter-spacing: 0.02em;
 }
 
 @keyframes pulseStatusDot {
@@ -9402,12 +9448,12 @@ body:not(.light-mode) .btn-header-summary {
   transform: translateY(-50%);
   z-index: 990;
   background: var(--bg-surface);
-  border: 1px solid var(--border-subtle);
+  border: 1.5px solid #0284c7;
   border-right: none;
   border-radius: 12px 0 0 12px;
-  padding: 10px 8px;
+  padding: 12px 9px;
   cursor: pointer;
-  box-shadow: -4px 4px 18px rgba(0, 0, 0, 0.08);
+  box-shadow: -4px 6px 20px rgba(2, 132, 199, 0.18);
   transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
   outline: none;
   color: var(--text-main);
@@ -9416,14 +9462,14 @@ body:not(.light-mode) .btn-header-summary {
 
 body:not(.light-mode) .floating-side-minitab {
   background: var(--bg-card);
-  border-color: var(--border-subtle);
-  box-shadow: -4px 4px 20px rgba(0, 0, 0, 0.4);
+  border-color: #38bdf8;
+  box-shadow: -4px 6px 22px rgba(0, 0, 0, 0.45);
 }
 
 .floating-side-minitab:hover {
-  transform: translateY(-50%) translateX(-3px);
+  transform: translateY(-50%) translateX(-4px);
   border-color: var(--color-primary);
-  box-shadow: -6px 6px 22px rgba(2, 132, 199, 0.18);
+  box-shadow: -6px 8px 26px rgba(2, 132, 199, 0.28);
 }
 
 .side-tab-pill {

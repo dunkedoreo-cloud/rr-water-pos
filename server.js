@@ -237,12 +237,13 @@ const server = http.createServer(async (req, res) => {
     const ext = path.extname(filePath).toLowerCase();
     const contentType = MIME_TYPES[ext] || 'application/octet-stream';
 
-    // Enable aggressive caching for static assets, no-cache for index.html/manifest
-    const isDynamic = pathname === '/index.html' || pathname === '/pos.html' || pathname.endsWith('.json');
+    // Station terminal asset headers: Always ensure immediate hot reload and fresh assets during station operations
     res.writeHead(200, {
       'Content-Type': contentType,
       'Access-Control-Allow-Origin': '*',
-      'Cache-Control': isDynamic ? 'no-cache, must-revalidate' : 'public, max-age=86400'
+      'Cache-Control': 'no-cache, no-store, must-revalidate, max-age=0',
+      'Pragma': 'no-cache',
+      'Expires': '0'
     });
 
     const stream = fs.createReadStream(filePath);

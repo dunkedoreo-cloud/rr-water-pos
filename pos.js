@@ -1110,15 +1110,6 @@ function bindEvents() {
     btnModalCancel.addEventListener('click', closeConfirmModal);
   }
 
-  // Header notifications / Live station summary mini-tab action
-  const btnNotif = document.getElementById('btnNotifications');
-  if (btnNotif) {
-    btnNotif.addEventListener('click', (e) => {
-      e.stopPropagation();
-      toggleStationSummaryDrawer();
-    });
-  }
-
   // Lock Terminal Button
   const btnLockTerm = document.getElementById('btnLockTerminal');
   if (btnLockTerm) {
@@ -6439,57 +6430,57 @@ function initFlowingWaterBackground() {
   let isRunning = true;
   let time = 0;
 
-  // Wave ribbons with varying speeds, wavelengths, depths, and amplitudes
+  // Wave ribbons with distinct visible amplitudes, harmonic currents, crest strokes and gradients
   const waveLayers = [
-    { amp: 26, wavelength: 440, speed: 0.00072, yOffset: 0.18, opacityLight: 0.045, opacityDark: 0.08, color: [2, 132, 199] },
-    { amp: 36, wavelength: 680, speed: 0.00052, yOffset: 0.42, opacityLight: 0.055, opacityDark: 0.09, color: [56, 189, 248] },
-    { amp: 30, wavelength: 540, speed: -0.00062, yOffset: 0.66, opacityLight: 0.04, opacityDark: 0.07, color: [14, 165, 233] },
-    { amp: 42, wavelength: 820, speed: 0.00042, yOffset: 0.88, opacityLight: 0.048, opacityDark: 0.08, color: [3, 105, 161] }
+    { amp: 32, wavelength: 480, speed: 0.00082, yOffset: 0.16, opacityLight: 0.14, opacityDark: 0.16, color: [2, 132, 199], strokeLight: 0.38, strokeDark: 0.48 },
+    { amp: 44, wavelength: 720, speed: 0.00056, yOffset: 0.38, opacityLight: 0.12, opacityDark: 0.14, color: [56, 189, 248], strokeLight: 0.32, strokeDark: 0.42 },
+    { amp: 38, wavelength: 560, speed: -0.00068, yOffset: 0.62, opacityLight: 0.13, opacityDark: 0.15, color: [14, 165, 233], strokeLight: 0.35, strokeDark: 0.45 },
+    { amp: 52, wavelength: 860, speed: 0.00045, yOffset: 0.84, opacityLight: 0.16, opacityDark: 0.18, color: [3, 105, 161], strokeLight: 0.42, strokeDark: 0.52 }
   ];
 
   // Shimmering Caustics (sunlight refractions through flowing water)
   const caustics = [
-    { xPhase: 0, yOffset: 0.32, width: 420, speed: 0.00078, amp: 18 },
-    { xPhase: 2.4, yOffset: 0.62, width: 480, speed: -0.00058, amp: 24 },
-    { xPhase: 4.8, yOffset: 0.82, width: 360, speed: 0.00095, amp: 15 }
+    { xPhase: 0, yOffset: 0.28, width: 440, speed: 0.00085, amp: 20 },
+    { xPhase: 2.4, yOffset: 0.54, width: 500, speed: -0.00065, amp: 26 },
+    { xPhase: 4.8, yOffset: 0.78, width: 380, speed: 0.00098, amp: 18 }
   ];
 
   // Drifting buoyant micro-bubbles
-  const bubbleCount = 24;
+  const bubbleCount = 28;
   const bubbles = [];
   for (let i = 0; i < bubbleCount; i++) {
     bubbles.push({
       x: Math.random() * (window.innerWidth || 1200),
       y: Math.random() * (window.innerHeight || 800),
-      r: 1.5 + Math.random() * 3.5,
-      speedX: 0.18 + Math.random() * 0.42,
-      speedY: -0.12 - Math.random() * 0.28,
+      r: 1.8 + Math.random() * 3.8,
+      speedX: 0.2 + Math.random() * 0.45,
+      speedY: -0.15 - Math.random() * 0.32,
       wobbleSpeed: 0.0018 + Math.random() * 0.003,
       wobbleAmp: 10 + Math.random() * 16,
-      alpha: 0.2 + Math.random() * 0.4
+      alpha: 0.4 + Math.random() * 0.4
     });
   }
 
   // Interactive radial water ripples (gentle splash/ripple upon clicking or tapping)
   const ripples = [];
   function addRipple(x, y) {
-    if (ripples.length > 8) ripples.shift();
+    if (ripples.length > 10) ripples.shift();
     ripples.push({
       x,
       y,
       radius: 0,
-      maxRadius: Math.min(width || 800, height || 600) * 0.35,
-      alpha: 0.4,
-      speed: 2.8,
-      rings: [0, 0.3, 0.6]
+      maxRadius: Math.min(width || 1000, height || 800) * 0.38,
+      alpha: 0.6,
+      speed: 3.2,
+      rings: [0, 0.28, 0.56]
     });
   }
 
-  document.addEventListener('pointerdown', (e) => {
+  window.addEventListener('pointerdown', (e) => {
     if (e.button === 0 || e.pointerType === 'touch') {
       addRipple(e.clientX, e.clientY);
     }
-  }, { passive: true });
+  }, { capture: true, passive: true });
 
   function resize() {
     const dpr = Math.min(window.devicePixelRatio || 1, 2);
@@ -6519,35 +6510,48 @@ function initFlowingWaterBackground() {
 
     const isLight = document.body.classList.contains('light-mode');
 
-    // 1. Draw flowing multi-frequency wave layers
+    // 1. Draw flowing multi-frequency wave layers with visible crest lines & fluid fills
     for (let i = 0; i < waveLayers.length; i++) {
       const l = waveLayers[i];
       const opacity = isLight ? l.opacityLight : l.opacityDark;
+      const strokeAlpha = isLight ? l.strokeLight : l.strokeDark;
       const baseColor = l.color;
       const centerY = height * l.yOffset;
       const phase = time * l.speed;
 
       ctx.beginPath();
-      ctx.moveTo(0, height);
-      ctx.lineTo(0, centerY);
-
-      // Draw sinusoidal current with harmonic perturbation
-      const step = 24;
+      let firstX = 0, firstY = centerY;
+      const step = 18;
       for (let x = 0; x <= width + step; x += step) {
         const wave1 = Math.sin((x / l.wavelength) * Math.PI * 2 + phase) * l.amp;
-        const wave2 = Math.cos((x / (l.wavelength * 0.55)) * Math.PI * 2 + phase * 1.3) * (l.amp * 0.35);
+        const wave2 = Math.cos((x / (l.wavelength * 0.55)) * Math.PI * 2 + phase * 1.35) * (l.amp * 0.35);
         const y = centerY + wave1 + wave2;
-        ctx.lineTo(x, y);
+        if (x === 0) {
+          firstX = x;
+          firstY = y;
+          ctx.moveTo(x, y);
+        } else {
+          ctx.lineTo(x, y);
+        }
       }
 
+      // Draw visible water crest curve
+      ctx.save();
+      ctx.strokeStyle = `rgba(${baseColor[0]}, ${baseColor[1]}, ${baseColor[2]}, ${strokeAlpha})`;
+      ctx.lineWidth = 2.0;
+      ctx.stroke();
+      ctx.restore();
+
+      // Close path to bottom of viewport for liquid gradient
       ctx.lineTo(width, height);
+      ctx.lineTo(0, height);
+      ctx.lineTo(firstX, firstY);
       ctx.closePath();
 
-      // Soft vertical aquatic gradient
       const grad = ctx.createLinearGradient(0, centerY - l.amp, 0, height);
       grad.addColorStop(0, `rgba(${baseColor[0]}, ${baseColor[1]}, ${baseColor[2]}, ${opacity})`);
-      grad.addColorStop(0.5, `rgba(${baseColor[0]}, ${baseColor[1]}, ${baseColor[2]}, ${opacity * 0.5})`);
-      grad.addColorStop(1, `rgba(${baseColor[0]}, ${baseColor[1]}, ${baseColor[2]}, 0)`);
+      grad.addColorStop(0.35, `rgba(${baseColor[0]}, ${baseColor[1]}, ${baseColor[2]}, ${opacity * 0.6})`);
+      grad.addColorStop(1, `rgba(${baseColor[0]}, ${baseColor[1]}, ${baseColor[2]}, ${opacity * 0.1})`);
 
       ctx.fillStyle = grad;
       ctx.fill();
@@ -6558,19 +6562,19 @@ function initFlowingWaterBackground() {
       const item = caustics[c];
       const cPhase = time * item.speed + item.xPhase;
       const yMid = height * item.yOffset;
-      const shimmerAlpha = (0.5 + 0.5 * Math.sin(time * 0.0012 + item.xPhase)) * (isLight ? 0.035 : 0.06);
+      const shimmerAlpha = (0.5 + 0.5 * Math.sin(time * 0.0014 + item.xPhase)) * (isLight ? 0.07 : 0.11);
 
       ctx.save();
       ctx.beginPath();
-      for (let x = 0; x <= width; x += 36) {
-        const cy = yMid + Math.sin((x / item.width) * Math.PI * 2 + cPhase) * item.amp + Math.cos(cPhase * 0.7) * 8;
+      for (let x = 0; x <= width; x += 32) {
+        const cy = yMid + Math.sin((x / item.width) * Math.PI * 2 + cPhase) * item.amp + Math.cos(cPhase * 0.7) * 9;
         if (x === 0) ctx.moveTo(x, cy);
         else ctx.lineTo(x, cy);
       }
       ctx.strokeStyle = isLight
-        ? `rgba(56, 189, 248, ${shimmerAlpha})`
+        ? `rgba(2, 132, 199, ${shimmerAlpha})`
         : `rgba(186, 230, 253, ${shimmerAlpha * 1.3})`;
-      ctx.lineWidth = 14;
+      ctx.lineWidth = 16;
       ctx.lineCap = 'round';
       ctx.lineJoin = 'round';
       ctx.filter = 'blur(10px)';
@@ -6594,20 +6598,23 @@ function initFlowingWaterBackground() {
         bub.x = Math.random() * width;
       }
 
-      const wobble = Math.sin(time * bub.wobbleSpeed) * 3;
+      const wobble = Math.sin(time * bub.wobbleSpeed) * 3.5;
       const currentX = bub.x + wobble;
 
       ctx.beginPath();
       ctx.arc(currentX, bub.y, bub.r, 0, Math.PI * 2);
 
       const bColor = isLight ? 'rgba(2, 132, 199, ' : 'rgba(56, 189, 248, ';
-      ctx.fillStyle = `${bColor}${bub.alpha * (isLight ? 0.25 : 0.35)})`;
+      ctx.fillStyle = `${bColor}${bub.alpha * (isLight ? 0.35 : 0.45)})`;
       ctx.fill();
+      ctx.strokeStyle = `${bColor}${bub.alpha * (isLight ? 0.65 : 0.75)})`;
+      ctx.lineWidth = 1.0;
+      ctx.stroke();
 
       // Bubble highlight dot
       ctx.beginPath();
       ctx.arc(currentX - bub.r * 0.3, bub.y - bub.r * 0.3, bub.r * 0.35, 0, Math.PI * 2);
-      ctx.fillStyle = isLight ? 'rgba(255, 255, 255, 0.4)' : 'rgba(255, 255, 255, 0.6)';
+      ctx.fillStyle = isLight ? 'rgba(255, 255, 255, 0.7)' : 'rgba(255, 255, 255, 0.85)';
       ctx.fill();
     }
 
@@ -6615,7 +6622,7 @@ function initFlowingWaterBackground() {
     for (let r = ripples.length - 1; r >= 0; r--) {
       const rip = ripples[r];
       rip.radius += rip.speed;
-      rip.alpha -= 0.007;
+      rip.alpha -= 0.008;
 
       if (rip.alpha <= 0 || rip.radius >= rip.maxRadius) {
         ripples.splice(r, 1);
@@ -6627,7 +6634,7 @@ function initFlowingWaterBackground() {
         if (ringRadius > 0) {
           ctx.beginPath();
           ctx.arc(rip.x, rip.y, ringRadius, 0, Math.PI * 2);
-          const ringAlpha = rip.alpha * (1 - ringIdx * 0.28) * (isLight ? 0.3 : 0.45);
+          const ringAlpha = rip.alpha * (1 - ringIdx * 0.28) * (isLight ? 0.45 : 0.6);
           ctx.strokeStyle = isLight
             ? `rgba(2, 132, 199, ${ringAlpha})`
             : `rgba(56, 189, 248, ${ringAlpha})`;
@@ -6783,22 +6790,26 @@ function updateStationSummaryDrawer() {
 
 function initStationSummaryDrawer() {
   const btnNotif = document.getElementById('btnNotifications');
+  const btnHeaderPill = document.getElementById('btnHeaderSummaryPill');
   const floatingTab = document.getElementById('floatingSideMinitab');
   const btnClose = document.getElementById('btnSummaryDrawerClose');
   const overlay = document.getElementById('stationSummaryOverlay');
 
+  const handleOpen = (e) => {
+    if (e) e.stopPropagation();
+    toggleStationSummaryDrawer();
+  };
+
   if (btnNotif) {
-    btnNotif.addEventListener('click', (e) => {
-      e.stopPropagation();
-      toggleStationSummaryDrawer();
-    });
+    btnNotif.addEventListener('click', handleOpen);
+  }
+
+  if (btnHeaderPill) {
+    btnHeaderPill.addEventListener('click', handleOpen);
   }
 
   if (floatingTab) {
-    floatingTab.addEventListener('click', (e) => {
-      e.stopPropagation();
-      toggleStationSummaryDrawer();
-    });
+    floatingTab.addEventListener('click', handleOpen);
   }
 
   if (btnClose) {
