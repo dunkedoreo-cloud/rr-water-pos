@@ -2,28 +2,28 @@
 // R&R Water Refilling Station - Service Worker (Offline-First PWA)
 // ==========================================================================
 
-const CACHE_NAME = 'rr-water-pos-v2';
+const CACHE_NAME = 'rr-water-pos-v2.6';
 const STATIC_ASSETS = [
-  '/',
-  '/index.html',
-  '/pos.html',
-  '/pos.css',
-  '/pos.js',
-  '/manifest.json',
-  '/assets/droppy_happy.png',
-  '/assets/droppy_love.png',
-  '/assets/droppy_question.png',
-  '/assets/droppy_sad.png',
-  '/assets/droppy_sleep.png',
-  '/assets/droppy_winking.png',
-  '/assets/water_jug_3d_render.png',
-  '/assets/water_jug.png'
+  './',
+  './index.html',
+  './pos.html',
+  './pos.css?v=2.6.0',
+  './pos.js?v=2.6.0',
+  './manifest.json',
+  './assets/droppy_happy.png',
+  './assets/droppy_love.png',
+  './assets/droppy_question.png',
+  './assets/droppy_sad.png',
+  './assets/droppy_sleep.png',
+  './assets/droppy_winking.png',
+  './assets/water_jug_3d_render.png',
+  './assets/water_jug.png'
 ];
 
 self.addEventListener('install', (event) => {
   event.waitUntil(
     caches.open(CACHE_NAME).then((cache) => {
-      console.log('[ServiceWorker] Pre-caching static assets');
+      console.log('[ServiceWorker] Pre-caching static assets v2.6');
       return cache.addAll(STATIC_ASSETS).catch(err => {
         console.warn('[ServiceWorker] Some assets could not be cached immediately:', err);
       });
@@ -54,25 +54,42 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  // Stale-While-Revalidate for app assets
-  event.respondWith(
-    caches.match(event.request).then((cachedResponse) => {
-      const fetchPromise = fetch(event.request).then((networkResponse) => {
-        if (networkResponse && networkResponse.status === 200 && networkResponse.type === 'basic') {
+  // Network-First for HTML, JS, CSS to guarantee fresh updates on deployed GitHub Pages
+  const isCodeAsset = event.request.mode === 'navigate' ||
+                      url.pathname.endsWith('.html') ||
+                      url.pathname.endsWith('.js') ||
+                      url.pathname.endsWith('.css');
+
+  if (isCodeAsset) {
+    event.respondWith(
+      fetch(event.request).then((networkResponse) => {
+        if (networkResponse && networkResponse.status === 200) {
           const responseToCache = networkResponse.clone();
-          caches.open(CACHE_NAME).then((cache) => {
-            cache.put(event.request, responseToCache);
-          });
+          caches.open(CACHE_NAME).then((cache) => cache.put(event.request, responseToCache));
         }
         return networkResponse;
       }).catch(() => {
-        // Fallback for navigation when completely offline
-        if (event.request.mode === 'navigate') {
-          return caches.match('/index.html');
-        }
-      });
+        return caches.match(event.request).then((cached) => {
+          if (cached) return cached;
+          if (event.request.mode === 'navigate') {
+            return caches.match('./index.html') || caches.match('./');
+          }
+        });
+      })
+    );
+    return;
+  }
 
-      return cachedResponse || fetchPromise;
+  // Cache-First with Network fallback for static images & fonts
+  event.respondWith(
+    caches.match(event.request).then((cachedResponse) => {
+      return cachedResponse || fetch(event.request).then((networkResponse) => {
+        if (networkResponse && networkResponse.status === 200) {
+          const responseToCache = networkResponse.clone();
+          caches.open(CACHE_NAME).then((cache) => cache.put(event.request, responseToCache));
+        }
+        return networkResponse;
+      });
     })
   );
 });
