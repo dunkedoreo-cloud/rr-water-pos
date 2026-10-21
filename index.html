@@ -157,12 +157,13 @@
             </svg>
           </button>
 
-          <!-- Notification Bell (Simplified SVG Icon) -->
-          <button class="header-icon-btn" id="btnNotifications" title="Station Alerts">
+          <!-- Notification Bell / Live Station Summary Mini-Tab Trigger -->
+          <button class="header-icon-btn btn-header-summary" id="btnNotifications" title="Station Live Summary &amp; All Functions" aria-label="Station Live Summary">
             <svg class="ui-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
               <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
               <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
             </svg>
+            <span class="header-status-indicator" title="Live Station Systems Active"></span>
           </button>
 
           <!-- Empties Ledger / Carboy Tracking Button (F8) -->
@@ -2895,6 +2896,262 @@
       </div>
     </div>
   </div>
+
+  <!-- Floating Side Minitab on Screen Edge (Press to open Station Summary) -->
+  <button type="button" class="floating-side-minitab" id="floatingSideMinitab" title="Station Live Summary (Press for all functions &amp; live sales)" aria-label="Open Station Summary">
+    <div class="side-tab-pill">
+      <svg class="ui-icon-xs" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
+        <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+      </svg>
+      <span class="side-tab-text">Summary</span>
+      <span class="side-tab-dot">●</span>
+    </div>
+  </button>
+
+  <!-- Station Live Summary Slide-out Side Drawer -->
+  <div class="station-summary-overlay" id="stationSummaryOverlay" aria-hidden="true"></div>
+  <aside class="station-summary-drawer" id="stationSummaryDrawer" aria-hidden="true" role="dialog" aria-labelledby="summaryDrawerTitle">
+    <!-- Drawer Header -->
+    <div class="summary-drawer-header">
+      <div class="summary-drawer-header-left">
+        <div class="summary-drawer-icon-box">
+          <svg class="ui-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
+            <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+          </svg>
+        </div>
+        <div class="summary-drawer-title-group">
+          <div class="drawer-title-row">
+            <h3 class="drawer-title" id="summaryDrawerTitle">Station Live Summary</h3>
+            <span class="drawer-live-tag">● Live</span>
+          </div>
+          <p class="drawer-subtitle">Current sales, on-duty shift, drivers &amp; app functions</p>
+        </div>
+      </div>
+      <button type="button" class="summary-drawer-close-btn" id="btnSummaryDrawerClose" title="Close Summary (Esc)" aria-label="Close Summary">
+        <svg class="ui-icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="18" y1="6" x2="6" y2="18"></line>
+          <line x1="6" y1="6" x2="18" y2="18"></line>
+        </svg>
+      </button>
+    </div>
+
+    <!-- Drawer Scrollable Body -->
+    <div class="summary-drawer-body">
+      <!-- Section 1: Current Shift Sales -->
+      <div class="summary-section-card sales-highlight-card">
+        <div class="summary-card-header">
+          <div class="card-title-with-icon">
+            <svg class="ui-icon-xs" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"></line><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>
+            <span class="summary-card-label">Current Shift Sales</span>
+          </div>
+          <span class="summary-tag-realtime">Active Session</span>
+        </div>
+        <div class="summary-sales-hero">
+          <strong class="summary-sales-big" id="drawerShiftSales">₱0.00</strong>
+          <span class="summary-sales-sub" id="drawerShiftOrdersCount">0 orders processed today</span>
+        </div>
+        <div class="summary-metrics-grid">
+          <div class="summary-metric-box">
+            <span class="metric-lbl">Dispensed Today</span>
+            <strong class="metric-val" id="drawerShiftGallons">0 Gals</strong>
+          </div>
+          <div class="summary-metric-box">
+            <span class="metric-lbl">Cash in Drawer</span>
+            <strong class="metric-val" id="drawerShiftCash">₱0.00</strong>
+          </div>
+          <div class="summary-metric-box">
+            <span class="metric-lbl">Pending Balance</span>
+            <strong class="metric-val" id="drawerShiftUncollected">₱0.00</strong>
+          </div>
+          <div class="summary-metric-box">
+            <span class="metric-lbl">Settlement Rate</span>
+            <strong class="metric-val" id="drawerShiftPaidPct">100%</strong>
+          </div>
+        </div>
+      </div>
+
+      <!-- Section 2: Shift Personnel & Delivery Drivers -->
+      <div class="summary-section-card personnel-card">
+        <div class="summary-card-header">
+          <div class="card-title-with-icon">
+            <svg class="ui-icon-xs" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+            <span class="summary-card-label">On Duty &amp; Field Drivers</span>
+          </div>
+          <span class="summary-badge-subtle" id="drawerPersonnelBadge">3 Active</span>
+        </div>
+
+        <!-- Cashier Row -->
+        <div class="person-row-item cashier-item">
+          <div class="person-avatar-circle" id="drawerAvatarChar">N</div>
+          <div class="person-info-content">
+            <div class="person-title-row">
+              <strong class="person-name" id="drawerCashierName">Neil</strong>
+              <span class="person-badge cashier">Cashier / Lead</span>
+            </div>
+            <span class="person-sub-status" id="drawerCashierStatus">● On Duty • Counter #1 (Active: 4h 15m)</span>
+          </div>
+        </div>
+
+        <!-- Driver 1 Row -->
+        <div class="person-row-item driver-item">
+          <div class="person-avatar-circle driver-avatar">
+            <svg class="ui-icon-xs" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="3" width="15" height="13"></rect><polygon points="16 8 20 8 23 11 23 16 16 8"></polygon><circle cx="5.5" cy="18.5" r="2.5"></circle><circle cx="18.5" cy="18.5" r="2.5"></circle></svg>
+          </div>
+          <div class="person-info-content">
+            <div class="person-title-row">
+              <strong class="person-name">Kuya Jun</strong>
+              <span class="person-badge driver">Lead Driver</span>
+            </div>
+            <div class="driver-vehicle-line">Multicab #1 • Plate: ABC-1234</div>
+            <span class="person-sub-status en-route" id="drawerDriver1Status">● En Route • 3 delivery drops pending (Purok 1)</span>
+          </div>
+        </div>
+
+        <!-- Driver 2 Row -->
+        <div class="person-row-item driver-item">
+          <div class="person-avatar-circle driver-avatar">
+            <svg class="ui-icon-xs" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="3" width="15" height="13"></rect><polygon points="16 8 20 8 23 11 23 16 16 8"></polygon><circle cx="5.5" cy="18.5" r="2.5"></circle><circle cx="18.5" cy="18.5" r="2.5"></circle></svg>
+          </div>
+          <div class="person-info-content">
+            <div class="person-title-row">
+              <strong class="person-name">Mark R.</strong>
+              <span class="person-badge driver">Relief Driver</span>
+            </div>
+            <div class="driver-vehicle-line">Multicab #2 • Plate: XYZ-7890</div>
+            <span class="person-sub-status ready" id="drawerDriver2Status">● Available at Station • Ready for dispatch</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Section 3: Station Operational Health -->
+      <div class="summary-section-card ops-card">
+        <div class="summary-card-header">
+          <div class="card-title-with-icon">
+            <svg class="ui-icon-xs" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"></path></svg>
+            <span class="summary-card-label">Station Water Systems</span>
+          </div>
+          <span class="summary-badge-subtle">Operational</span>
+        </div>
+        <div class="tank-reserve-box">
+          <div class="tank-reserve-meta">
+            <span>Purified Storage Tank</span>
+            <strong id="drawerTankLevel">88% (3,520 / 4,000 L)</strong>
+          </div>
+          <div class="tank-progress-bar">
+            <div class="tank-progress-fill" style="width: 88%;"></div>
+          </div>
+        </div>
+        <div class="ops-health-checks">
+          <div class="health-check-pill">
+            <span class="check-dot">●</span>
+            <span>UV Sterilizer: Active</span>
+          </div>
+          <div class="health-check-pill">
+            <span class="check-dot">●</span>
+            <span>Ozone Disinfection: Normal</span>
+          </div>
+          <div class="health-check-pill">
+            <span class="check-dot">●</span>
+            <span>Purity TDS: 004 ppm</span>
+          </div>
+          <div class="health-check-pill">
+            <span class="check-dot">●</span>
+            <span>Ready Empties: 42 Carboys</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Section 4: All Functions on the App -->
+      <div class="summary-section-card shortcuts-card">
+        <div class="summary-card-header">
+          <div class="card-title-with-icon">
+            <svg class="ui-icon-xs" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
+            <span class="summary-card-label">All Station Functions</span>
+          </div>
+        </div>
+        <div class="function-shortcuts-list">
+          <button type="button" class="func-shortcut-row" id="shortcutNavPos">
+            <div class="func-icon-box">
+              <svg class="ui-icon-xs" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="21" r="1"></circle><circle cx="20" cy="21" r="1"></circle><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path></svg>
+            </div>
+            <div class="func-details">
+              <strong class="func-name">Walk-In POS Refill</strong>
+              <span class="func-desc">Counter refill terminal &amp; quick cash tender</span>
+            </div>
+            <svg class="func-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"></polyline></svg>
+          </button>
+
+          <button type="button" class="func-shortcut-row" id="shortcutNavDelivery">
+            <div class="func-icon-box">
+              <svg class="ui-icon-xs" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="3" width="15" height="13"></rect><polygon points="16 8 20 8 23 11 23 16 16 8"></polygon><circle cx="5.5" cy="18.5" r="2.5"></circle><circle cx="18.5" cy="18.5" r="2.5"></circle></svg>
+            </div>
+            <div class="func-details">
+              <strong class="func-name">Multicab Delivery Dispatch</strong>
+              <span class="func-desc">Route orders, customer address &amp; drops</span>
+            </div>
+            <svg class="func-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"></polyline></svg>
+          </button>
+
+          <button type="button" class="func-shortcut-row" id="shortcutNavOrders">
+            <div class="func-icon-box">
+              <svg class="ui-icon-xs" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16.5 9.4 7.5 4.21"></polyline><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path><polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline><line x1="12" y1="22.08" x2="12" y2="12"></line></svg>
+            </div>
+            <div class="func-details">
+              <strong class="func-name">Orders &amp; Collections Ledger</strong>
+              <span class="func-desc">Search, filter paid / pending balances</span>
+            </div>
+            <svg class="func-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"></polyline></svg>
+          </button>
+
+          <button type="button" class="func-shortcut-row" id="shortcutNavDeepDive">
+            <div class="func-icon-box">
+              <svg class="ui-icon-xs" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"></line><line x1="12" y1="20" x2="12" y2="4"></line><line x1="6" y1="20" x2="6" y2="14"></line></svg>
+            </div>
+            <div class="func-details">
+              <strong class="func-name">Executive Deep Dive Report</strong>
+              <span class="func-desc">12-Month bar charts, peak hours &amp; routes</span>
+            </div>
+            <svg class="func-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"></polyline></svg>
+          </button>
+
+          <button type="button" class="func-shortcut-row" id="shortcutNavEmpties">
+            <div class="func-icon-box">
+              <svg class="ui-icon-xs" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 2h10v3H7z"></path><rect x="5" y="5" width="14" height="17" rx="3"></rect><line x1="9" y1="9" x2="15" y2="9"></line><line x1="9" y1="13" x2="15" y2="13"></line></svg>
+            </div>
+            <div class="func-details">
+              <strong class="func-name">5-Gal Carboy Empties Ledger (F8)</strong>
+              <span class="func-desc">Customer container loans, returns &amp; deposits</span>
+            </div>
+            <svg class="func-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"></polyline></svg>
+          </button>
+
+          <button type="button" class="func-shortcut-row" id="shortcutNavProfile">
+            <div class="func-icon-box">
+              <svg class="ui-icon-xs" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+            </div>
+            <div class="func-details">
+              <strong class="func-name">Operator Profile &amp; Settings</strong>
+              <span class="func-desc">Cashier 4-digit PIN &amp; shift activity audit</span>
+            </div>
+            <svg class="func-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"></polyline></svg>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Drawer Sticky Footer -->
+    <div class="summary-drawer-footer">
+      <button type="button" class="btn-drawer-secondary" id="btnDrawerRefreshSync" title="Sync Live SQLite Data">
+        <svg class="ui-icon-xs" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"></polyline><polyline points="1 20 1 14 7 14"></polyline><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path></svg>
+        <span>Sync Station</span>
+      </button>
+      <button type="button" class="btn-drawer-primary" id="btnDrawerOpenReport" title="View Full Station Sales Report">
+        <span>Station Report ↗</span>
+      </button>
+    </div>
+  </aside>
 
   <script src="pos.js"></script>
 </body>

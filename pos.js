@@ -242,6 +242,7 @@ document.addEventListener('DOMContentLoaded', () => {
   initCarboySteppers();
   initThermalReceiptModal();
   initCarboyEmptiesModal();
+  initStationSummaryDrawer();
   initKeyboardShortcuts();
   initOfflinePWA();
   renderPresets();
@@ -1109,12 +1110,12 @@ function bindEvents() {
     btnModalCancel.addEventListener('click', closeConfirmModal);
   }
 
-  // Header notifications action
+  // Header notifications / Live station summary mini-tab action
   const btnNotif = document.getElementById('btnNotifications');
   if (btnNotif) {
-    btnNotif.addEventListener('click', () => {
-      soundCtrl.playTap();
-      showToast('Station Alerts: All filtration & UV units 100% operational.');
+    btnNotif.addEventListener('click', (e) => {
+      e.stopPropagation();
+      toggleStationSummaryDrawer();
     });
   }
 
@@ -6654,5 +6655,232 @@ function initFlowingWaterBackground() {
   });
 
   animFrameId = requestAnimationFrame(draw);
+}
+
+/* ==========================================================================
+   STATION LIVE SUMMARY SIDE DRAWER & FLOATING MINITAB LOGIC
+   ========================================================================== */
+function toggleStationSummaryDrawer(forceOpen) {
+  const drawer = document.getElementById('stationSummaryDrawer');
+  const overlay = document.getElementById('stationSummaryOverlay');
+  if (!drawer || !overlay) return;
+
+  const isOpen = typeof forceOpen === 'boolean' ? forceOpen : !drawer.classList.contains('open');
+
+  if (isOpen) {
+    soundCtrl.playTap();
+    updateStationSummaryDrawer();
+    drawer.classList.add('open');
+    overlay.classList.add('open');
+    drawer.setAttribute('aria-hidden', 'false');
+    overlay.setAttribute('aria-hidden', 'false');
+  } else {
+    drawer.classList.remove('open');
+    overlay.classList.remove('open');
+    drawer.setAttribute('aria-hidden', 'true');
+    overlay.setAttribute('aria-hidden', 'true');
+  }
+}
+
+function updateStationSummaryDrawer() {
+  const allOrders = State.storedOrders || [];
+  const todayStr = new Date().toISOString().slice(0, 10);
+
+  // Filter orders for today
+  let todaySales = 0;
+  let todayGallons = 0;
+  let cashInDrawer = 0;
+  let uncollected = 0;
+  let todayOrdersCount = 0;
+  let paidOrdersCount = 0;
+  let pendingDelivCount = 0;
+  const pendingDelivRoutes = [];
+
+  allOrders.forEach(o => {
+    // Check if order belongs to today or is part of current active shift
+    const orderDate = o.timestamp ? new Date(o.timestamp).toISOString().slice(0, 10) : todayStr;
+    const isToday = orderDate === todayStr;
+
+    if (isToday) {
+      todayOrdersCount++;
+      const gals = Number(o.gallons) || 1;
+      todayGallons += gals;
+
+      const isPaid = o.status === 'paid';
+      const paidAmt = typeof o.paidAmount === 'number' ? o.paidAmount : (isPaid ? (Number(o.total) || 0) : 0);
+      const unpaidAmt = typeof o.unpaidAmount === 'number' ? o.unpaidAmount : (!isPaid ? (Number(o.total) || 0) : 0);
+
+      todaySales += paidAmt;
+      uncollected += unpaidAmt;
+
+      if (isPaid) {
+        paidOrdersCount++;
+        if (o.paymentMethod === 'cash' || !o.paymentMethod) {
+          cashInDrawer += paidAmt;
+        }
+      }
+    }
+
+    // Pending delivery check across field
+    if (o.channel === 'delivery' && o.status === 'pending') {
+      pendingDelivCount++;
+      if (o.address && pendingDelivRoutes.length < 2) {
+        pendingDelivRoutes.push(o.address.split(',')[0].trim());
+      }
+    }
+  });
+
+  const settlementRate = todayOrdersCount > 0 ? Math.round((paidOrdersCount / todayOrdersCount) * 100) : 100;
+
+  // DOM Updates - Sales
+  const elSales = document.getElementById('drawerShiftSales');
+  const elOrdersCount = document.getElementById('drawerShiftOrdersCount');
+  const elGallons = document.getElementById('drawerShiftGallons');
+  const elCash = document.getElementById('drawerShiftCash');
+  const elUncollected = document.getElementById('drawerShiftUncollected');
+  const elPaidPct = document.getElementById('drawerShiftPaidPct');
+
+  if (elSales) elSales.textContent = formatPeso(todaySales);
+  if (elOrdersCount) elOrdersCount.textContent = `${todayOrdersCount} order${todayOrdersCount === 1 ? '' : 's'} processed today`;
+  if (elGallons) elGallons.textContent = `${todayGallons.toLocaleString()} Gals`;
+  if (elCash) elCash.textContent = formatPeso(cashInDrawer);
+  if (elUncollected) elUncollected.textContent = formatPeso(uncollected);
+  if (elPaidPct) elPaidPct.textContent = `${settlementRate}%`;
+
+  // DOM Updates - Active Personnel
+  const cashierName = State.currentUser && State.currentUser.name ? State.currentUser.name : 'Neil';
+  const cashierRole = State.currentUser && State.currentUser.role ? State.currentUser.role : 'Manager';
+  const elCashierName = document.getElementById('drawerCashierName');
+  const elCashierAvatar = document.getElementById('drawerAvatarChar');
+  const elCashierStatus = document.getElementById('drawerCashierStatus');
+
+  if (elCashierName) elCashierName.textContent = cashierName;
+  if (elCashierAvatar) elCashierAvatar.textContent = cashierName.charAt(0).toUpperCase();
+  if (elCashierStatus) {
+    elCashierStatus.textContent = `● On Duty • Counter #1 (${cashierRole})`;
+  }
+
+  // DOM Updates - Delivery Drivers
+  const elDriver1Status = document.getElementById('drawerDriver1Status');
+  const elDriver2Status = document.getElementById('drawerDriver2Status');
+
+  if (elDriver1Status) {
+    if (pendingDelivCount > 0) {
+      const routeText = pendingDelivRoutes.length > 0 ? ` (${pendingDelivRoutes.join(', ')})` : '';
+      elDriver1Status.textContent = `● En Route • ${pendingDelivCount} delivery drop${pendingDelivCount === 1 ? '' : 's'} pending${routeText}`;
+      elDriver1Status.className = 'person-sub-status en-route';
+    } else {
+      elDriver1Status.textContent = '● Available at Station • Ready for dispatch';
+      elDriver1Status.className = 'person-sub-status ready';
+    }
+  }
+
+  if (elDriver2Status) {
+    elDriver2Status.textContent = '● Available at Station • Multicab #2 Standby';
+    elDriver2Status.className = 'person-sub-status ready';
+  }
+}
+
+function initStationSummaryDrawer() {
+  const btnNotif = document.getElementById('btnNotifications');
+  const floatingTab = document.getElementById('floatingSideMinitab');
+  const btnClose = document.getElementById('btnSummaryDrawerClose');
+  const overlay = document.getElementById('stationSummaryOverlay');
+
+  if (btnNotif) {
+    btnNotif.addEventListener('click', (e) => {
+      e.stopPropagation();
+      toggleStationSummaryDrawer();
+    });
+  }
+
+  if (floatingTab) {
+    floatingTab.addEventListener('click', (e) => {
+      e.stopPropagation();
+      toggleStationSummaryDrawer();
+    });
+  }
+
+  if (btnClose) {
+    btnClose.addEventListener('click', () => {
+      soundCtrl.playTap();
+      toggleStationSummaryDrawer(false);
+    });
+  }
+
+  if (overlay) {
+    overlay.addEventListener('click', () => {
+      toggleStationSummaryDrawer(false);
+    });
+  }
+
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') {
+      const drawer = document.getElementById('stationSummaryDrawer');
+      if (drawer && drawer.classList.contains('open')) {
+        toggleStationSummaryDrawer(false);
+      }
+    }
+  });
+
+  // Function shortcuts in drawer
+  const bindShortcut = (id, action) => {
+    const el = document.getElementById(id);
+    if (el) {
+      el.addEventListener('click', () => {
+        soundCtrl.playTap();
+        toggleStationSummaryDrawer(false);
+        action();
+      });
+    }
+  };
+
+  bindShortcut('shortcutNavPos', () => {
+    switchView('pos');
+    const bWalk = document.getElementById('btnChannelWalkin');
+    if (bWalk) bWalk.click();
+  });
+
+  bindShortcut('shortcutNavDelivery', () => {
+    switchView('pos');
+    const bDel = document.getElementById('btnChannelDelivery');
+    if (bDel) bDel.click();
+  });
+
+  bindShortcut('shortcutNavOrders', () => {
+    switchView('orders');
+  });
+
+  bindShortcut('shortcutNavDeepDive', () => {
+    switchView('reports');
+    toggleDeepDiveReport(true);
+  });
+
+  bindShortcut('shortcutNavEmpties', () => {
+    openCarboyEmptiesModal();
+  });
+
+  bindShortcut('shortcutNavProfile', () => {
+    switchView('profile');
+  });
+
+  const btnSync = document.getElementById('btnDrawerRefreshSync');
+  if (btnSync) {
+    btnSync.addEventListener('click', () => {
+      soundCtrl.playTap();
+      syncWithBackend();
+      updateStationSummaryDrawer();
+      showToast('Station synced with SQLite database!');
+    });
+  }
+
+  const btnOpenReport = document.getElementById('btnDrawerOpenReport');
+  if (btnOpenReport) {
+    btnOpenReport.addEventListener('click', () => {
+      soundCtrl.playTap();
+      toggleStationSummaryDrawer(false);
+      switchView('reports');
+    });
+  }
 }
 
