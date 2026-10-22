@@ -1982,25 +1982,86 @@ function renderStoredOrders() {
   if (shiftCash) shiftCash.textContent = `₱${formatPeso(totalCash)}`;
 
   if (filtered.length === 0) {
-    let emptyTitle = 'No orders recorded yet';
-    let emptyDesc = 'Complete a sale on the POS Machine to log gallons and payments here.';
+    let emptyTitle = 'No Orders Recorded Yet';
+    let emptyDesc = 'Ready to dispense fresh purified water! Complete a counter refill or multicab batch to log transactions.';
+    let emptyAvatar = 'assets/droppy_happy.png';
+    let statusPillText = '● Station Register Ready • Counter #1';
+
     if (State.ordersFilter === 'delivery') {
       emptyTitle = 'No Multicab Deliveries Recorded';
-      emptyDesc = 'Switch channel to "Multicab" on the POS Machine to dispatch delivery drops.';
+      emptyDesc = 'Switch channel to "Multicab" on the POS Machine to dispatch delivery drops and track driver remittances.';
+      emptyAvatar = 'assets/droppy_winking.png';
+      statusPillText = '● Fleet Dispatch Standby';
     } else if (State.ordersFilter === 'pending') {
-      emptyTitle = 'No Pending Receivables';
-      emptyDesc = 'All customer orders and multicab deliveries are fully paid!';
+      emptyTitle = 'Zero Pending Receivables!';
+      emptyDesc = 'Great job! All customer orders and delivery drops are fully settled with no outstanding balances.';
+      emptyAvatar = 'assets/droppy_love.png';
+      statusPillText = '● 100% Settled • All Paid';
     } else if (State.ordersFilter === 'walkin') {
-      emptyTitle = 'No Walk-in Orders Recorded';
-      emptyDesc = 'Log counter walk-in sales on the POS Machine.';
+      emptyTitle = 'No Walk-in Refills Recorded';
+      emptyDesc = 'Swapping 5-gallon blue carboys at the station counter will record immediate cash transactions here.';
+      emptyAvatar = 'assets/droppy_happy.png';
+      statusPillText = '● Counter Ready For Walk-Ins';
     }
+
     container.innerHTML = `
-      <div class="empty-orders-state">
-        <img src="assets/droppy_sleep.png" alt="Empty">
-        <h4>${emptyTitle}</h4>
-        <p>${emptyDesc}</p>
+      <div class="empty-orders-card">
+        <div class="empty-mascot-wrapper">
+          <img src="${emptyAvatar}" alt="Droppy Mascot" class="empty-mascot-img">
+        </div>
+        <div class="empty-badge-row">
+          <span class="empty-status-pill">${statusPillText}</span>
+        </div>
+        <h3 class="empty-orders-title">${emptyTitle}</h3>
+        <p class="empty-orders-desc">${emptyDesc}</p>
+        <div class="empty-orders-actions">
+          <button type="button" class="btn-empty-action-primary" id="btnEmptyStartPos">
+            <svg class="ui-icon-xs" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="9" cy="21" r="1"></circle>
+              <circle cx="20" cy="21" r="1"></circle>
+              <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path>
+            </svg>
+            <span>Start Walk-In Sale (F1)</span>
+          </button>
+          <button type="button" class="btn-empty-action-secondary" id="btnEmptyStartDelivery">
+            <svg class="ui-icon-xs" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="1" y="3" width="15" height="13"></rect>
+              <polygon points="16 8 20 8 23 11 23 16 16 8"></polygon>
+              <circle cx="5.5" cy="18.5" r="2.5"></circle>
+              <circle cx="18.5" cy="18.5" r="2.5"></circle>
+            </svg>
+            <span>Dispatch Multicab (F2)</span>
+          </button>
+        </div>
+        <div class="empty-orders-hints">
+          <span class="hint-chip"><kbd>F1</kbd> Walk-in POS</span>
+          <span class="hint-chip"><kbd>F2</kbd> Multicab Dispatch</span>
+          <span class="hint-chip"><kbd>F8</kbd> Jug Empties Ledger</span>
+        </div>
       </div>
     `;
+
+    // Wire action buttons
+    const btnPos = document.getElementById('btnEmptyStartPos');
+    if (btnPos) {
+      btnPos.addEventListener('click', () => {
+        soundCtrl.playTap();
+        switchView('pos');
+        const bWalk = document.getElementById('btnChannelWalkin');
+        if (bWalk) bWalk.click();
+      });
+    }
+
+    const btnDel = document.getElementById('btnEmptyStartDelivery');
+    if (btnDel) {
+      btnDel.addEventListener('click', () => {
+        soundCtrl.playTap();
+        switchView('pos');
+        const bDeliv = document.getElementById('btnChannelDelivery');
+        if (bDeliv) bDeliv.click();
+      });
+    }
+
     return;
   }
 
@@ -2218,12 +2279,43 @@ function renderFleetDelivered() {
 
   if (deliveredOrders.length === 0) {
     container.innerHTML = `
-      <div class="empty-orders-state">
-        <img src="assets/droppy_sleep.png" alt="No deliveries">
-        <h4>No Fleet Deliveries Dispatched</h4>
-        <p>Switch channel to "Multicab" on the POS Machine to log delivery drops.</p>
+      <div class="empty-orders-card">
+        <div class="empty-mascot-wrapper">
+          <img src="assets/droppy_winking.png" alt="Droppy Mascot" class="empty-mascot-img">
+        </div>
+        <div class="empty-badge-row">
+          <span class="empty-status-pill">● Fleet Multicab Standby • Ready For Dispatch</span>
+        </div>
+        <h3 class="empty-orders-title">No Fleet Deliveries Dispatched</h3>
+        <p class="empty-orders-desc">The multicab delivery queue is currently clear. Switch channel to "Multicab" on the POS register to dispatch 5-gallon carboys and record driver routes.</p>
+        <div class="empty-orders-actions">
+          <button type="button" class="btn-empty-action-primary" id="btnEmptyQueueNewDelivery">
+            <svg class="ui-icon-xs" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="1" y="3" width="15" height="13"></rect>
+              <polygon points="16 8 20 8 23 11 23 16 16 8"></polygon>
+              <circle cx="5.5" cy="18.5" r="2.5"></circle>
+              <circle cx="18.5" cy="18.5" r="2.5"></circle>
+            </svg>
+            <span>Dispatch Multicab Batch (F2)</span>
+          </button>
+        </div>
+        <div class="empty-orders-hints">
+          <span class="hint-chip"><kbd>F2</kbd> Dispatch Mode</span>
+          <span class="hint-chip"><kbd>F8</kbd> Jugs Ledger</span>
+        </div>
       </div>
     `;
+
+    const btnQueueDeliv = document.getElementById('btnEmptyQueueNewDelivery');
+    if (btnQueueDeliv) {
+      btnQueueDeliv.addEventListener('click', () => {
+        soundCtrl.playTap();
+        switchView('pos');
+        const bDeliv = document.getElementById('btnChannelDelivery');
+        if (bDeliv) bDeliv.click();
+      });
+    }
+
     return;
   }
 
