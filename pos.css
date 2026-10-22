@@ -184,26 +184,41 @@ body:not(.light-mode) .kp-mode-tab.active .ui-icon-xs {
 }
 
 /* ==========================================================================
-   ORGANIC FLOWING WATER MOVING BACKGROUND
+   STATIC WATER BACKGROUND (Non-moving Crystalline Water Texture)
    ========================================================================== */
-.water-canvas-container {
+.static-water-bg {
   position: fixed;
-  top: 0;
-  left: 0;
+  inset: 0;
   width: 100vw;
   height: 100vh;
   pointer-events: none;
   z-index: 0;
   overflow: hidden;
+  background-image: url('assets/water_static_bg.jpg');
+  background-size: cover;
+  background-position: center center;
+  background-repeat: no-repeat;
+  opacity: 0.88;
+  transition: background-image 0.3s ease, opacity 0.3s ease;
 }
 
-#waterFlowCanvas {
+/* Soft translucent gradient veil ensuring maximum contrast and legibility */
+.static-water-bg::after {
+  content: '';
   position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  display: block;
+  inset: 0;
+  background: radial-gradient(circle at 50% 35%, rgba(255, 255, 255, 0.12) 0%, rgba(240, 242, 247, 0.48) 100%);
+  pointer-events: none;
+}
+
+/* Dark Mode Non-moving Water Background */
+body:not(.light-mode) .static-water-bg {
+  background-image: url('assets/water_static_bg_dark.jpg');
+  opacity: 0.92;
+}
+
+body:not(.light-mode) .static-water-bg::after {
+  background: radial-gradient(circle at 50% 35%, rgba(15, 23, 42, 0.2) 0%, rgba(11, 17, 32, 0.55) 100%);
 }
 
 /* Overall App Flex Container */
