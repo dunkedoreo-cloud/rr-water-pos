@@ -223,6 +223,19 @@ class SoundController {
       osc.stop(t + 0.15);
     } catch (e) {}
   }
+
+  isEnabled() {
+    return Boolean(State.soundEnabled);
+  }
+
+  toggle() {
+    State.soundEnabled = !State.soundEnabled;
+    try {
+      localStorage.setItem('rr_pos_sound', String(State.soundEnabled));
+    } catch (e) {}
+    if (State.soundEnabled) this.playTap();
+    return State.soundEnabled;
+  }
 }
 
 const soundCtrl = new SoundController();
