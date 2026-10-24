@@ -687,6 +687,7 @@ function switchView(viewName) {
   }
 
   renderAll();
+  try { window.scrollTo({ top: 0, behavior: 'smooth' }); } catch (e) {}
 }
 
 // ==========================================================================
