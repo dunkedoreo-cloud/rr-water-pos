@@ -1582,17 +1582,26 @@ function renderAll() {
   renderHeaderUser();
   renderOrderSummary();
   renderTopStats();
-  renderStoredOrders();
-  renderFleetDelivered();
-  renderReports();
   renderInventory();
-  renderStaffSettingsList();
-  renderAuditLogTable();
-  if (State.activeView === 'profile') {
+
+  // Lazy view rendering: only compute and paint the currently visible view stage
+  if (State.activeView === 'orders' || State.activeView === 'delivered') {
+    renderStoredOrders();
+    renderFleetDelivered();
+  } else if (State.activeView === 'reports' || State.activeView === 'dashboard') {
+    renderReports();
+  } else if (State.activeView === 'settings') {
+    renderStaffSettingsList();
+    renderAuditLogTable();
+  } else if (State.activeView === 'profile') {
     renderProfileView();
   }
+
   if (document.getElementById("miniOrdersDrawer")?.classList.contains("open")) {
     renderMiniOrders();
+  }
+  if (document.getElementById("stationSummaryDrawer")?.classList.contains("open")) {
+    updateStationSummaryDrawer();
   }
 }
 
