@@ -6815,8 +6815,20 @@ const SupabaseSync = {
   realtimeChannel: null,
 
   init() {
-    const url = localStorage.getItem('rr_supabase_url') || (window.ENV_SUPABASE_URL || '');
-    const key = localStorage.getItem('rr_supabase_key') || (window.ENV_SUPABASE_KEY || '');
+    // 1-Time Setup Priority: If station credentials are configured in supabase_config.js,
+    // all devices (phones, tablets, laptops) connect automatically on first visit without any typing!
+    let url = (window.ENV_SUPABASE_URL && window.ENV_SUPABASE_URL.trim() && !window.ENV_SUPABASE_URL.includes('YOUR_PROJECT_ID'))
+      ? window.ENV_SUPABASE_URL.trim()
+      : (localStorage.getItem('rr_supabase_url') || '');
+
+    let key = (window.ENV_SUPABASE_KEY && window.ENV_SUPABASE_KEY.trim() && !window.ENV_SUPABASE_KEY.includes('YOUR_ANON_KEY'))
+      ? window.ENV_SUPABASE_KEY.trim()
+      : (localStorage.getItem('rr_supabase_key') || '');
+
+    if (url && key) {
+      localStorage.setItem('rr_supabase_url', url);
+      localStorage.setItem('rr_supabase_key', key);
+    }
     
     // Fill settings inputs if present
     const elUrl = document.getElementById('settingSupabaseUrl');
