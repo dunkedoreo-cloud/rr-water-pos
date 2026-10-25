@@ -6229,20 +6229,33 @@ body:not(.light-mode) .driver-status-pill.online {
   font-size: 0.8rem;
   font-weight: 700;
   border-radius: 9999px;
-  background: rgba(16, 185, 129, 0.12);
-  border: 1px solid rgba(16, 185, 129, 0.35);
-  color: #059669;
+  background: rgba(2, 132, 199, 0.1);
+  border: 1px solid rgba(2, 132, 199, 0.3);
+  color: var(--color-primary);
   cursor: pointer;
   transition: all 0.2s ease;
   white-space: nowrap;
 }
 
 .btn-header-save:hover {
-  background: #10b981;
+  background: var(--color-primary);
   color: #ffffff;
-  border-color: #10b981;
-  box-shadow: 0 2px 10px rgba(16, 185, 129, 0.35);
+  border-color: var(--color-primary);
+  box-shadow: 0 2px 10px rgba(2, 132, 199, 0.35);
   transform: translateY(-1px);
+}
+
+body:not(.light-mode) .btn-header-save {
+  background: rgba(56, 189, 248, 0.12);
+  border-color: rgba(56, 189, 248, 0.3);
+  color: #38bdf8;
+}
+
+body:not(.light-mode) .btn-header-save:hover {
+  background: #38bdf8;
+  color: #080d1a;
+  border-color: #38bdf8;
+  box-shadow: 0 2px 10px rgba(56, 189, 248, 0.4);
 }
 
 .btn-header-save svg {
@@ -7237,50 +7250,227 @@ body:not(.light-mode) .btn-sub-action.primary:hover {
     overflow-x: hidden !important;
   }
 
-  /* Mobile Top Header */
+  /* Mobile Top Header (Sleek 3-Tier Purpose-Driven Layout) */
   .top-header {
-    flex-direction: column;
-    align-items: stretch;
-    gap: 8px;
-    padding-bottom: 10px;
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 8px !important;
+    padding-bottom: 10px !important;
+    border-bottom: 1px solid var(--border-subtle) !important;
+    margin-bottom: 8px !important;
   }
+
+  /* Row 1: Welcome Greeting & Station Terminal Status Pill (Side-by-Side) */
   .welcome-box {
-    display: flex;
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 4px;
-    width: 100%;
-  }
-  .station-status-pill {
-    padding: 2px 8px;
-    font-size: 0.65rem;
+    display: flex !important;
+    flex-direction: row !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    width: 100% !important;
+    gap: 8px !important;
+    margin: 0 !important;
   }
   .welcome-title {
-    font-size: 1.18rem;
+    font-size: 1.15rem !important;
+    font-weight: 800 !important;
+    line-height: 1.15 !important;
+    color: var(--text-main) !important;
+    white-space: nowrap !important;
+    margin: 0 !important;
+    letter-spacing: -0.01em !important;
   }
+  .station-status-pill {
+    padding: 3px 8px !important;
+    font-size: 0.64rem !important;
+    font-weight: 700 !important;
+    border-radius: var(--radius-full) !important;
+    white-space: nowrap !important;
+    background-color: var(--bg-surface) !important;
+    border: 1px solid var(--border-subtle) !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 5px !important;
+  }
+  .station-status-pill .station-sub-tag {
+    display: inline !important;
+  }
+
+  /* Actions Container: 2 Clean Rows (Row 2: User Profile & Clock; Row 3: Action Toolbar) */
   .header-right-actions {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    width: 100%;
-    gap: 6px;
-    flex-wrap: wrap;
+    display: flex !important;
+    flex-wrap: wrap !important;
+    align-items: center !important;
+    width: 100% !important;
+    gap: 6px !important;
+    margin: 0 !important;
   }
-  .clock-date {
-    display: none;
+
+  /* Row 2: Cashier Profile Pill on Left, Live Clock on Right */
+  .cashier-profile-wrapper {
+    order: 1 !important;
+    display: flex !important;
+    align-items: center !important;
   }
-  .live-clock-pill {
-    font-size: 0.74rem;
-    padding: 4px 8px;
-  }
-  .header-icon-btn {
-    width: 34px;
-    height: 34px;
+  .cashier-profile-btn {
+    padding: 2px 10px 2px 3px !important;
+    gap: 6px !important;
+    height: 32px !important;
+    background: var(--bg-surface) !important;
+    border: 1px solid var(--border-subtle) !important;
+    border-radius: var(--radius-full) !important;
   }
   .cashier-avatar {
-    width: 32px;
-    height: 32px;
-    font-size: 0.8rem;
+    width: 26px !important;
+    height: 26px !important;
+    font-size: 0.75rem !important;
+  }
+  .cashier-name-text {
+    font-size: 0.78rem !important;
+    font-weight: 700 !important;
+  }
+  .cashier-role-badge {
+    font-size: 0.58rem !important;
+    padding: 1px 5px !important;
+  }
+  .cashier-chevron-icon {
+    width: 14px !important;
+    height: 14px !important;
+  }
+
+  .live-clock-pill {
+    order: 2 !important;
+    margin-left: auto !important;
+    font-size: 0.72rem !important;
+    font-weight: 700 !important;
+    padding: 4px 10px !important;
+    height: 28px !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    white-space: nowrap !important;
+    border-radius: var(--radius-full) !important;
+    background-color: var(--bg-surface) !important;
+    border: 1px solid var(--border-subtle) !important;
+  }
+  .clock-date {
+    display: none !important;
+  }
+
+  /* Flex Break to Force Clean Unified Action Strip on Row 3 */
+  .header-right-actions::before {
+    content: "" !important;
+    display: block !important;
+    width: 100% !important;
+    height: 0 !important;
+    order: 3 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
+  /* Row 3: Single Unified Action Strip */
+  .btn-header-save {
+    order: 4 !important;
+    padding: 5px 10px !important;
+    height: 32px !important;
+    font-size: 0.72rem !important;
+    font-weight: 700 !important;
+    gap: 5px !important;
+    white-space: nowrap !important;
+    flex-shrink: 0 !important;
+    background: rgba(2, 132, 199, 0.09) !important;
+    border: 1px solid rgba(2, 132, 199, 0.28) !important;
+    color: var(--color-primary) !important;
+  }
+  body:not(.light-mode) .btn-header-save {
+    background: rgba(56, 189, 248, 0.12) !important;
+    border-color: rgba(56, 189, 248, 0.28) !important;
+    color: #38bdf8 !important;
+  }
+
+  .header-summary-pill-btn {
+    order: 5 !important;
+    padding: 5px 10px !important;
+    height: 32px !important;
+    font-size: 0.72rem !important;
+    font-weight: 700 !important;
+    gap: 5px !important;
+    white-space: nowrap !important;
+    flex-shrink: 0 !important;
+  }
+
+  /* Hide redundant bell icon on mobile since Summary pill is directly present */
+  .btn-header-summary#btnNotifications {
+    display: none !important;
+  }
+
+  .btn-header-empties {
+    order: 6 !important;
+    width: 32px !important;
+    height: 32px !important;
+    min-width: 32px !important;
+    min-height: 32px !important;
+    padding: 0 !important;
+    flex-shrink: 0 !important;
+    position: relative !important;
+  }
+
+  #themeToggleBtn {
+    order: 7 !important;
+    width: 32px !important;
+    height: 32px !important;
+    min-width: 32px !important;
+    min-height: 32px !important;
+    padding: 0 !important;
+    flex-shrink: 0 !important;
+  }
+
+  #soundToggleBtn {
+    order: 8 !important;
+    width: 32px !important;
+    height: 32px !important;
+    min-width: 32px !important;
+    min-height: 32px !important;
+    padding: 0 !important;
+    flex-shrink: 0 !important;
+  }
+
+  #btnLockTerminal {
+    order: 9 !important;
+    width: 32px !important;
+    height: 32px !important;
+    min-width: 32px !important;
+    min-height: 32px !important;
+    padding: 0 !important;
+    flex-shrink: 0 !important;
+    margin-left: auto !important;
+  }
+
+  .header-icon-btn {
+    width: 32px !important;
+    height: 32px !important;
+    min-width: 32px !important;
+    min-height: 32px !important;
+  }
+  .header-icon-btn .ui-icon {
+    width: 17px !important;
+    height: 17px !important;
+  }
+
+  @media (max-width: 360px) {
+    .welcome-title {
+      font-size: 1.02rem !important;
+    }
+    .station-status-pill .station-sub-tag {
+      display: none !important;
+    }
+    .btn-header-save span {
+      display: none !important;
+    }
+    .btn-header-save {
+      width: 32px !important;
+      padding: 0 !important;
+      justify-content: center !important;
+    }
   }
 
   /* Stage Container Padding */
