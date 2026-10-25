@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>R&R Water - Station POS</title>
-  <link rel="stylesheet" href="pos.css?v=2.8.8">
+  <link rel="stylesheet" href="pos.css?v=2.8.9">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700;800&display=swap" rel="stylesheet">
@@ -1600,7 +1600,7 @@
           <div class="settings-view-header">
             <div>
               <h3>Station Configuration &amp; POS Settings</h3>
-              <p>Configure gallon pricing, station details, driver fleet, and water filtration presets</p>
+              <p>Configure gallon pricing, station details, driver fleet, and terminal security</p>
             </div>
             <button class="btn-save-settings" id="btnSaveAllSettings">
               <svg class="ui-icon-xs" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path><polyline points="17 21 17 13 7 13 7 21"></polyline><polyline points="7 3 7 8 15 8"></polyline></svg>
@@ -1617,10 +1617,6 @@
             <button class="settings-tab-btn" data-tab="fleet">
               <svg class="ui-icon-xs" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="3" width="15" height="13"></rect><polygon points="16 8 20 8 23 11 23 16 16 8"></polygon><circle cx="5.5" cy="18.5" r="2.5"></circle><circle cx="18.5" cy="18.5" r="2.5"></circle></svg>
               <span>Fleet &amp; Delivery</span>
-            </button>
-            <button class="settings-tab-btn" data-tab="maintenance">
-              <svg class="ui-icon-xs" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"></path></svg>
-              <span>Filter Life &amp; UV</span>
             </button>
             <button class="settings-tab-btn" data-tab="system">
               <svg class="ui-icon-xs" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect><line x1="8" y1="21" x2="16" y2="21"></line><line x1="12" y1="17" x2="12" y2="21"></line></svg>
@@ -1824,164 +1820,8 @@
             </div>
           </div>
 
-          <!-- Tab Content 3: Filter Life & UV -->
-          <div class="settings-tab-pane" id="paneMaintenance">
-            <div class="settings-cards-grid">
-              
-              <!-- Card 5: Filtration Cartridge Stages -->
-              <div class="setting-card">
-                <div class="setting-card-header">
-                  <div class="card-icon-tag cyan">
-                    <svg class="ui-icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"></path></svg>
-                  </div>
-                  <div>
-                    <h4>Filtration Stage Maintenance</h4>
-                    <p>Monitor remaining lifespans of sediment, carbon, and RO membranes</p>
-                  </div>
-                </div>
 
-                <div class="filter-life-list">
-                  <div class="stage-maintenance-card">
-                    <div class="stage-card-top">
-                      <div class="stage-info-wrap">
-                        <span class="stage-num-badge cyan">STAGE 1</span>
-                        <div>
-                          <strong class="stage-name">5-Micron Sediment Filter</strong>
-                          <span class="stage-sub-info">Replaced: 12 days ago • Micron rating: 5µm</span>
-                        </div>
-                      </div>
-                      <span class="stage-health-badge green">88% Health</span>
-                    </div>
-                    <div class="stage-progress-track">
-                      <div class="stage-progress-bar green" style="width: 88%;"></div>
-                    </div>
-                  </div>
-
-                  <div class="stage-maintenance-card">
-                    <div class="stage-card-top">
-                      <div class="stage-info-wrap">
-                        <span class="stage-num-badge cyan">STAGE 2</span>
-                        <div>
-                          <strong class="stage-name">Granular Activated Carbon (GAC)</strong>
-                          <span class="stage-sub-info">Replaced: 18 days ago • Chlorine &amp; Odor Adsorption</span>
-                        </div>
-                      </div>
-                      <span class="stage-health-badge green">76% Health</span>
-                    </div>
-                    <div class="stage-progress-track">
-                      <div class="stage-progress-bar green" style="width: 76%;"></div>
-                    </div>
-                  </div>
-
-                  <div class="stage-maintenance-card">
-                    <div class="stage-card-top">
-                      <div class="stage-info-wrap">
-                        <span class="stage-num-badge cyan">STAGE 3</span>
-                        <div>
-                          <strong class="stage-name">Reverse Osmosis (RO) Membrane</strong>
-                          <span class="stage-sub-info">Replaced: 45 days ago • TDS Rejection: 98.4%</span>
-                        </div>
-                      </div>
-                      <span class="stage-health-badge green">92% Health</span>
-                    </div>
-                    <div class="stage-progress-track">
-                      <div class="stage-progress-bar green" style="width: 92%;"></div>
-                    </div>
-                  </div>
-
-                  <div class="stage-maintenance-card">
-                    <div class="stage-card-top">
-                      <div class="stage-info-wrap">
-                        <span class="stage-num-badge blue">STAGE 4</span>
-                        <div>
-                          <strong class="stage-name">UV Sterilizer Lamp (Phillips 25W)</strong>
-                          <span class="stage-sub-info">Operating: 1,420 / 8,000 Hours • 254nm Quartz</span>
-                        </div>
-                      </div>
-                      <span class="stage-health-badge blue">82% Life</span>
-                    </div>
-                    <div class="stage-progress-track">
-                      <div class="stage-progress-bar blue" style="width: 82%;"></div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              <!-- Card 6: Daily Sanitation Checklist -->
-              <div class="setting-card">
-                <div class="setting-card-header">
-                  <div class="card-icon-tag green">
-                    <svg class="ui-icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
-                  </div>
-                  <div>
-                    <h4>Sanitation &amp; Counter Protocol</h4>
-                    <p>Daily station hygiene checklist for opening &amp; closing</p>
-                  </div>
-                </div>
-
-                <div class="sanitation-protocol-list">
-                  <div class="protocol-card" data-key="ozone">
-                    <label class="protocol-label">
-                      <input type="checkbox" class="protocol-checkbox" id="chkSanitationOzone" checked>
-                      <span class="custom-chk-box">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
-                      </span>
-                      <div class="protocol-details">
-                        <strong class="protocol-title">Morning Nozzle &amp; Sink Ozone Rinse</strong>
-                        <span class="protocol-desc">Sanitize stainless steel fill heads &amp; spray basin before shift opening</span>
-                      </div>
-                    </label>
-                    <span class="protocol-status-badge completed" id="badgeSanitationOzone">✓ Done (07:30 AM)</span>
-                  </div>
-
-                  <div class="protocol-card" data-key="drain">
-                    <label class="protocol-label">
-                      <input type="checkbox" class="protocol-checkbox" id="chkSanitationDrain" checked>
-                      <span class="custom-chk-box">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
-                      </span>
-                      <div class="protocol-details">
-                        <strong class="protocol-title">Drain Pan Inspection &amp; Wash</strong>
-                        <span class="protocol-desc">Clear drip trays and sanitize wastewater overflow conduits</span>
-                      </div>
-                    </label>
-                    <span class="protocol-status-badge completed" id="badgeSanitationDrain">✓ Done (07:35 AM)</span>
-                  </div>
-
-                  <div class="protocol-card" data-key="prewash">
-                    <label class="protocol-label">
-                      <input type="checkbox" class="protocol-checkbox" id="chkSanitationPrewash" checked>
-                      <span class="custom-chk-box">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
-                      </span>
-                      <div class="protocol-details">
-                        <strong class="protocol-title">Carboy Exterior Pre-wash Station Cleared</strong>
-                        <span class="protocol-desc">Verify pressurized bottle wash rinse and detergent solution levels</span>
-                      </div>
-                    </label>
-                    <span class="protocol-status-badge completed" id="badgeSanitationPrewash">✓ Done (07:40 AM)</span>
-                  </div>
-
-                  <div class="protocol-card" data-key="bleach">
-                    <label class="protocol-label">
-                      <input type="checkbox" class="protocol-checkbox" id="chkSanitationBleach">
-                      <span class="custom-chk-box">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
-                      </span>
-                      <div class="protocol-details">
-                        <strong class="protocol-title">Evening Station Surface Bleach Wipe-down</strong>
-                        <span class="protocol-desc">Sanitize work surfaces, capping counter &amp; bottle racks at shift close</span>
-                      </div>
-                    </label>
-                    <span class="protocol-status-badge pending" id="badgeSanitationBleach">○ Pending Close</span>
-                  </div>
-                </div>
-              </div>
-
-            </div>
-          </div>
-
-          <!-- Tab Content 4: Terminal & Data Tools -->
+          <!-- Tab Content 3: Terminal & Data Tools -->
           <div class="settings-tab-pane" id="paneSystem">
             <div class="settings-cards-grid">
               
@@ -2117,7 +1957,7 @@
             </div>
           </div>
 
-          <!-- Tab Content 5: Staff & Security -->
+          <!-- Tab Content 4: Staff & Security -->
           <div class="settings-tab-pane" id="paneSecurity">
             <div class="settings-cards-grid">
               
@@ -3158,6 +2998,6 @@
     </div>
   </aside>
 
-  <script src="pos.js?v=2.8.8"></script>
+  <script src="pos.js?v=2.8.9"></script>
 </body>
 </html>

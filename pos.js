@@ -247,7 +247,6 @@ document.addEventListener('DOMContentLoaded', () => {
   loadSavedData();
   initLiveClock();
   initTheme();
-  initSanitationProtocol();
   bindEvents();
   initSecuritySystem();
   initQuickCashTender();
@@ -301,16 +300,6 @@ function loadSavedData() {
     State.theme = savedTheme;
   }
 
-  const savedChecks = localStorage.getItem('rr_pos_sanitation_checks');
-  if (savedChecks) {
-    try {
-      State.sanitationChecks = JSON.parse(savedChecks);
-    } catch (e) {
-      State.sanitationChecks = { ozone: true, drain: true, prewash: true, bleach: false };
-    }
-  } else {
-    State.sanitationChecks = { ozone: true, drain: true, prewash: true, bleach: false };
-  }
 
   const urlParams = new URLSearchParams(window.location.search);
   if (urlParams.get('theme')) {
@@ -494,7 +483,6 @@ function saveStationData() {
   saveCustomers();
   saveSettings();
   localStorage.setItem('rr_pos_theme', State.theme || 'light');
-  localStorage.setItem('rr_pos_sanitation_checks', JSON.stringify(State.sanitationChecks || {}));
   const badge = document.getElementById('badgePersistenceStatus');
   if (badge) {
     badge.textContent = 'Saved Just Now';
@@ -503,41 +491,6 @@ function saveStationData() {
   showToast('✓ Station data, orders, staff, customers & settings saved to LocalStorage!');
 }
 
-function initSanitationProtocol() {
-  const keys = ['ozone', 'drain', 'prewash', 'bleach'];
-  const defaults = { ozone: true, drain: true, prewash: true, bleach: false };
-  if (!State.sanitationChecks) State.sanitationChecks = defaults;
-
-  keys.forEach(k => {
-    const chk = document.getElementById('chkSanitation' + k.charAt(0).toUpperCase() + k.slice(1));
-    const badge = document.getElementById('badgeSanitation' + k.charAt(0).toUpperCase() + k.slice(1));
-    if (!chk) return;
-
-    // Apply saved state
-    const isChecked = State.sanitationChecks[k] !== undefined ? State.sanitationChecks[k] : defaults[k];
-    chk.checked = !!isChecked;
-    updateSanitationBadge(badge, isChecked);
-
-    chk.addEventListener('change', () => {
-      soundCtrl.playTap();
-      State.sanitationChecks[k] = chk.checked;
-      localStorage.setItem('rr_pos_sanitation_checks', JSON.stringify(State.sanitationChecks));
-      updateSanitationBadge(badge, chk.checked);
-      showToast(chk.checked ? `Sanitation task completed.` : `Sanitation task marked pending.`);
-    });
-  });
-}
-
-function updateSanitationBadge(badge, isChecked) {
-  if (!badge) return;
-  if (isChecked) {
-    badge.className = 'protocol-status-badge completed';
-    badge.textContent = '✓ Done';
-  } else {
-    badge.className = 'protocol-status-badge pending';
-    badge.textContent = '○ Pending Close';
-  }
-}
 
 // ==========================================================================
 // LIVE CLOCK & THEME
@@ -1378,14 +1331,6 @@ function bindEvents() {
     });
   }
 
-  // Quick Action: Log Filter Replacement
-  const btnLogFilter = document.getElementById('btnLogFilterReplacement');
-  if (btnLogFilter) {
-    btnLogFilter.addEventListener('click', () => {
-      soundCtrl.playTap();
-      showToast('Maintenance logged: Filtration cycles optimal.');
-    });
-  }
 
   // 12. Fixoria SaaS Reports Event Bindings
   bindReportEvents();
