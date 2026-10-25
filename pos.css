@@ -1806,6 +1806,8 @@ body:not(.light-mode) .preset-pill.active {
   flex-direction: column;
   gap: 14px;
   box-shadow: var(--shadow-card);
+  position: sticky;
+  top: 14px;
 }
 
 /* Order Header Row */
@@ -6407,7 +6409,14 @@ body:not(.light-mode) .btn-sub-action.primary:hover {
    -------------------------------------------------------------------------- */
 @media (max-width: 1200px) {
   .pos-workspace-grid {
-    grid-template-columns: 1fr;
+    display: grid;
+    grid-template-columns: 1.15fr 1fr;
+    gap: 16px;
+    align-items: start;
+  }
+  .order-calculator-panel {
+    position: sticky;
+    top: 14px;
   }
   .top-header {
     flex-wrap: wrap;
@@ -6465,9 +6474,33 @@ body:not(.light-mode) .btn-sub-action.primary:hover {
     gap: 12px;
   }
 
-  /* POS Products & Inventory */
+  /* POS Products & Inventory: Keep 2-column side-by-side layout on tablets to match laptop! */
+  .pos-workspace-grid {
+    display: grid;
+    grid-template-columns: 1.1fr 1fr;
+    gap: 12px;
+    align-items: start;
+  }
+  .order-calculator-panel {
+    position: sticky;
+    top: 12px;
+    padding: 14px;
+    gap: 10px;
+  }
+  .card-img-container {
+    height: 120px;
+  }
+  .product-gallon-img {
+    height: 95px;
+  }
+  .keypad-key {
+    min-height: 42px;
+    font-size: 1.1rem;
+  }
   .products-cards-grid {
     max-width: 100%;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
   }
   .inventory-metrics-grid {
     grid-template-columns: repeat(2, 1fr);
@@ -6502,6 +6535,19 @@ body:not(.light-mode) .btn-sub-action.primary:hover {
 @media (max-width: 768px) {
   .floating-side-minitab {
     display: none !important;
+  }
+  /* Tablet portrait: maintain 2-column layout matching laptop so keypad & ordering are immediately accessible */
+  .pos-workspace-grid {
+    display: grid;
+    grid-template-columns: 1.05fr 1fr;
+    gap: 10px;
+    align-items: start;
+  }
+  .order-calculator-panel {
+    position: sticky;
+    top: 10px;
+    padding: 12px;
+    gap: 8px;
   }
   .top-header {
     padding-bottom: 12px;
@@ -6706,6 +6752,18 @@ body:not(.light-mode) .btn-sub-action.primary:hover {
 
   .floating-side-minitab {
     display: none !important;
+  }
+
+  /* Mobile Phone portrait: 1 column vertical stack with smooth scrolling */
+  .pos-workspace-grid {
+    display: grid !important;
+    grid-template-columns: 1fr !important;
+    gap: 14px !important;
+  }
+
+  .order-calculator-panel {
+    position: relative !important;
+    top: auto !important;
   }
 
   .sidebar {
