@@ -6922,14 +6922,24 @@ const SupabaseSync = {
 
       // Test connection with a lightweight count query
       const { data, error } = await this.client.from('orders').select('order_no', { count: 'exact', head: true });
-      if (error && error.code !== 'PGRST116') {
-        this.isConnected = false;
-        this.updateUI();
-        if (showToasts) showToast('Supabase connection failed: ' + (error.message || 'Check URL/Key'));
-        return;
+      if (error) {
+        if (error.code === 'PGRST205') {
+          // Connected, but tables not yet created in Supabase SQL editor
+          this.isConnected = true;
+          this.needsSchema = true;
+          this.updateUI();
+          if (showToasts) showToast('Supabase connected! Run supabase_schema.sql in Supabase SQL Editor to finish table setup.');
+          return;
+        } else if (error.code !== 'PGRST116') {
+          this.isConnected = false;
+          this.updateUI();
+          if (showToasts) showToast('Supabase connection failed: ' + (error.message || 'Check URL/Key'));
+          return;
+        }
       }
 
       this.isConnected = true;
+      this.needsSchema = false;
       this.updateUI();
       this.setupRealtime();
       this.pullAll();
@@ -6946,7 +6956,11 @@ const SupabaseSync = {
     const desc = document.getElementById('supabaseStatusDesc');
     if (!badge || !desc) return;
 
-    if (this.isConnected) {
+    if (this.isConnected && this.needsSchema) {
+      badge.className = 'meta-badge active-live';
+      badge.innerHTML = '<span class="pulse-indicator"></span> Connected (Tables Pending Setup)';
+      desc.textContent = 'Connected to your Supabase project! Run supabase_schema.sql in Supabase SQL Editor to finish table setup.';
+    } else if (this.isConnected) {
       badge.className = 'meta-badge active-live';
       badge.innerHTML = '<span class="pulse-indicator"></span> Connected (Live Realtime)';
       desc.textContent = 'Cloud database connected. Changes sync automatically across all devices.';
