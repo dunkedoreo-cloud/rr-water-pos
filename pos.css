@@ -6402,7 +6402,44 @@ body:not(.light-mode) .btn-sub-action.primary:hover {
 
 /* ==========================================================================
    COMPREHENSIVE RESPONSIVE BREAKPOINTS (Laptop, Tablet, Phone, Any Size)
+   Water Theme: Pure Station Blue (#0284c7) & Pure Cyan (#38bdf8)
    ========================================================================== */
+
+/* --------------------------------------------------------------------------
+   UNIVERSAL MODAL & TOUCH SCROLLING SAFETY
+   -------------------------------------------------------------------------- */
+.modal-backdrop {
+  padding: 12px;
+  box-sizing: border-box;
+}
+
+.modal-card,
+.auth-modal-card,
+.switch-user-card,
+.thermal-modal-card,
+.empties-modal-card {
+  max-height: 90vh;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  box-sizing: border-box;
+}
+
+.orders-table-wrapper,
+.report-table-card,
+.profile-orders-table-wrapper,
+.empties-table-wrap,
+.settings-tabs-nav,
+.orders-segmented-filter,
+.gallon-type-pills,
+.mini-orders-drawer,
+.modal-card,
+.auth-modal-card,
+.switch-user-card,
+.thermal-modal-card,
+.empties-modal-card {
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
+}
 
 /* --------------------------------------------------------------------------
    1. LAPTOPS & RESIZED WINDOWS (<= 1200px)
@@ -6411,16 +6448,20 @@ body:not(.light-mode) .btn-sub-action.primary:hover {
   .pos-workspace-grid {
     display: grid;
     grid-template-columns: 1.15fr 1fr;
-    gap: 16px;
+    gap: 14px;
     align-items: start;
   }
   .order-calculator-panel {
     position: sticky;
-    top: 14px;
+    top: 12px;
   }
   .top-header {
     flex-wrap: wrap;
     gap: 12px;
+  }
+  .header-right-actions {
+    flex-wrap: wrap;
+    gap: 8px;
   }
   .live-clock-pill {
     padding: 6px 12px;
@@ -6429,7 +6470,10 @@ body:not(.light-mode) .btn-sub-action.primary:hover {
 }
 
 /* --------------------------------------------------------------------------
-   2. TABLETS LANDSCAPE & SMALL LAPTOPS (<= 1024px)
+   2. TABLETS LANDSCAPE & PORTRAIT (768px - 1024px)
+   Matches Laptop UI: 2-column POS workspace side-by-side, compact proportions
+   so keypad, ordering, and Complete Sale button are immediately visible
+   without scrolling down!
    -------------------------------------------------------------------------- */
 @media (max-width: 1024px) {
   .pos-app-layout {
@@ -6460,58 +6504,311 @@ body:not(.light-mode) .btn-sub-action.primary:hover {
   .main-content {
     width: 100%;
     max-width: 100%;
-    padding: 16px 20px;
+    padding: 14px 16px;
+    box-sizing: border-box;
   }
 
-  /* Station Metrics Summary Cards (2x2 Grid - Fixes 4-card Overflow!) */
+  /* Top Header on Tablet */
+  .top-header {
+    flex-wrap: wrap;
+    gap: 10px;
+    padding-bottom: 12px;
+  }
+  .header-right-actions {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    flex-wrap: wrap;
+    gap: 6px;
+    max-width: 100%;
+  }
+  .live-clock-pill {
+    font-size: 0.76rem;
+    padding: 5px 10px;
+  }
+
+  /* Station Metrics Summary Cards (2x2 Grid) */
   .station-summary-grid {
     grid-template-columns: repeat(2, 1fr) !important;
-    gap: 12px;
+    gap: 10px;
   }
   .fleet-metrics-row,
   .reports-summary-cards {
     grid-template-columns: repeat(2, 1fr) !important;
-    gap: 12px;
-  }
-
-  /* POS Products & Inventory: Keep 2-column side-by-side layout on tablets to match laptop! */
-  .pos-workspace-grid {
-    display: grid;
-    grid-template-columns: 1.1fr 1fr;
-    gap: 12px;
-    align-items: start;
-  }
-  .order-calculator-panel {
-    position: sticky;
-    top: 12px;
-    padding: 14px;
     gap: 10px;
   }
-  .card-img-container {
-    height: 120px;
+
+  /* POS Workspace: 2-Column Side-by-Side Matching Laptop UI */
+  .pos-workspace-grid {
+    display: grid !important;
+    grid-template-columns: 1.1fr 1fr !important;
+    gap: 12px !important;
+    align-items: start !important;
   }
-  .product-gallon-img {
-    height: 95px;
+
+  /* Products Column Compact Tuning */
+  .products-section {
+    gap: 10px !important;
   }
-  .keypad-key {
-    min-height: 42px;
-    font-size: 1.1rem;
+  .section-step-badge {
+    font-size: 0.65rem !important;
+  }
+  .section-heading-row {
+    gap: 8px !important;
+  }
+  .section-heading-row h3 {
+    font-size: 1.1rem !important;
+  }
+  .gallon-type-pills {
+    gap: 6px !important;
+  }
+  .type-pill {
+    padding: 5px 10px !important;
+    font-size: 0.72rem !important;
   }
   .products-cards-grid {
-    max-width: 100%;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 10px;
+    max-width: 100% !important;
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 10px !important;
   }
-  .inventory-metrics-grid {
-    grid-template-columns: repeat(2, 1fr);
-    gap: 10px;
+  .card-img-container {
+    height: 110px !important;
+  }
+  .product-gallon-img {
+    height: 85px !important;
+  }
+  .card-details {
+    padding: 10px 12px !important;
+    gap: 3px !important;
+  }
+  .product-name {
+    font-size: 0.86rem !important;
+  }
+  .product-code {
+    font-size: 0.65rem !important;
+  }
+  .product-stock {
+    font-size: 0.68rem !important;
+  }
+  .product-price-tag {
+    font-size: 1.05rem !important;
+  }
+  .btn-card-add {
+    width: 30px !important;
+    height: 30px !important;
+    font-size: 1.15rem !important;
   }
 
-  /* Orders Header & Toolbar */
+  /* Droppy Mascot Banner on Tablet */
+  .droppy-mascot-banner {
+    padding: 10px 12px !important;
+    gap: 12px !important;
+    border-radius: var(--radius-lg) !important;
+  }
+  .droppy-banner-avatar {
+    width: 60px !important;
+    height: 68px !important;
+    flex-shrink: 0 !important;
+  }
+  .droppy-bubble-title {
+    font-size: 0.82rem !important;
+  }
+  .droppy-bubble-badge {
+    font-size: 0.62rem !important;
+    padding: 1px 6px !important;
+  }
+  .droppy-banner-msg {
+    font-size: 0.75rem !important;
+    line-height: 1.35 !important;
+  }
+
+  /* Quick Presets on Tablet */
+  .quick-presets-strip {
+    padding: 8px 10px !important;
+    gap: 6px !important;
+  }
+  .preset-buttons-wrap {
+    grid-template-columns: repeat(5, 1fr) !important;
+    gap: 4px !important;
+  }
+  .preset-pill {
+    min-height: 38px !important;
+    padding: 5px 2px !important;
+  }
+  .preset-qty {
+    font-size: 0.72rem !important;
+  }
+  .preset-cost {
+    font-size: 0.64rem !important;
+  }
+
+  /* RIGHT ORDER CALCULATOR PANEL ON TABLET (Sticky, Compact, Zero-Scroll) */
+  .order-calculator-panel {
+    position: sticky !important;
+    top: 10px !important;
+    padding: 12px 14px !important;
+    gap: 8px !important;
+    border-radius: var(--radius-lg) !important;
+  }
+  .panel-order-header {
+    margin-bottom: 0 !important;
+    gap: 6px !important;
+  }
+  .order-num-label {
+    font-size: 0.76rem !important;
+  }
+  .order-num-val {
+    font-size: 0.95rem !important;
+  }
+  .channel-pill {
+    padding: 4px 8px !important;
+    font-size: 0.72rem !important;
+  }
+
+  /* Selected Item Card on Tablet */
+  .order-selected-item-card {
+    padding: 8px 10px !important;
+    gap: 6px !important;
+    border-radius: var(--radius-md) !important;
+  }
+  .selected-item-row {
+    gap: 8px !important;
+  }
+  .selected-item-img {
+    width: 36px !important;
+    height: 36px !important;
+    padding: 2px !important;
+  }
+  .selected-item-details h5 {
+    font-size: 0.85rem !important;
+  }
+  .selected-item-rate {
+    font-size: 0.7rem !important;
+  }
+  .quantity-stepper-row {
+    padding: 4px 8px !important;
+    gap: 8px !important;
+  }
+  .btn-stepper {
+    width: 34px !important;
+    height: 34px !important;
+    font-size: 1.25rem !important;
+    border-radius: var(--radius-sm) !important;
+  }
+  .stepper-qty-num {
+    font-size: 1.25rem !important;
+  }
+  .stepper-unit-lbl {
+    font-size: 0.64rem !important;
+  }
+
+  /* Customer Note on Tablet */
+  .order-walkin-options {
+    margin: 0 !important;
+  }
+  .order-note-container {
+    padding: 6px 10px !important;
+  }
+  .order-note-container input {
+    font-size: 0.76rem !important;
+  }
+
+  /* Carboy Loan Steppers on Tablet */
+  .carboy-loan-row {
+    margin: 2px 0 !important;
+    gap: 6px !important;
+  }
+  .carboy-loan-item {
+    padding: 4px 8px !important;
+  }
+  .carboy-loan-label {
+    font-size: 0.65rem !important;
+  }
+  .btn-carboy-step {
+    width: 24px !important;
+    height: 24px !important;
+    font-size: 0.85rem !important;
+  }
+  .carboy-step-val {
+    font-size: 0.95rem !important;
+  }
+
+  /* Numeric Keypad on Tablet */
+  .numeric-keypad-grid {
+    gap: 5px !important;
+  }
+  .keypad-key {
+    height: 38px !important;
+    min-height: 38px !important;
+    font-size: 1.05rem !important;
+    border-radius: var(--radius-sm) !important;
+  }
+
+  /* Quick Cash Tender Row on Tablet */
+  .quick-cash-tender-card {
+    padding: 6px 8px !important;
+    gap: 4px !important;
+    border-radius: var(--radius-md) !important;
+  }
+  .cash-tender-header {
+    margin-bottom: 2px !important;
+  }
+  .cash-tender-title {
+    font-size: 0.7rem !important;
+  }
+  .change-due-badge {
+    font-size: 0.68rem !important;
+    padding: 1px 6px !important;
+  }
+  .quick-cash-btn-row {
+    grid-template-columns: repeat(6, 1fr) !important;
+    gap: 4px !important;
+  }
+  .btn-quick-cash {
+    padding: 5px 2px !important;
+    font-size: 0.7rem !important;
+    border-radius: var(--radius-sm) !important;
+    white-space: nowrap !important;
+  }
+
+  /* Total Display & Complete Sale Button */
+  .order-submit-box {
+    gap: 6px !important;
+  }
+  .order-total-display-row {
+    padding: 6px 10px !important;
+  }
+  .total-caption {
+    font-size: 0.72rem !important;
+  }
+  .total-highlight-amount {
+    font-size: 1.35rem !important;
+  }
+  .paid-unpaid-breakdown {
+    font-size: 0.68rem !important;
+  }
+  .btn-primary-action {
+    height: 44px !important;
+    min-height: 44px !important;
+    font-size: 0.92rem !important;
+    border-radius: var(--radius-md) !important;
+  }
+  .panel-bottom-actions button {
+    padding: 6px 8px !important;
+    font-size: 0.74rem !important;
+  }
+
+  /* Station Inventory Dock on Tablet */
+  .inventory-metrics-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 10px !important;
+  }
+
+  /* Orders Header & Toolbar on Tablet */
   .orders-view-header {
     flex-direction: column;
     align-items: stretch;
-    gap: 12px;
+    gap: 10px;
   }
   .orders-header-controls {
     display: flex;
@@ -6527,46 +6824,74 @@ body:not(.light-mode) .btn-sub-action.primary:hover {
     overflow-x: auto;
     flex-shrink: 0;
   }
+
+  /* Reports Stage on Tablet */
+  .sparkline-kpi-grid {
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)) !important;
+    gap: 12px !important;
+  }
+  .report-hero-header {
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+  .report-table-card {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+  .dd-kpi-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 10px !important;
+  }
+  .dd-middle-grid,
+  .dd-bottom-grid {
+    grid-template-columns: 1fr !important;
+    gap: 12px !important;
+  }
+
+  /* Settings on Tablet */
+  .settings-cards-grid {
+    grid-template-columns: 1fr !important;
+    gap: 14px;
+  }
+
+  /* Profile on Tablet */
+  .profile-hero-card {
+    padding: 18px 20px;
+    gap: 14px;
+  }
+  .profile-kpis-grid {
+    grid-template-columns: repeat(3, 1fr) !important;
+    gap: 10px !important;
+  }
+  .profile-details-grid {
+    grid-template-columns: 1fr !important;
+    gap: 14px !important;
+  }
 }
 
 /* --------------------------------------------------------------------------
-   3. TABLETS PORTRAIT & COMPACT SCREENS (<= 768px)
+   3. TABLETS PORTRAIT & COMPACT TABLETS (<= 768px)
    -------------------------------------------------------------------------- */
 @media (max-width: 768px) {
   .floating-side-minitab {
     display: none !important;
   }
-  /* Tablet portrait: maintain 2-column layout matching laptop so keypad & ordering are immediately accessible */
+
+  /* Maintain 2-column POS workspace side-by-side matching laptop */
   .pos-workspace-grid {
-    display: grid;
-    grid-template-columns: 1.05fr 1fr;
-    gap: 10px;
-    align-items: start;
+    display: grid !important;
+    grid-template-columns: 1.05fr 1fr !important;
+    gap: 10px !important;
+    align-items: start !important;
   }
+
   .order-calculator-panel {
-    position: sticky;
-    top: 10px;
-    padding: 12px;
-    gap: 8px;
+    position: sticky !important;
+    top: 8px !important;
+    padding: 10px 12px !important;
+    gap: 7px !important;
   }
-  .top-header {
-    padding-bottom: 12px;
-    gap: 10px;
-  }
-  .welcome-title {
-    font-size: 1.25rem;
-  }
-  .live-clock-pill {
-    padding: 5px 10px;
-    font-size: 0.78rem;
-  }
-  .station-summary-grid {
-    grid-template-columns: repeat(2, 1fr) !important;
-    gap: 10px;
-  }
-  .settings-cards-grid {
-    grid-template-columns: 1fr !important;
-  }
+
   .metric-card {
     padding: 12px 14px;
     min-height: 86px;
@@ -6574,10 +6899,7 @@ body:not(.light-mode) .btn-sub-action.primary:hover {
   .m-val {
     font-size: 1.35rem;
   }
-  .m-lbl {
-    font-size: 0.68rem;
-  }
-  .m-sub {
+  .m-lbl, .m-sub {
     font-size: 0.68rem;
   }
 
@@ -6594,17 +6916,6 @@ body:not(.light-mode) .btn-sub-action.primary:hover {
   }
   .btn-reset-shift-log {
     margin-left: auto;
-  }
-
-  /* Settings Grid */
-  .settings-cards-grid {
-    grid-template-columns: 1fr;
-    gap: 14px;
-  }
-  .settings-tabs-nav {
-    overflow-x: auto;
-    flex-wrap: nowrap;
-    -webkit-overflow-scrolling: touch;
   }
 }
 
@@ -6754,7 +7065,7 @@ body:not(.light-mode) .btn-sub-action.primary:hover {
     display: none !important;
   }
 
-  /* Mobile Phone portrait: 1 column vertical stack with smooth scrolling */
+  /* Mobile Phone portrait: 1 column vertical stack with smooth touch scrolling */
   .pos-workspace-grid {
     display: grid !important;
     grid-template-columns: 1fr !important;
@@ -6764,8 +7075,11 @@ body:not(.light-mode) .btn-sub-action.primary:hover {
   .order-calculator-panel {
     position: relative !important;
     top: auto !important;
+    padding: 14px 12px !important;
+    gap: 10px !important;
   }
 
+  /* Bottom Navigation Bar on Mobile */
   .sidebar {
     position: fixed !important;
     bottom: 0 !important;
@@ -6918,7 +7232,7 @@ body:not(.light-mode) .btn-sub-action.primary:hover {
   .main-content {
     width: 100vw !important;
     max-width: 100vw !important;
-    padding: 10px 12px calc(72px + env(safe-area-inset-bottom, 0px)) 12px !important;
+    padding: 10px 12px calc(74px + env(safe-area-inset-bottom, 0px)) 12px !important;
     box-sizing: border-box !important;
     overflow-x: hidden !important;
   }
@@ -6950,6 +7264,7 @@ body:not(.light-mode) .btn-sub-action.primary:hover {
     justify-content: space-between;
     width: 100%;
     gap: 6px;
+    flex-wrap: wrap;
   }
   .clock-date {
     display: none;
@@ -7121,10 +7436,21 @@ body:not(.light-mode) .btn-sub-action.primary:hover {
   }
   .keypad-key {
     min-height: 46px;
+    height: 46px;
     font-size: 1.15rem;
   }
+  .quick-cash-btn-row {
+    grid-template-columns: repeat(6, 1fr) !important;
+    gap: 4px !important;
+  }
+  .btn-quick-cash {
+    padding: 6px 1px !important;
+    font-size: 0.71rem !important;
+    white-space: nowrap !important;
+  }
   .btn-primary-action {
-    min-height: 52px;
+    min-height: 50px;
+    height: 50px;
     font-size: 0.98rem;
   }
 
@@ -7144,6 +7470,149 @@ body:not(.light-mode) .btn-sub-action.primary:hover {
   .mini-orders-drawer {
     width: 100vw;
     max-width: 100vw;
+  }
+
+  /* Reports Stage on Mobile Phone (Fixes 3-Column Sparkline Squish!) */
+  .sparkline-kpi-grid {
+    grid-template-columns: 1fr !important;
+    gap: 10px !important;
+  }
+  .sparkline-card {
+    padding: 14px 16px !important;
+  }
+  .report-hero-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+  }
+  .report-hero-actions {
+    width: 100%;
+  }
+  .btn-full-dive-trigger {
+    width: 100%;
+    justify-content: center;
+  }
+  .deep-dive-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+  }
+  .deep-dive-header-actions {
+    width: 100%;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+  }
+  .btn-dd-primary {
+    grid-column: 1 / -1;
+  }
+  .dd-kpi-grid {
+    grid-template-columns: 1fr !important;
+    gap: 10px !important;
+  }
+
+  /* Settings Stage on Mobile Phone */
+  .settings-view {
+    padding: 14px 12px !important;
+  }
+  .settings-tabs-nav {
+    overflow-x: auto;
+    flex-wrap: nowrap;
+    -webkit-overflow-scrolling: touch;
+    padding-bottom: 6px;
+  }
+  .settings-tab-btn {
+    flex-shrink: 0;
+    white-space: nowrap;
+    padding: 6px 12px;
+    font-size: 0.76rem;
+  }
+  .setting-row-2col {
+    grid-template-columns: 1fr !important;
+    gap: 8px !important;
+  }
+  .btn-save-settings {
+    width: 100%;
+    justify-content: center;
+  }
+
+  /* Profile Stage on Mobile Phone */
+  .profile-top-bar {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 10px;
+  }
+  .profile-header-actions {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 6px;
+    width: 100%;
+  }
+  .btn-profile-top-action.danger {
+    grid-column: 1 / -1;
+  }
+  .profile-hero-card {
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    padding: 16px 14px;
+    gap: 12px;
+  }
+  .profile-hero-left {
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+  }
+  .profile-hero-title-row {
+    justify-content: center;
+  }
+  .profile-operator-meta-row {
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+  .profile-hero-right {
+    width: 100%;
+  }
+  .profile-quick-stat-box {
+    width: 100%;
+    text-align: center;
+  }
+  .profile-kpis-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 8px !important;
+  }
+  .profile-kpi-card {
+    padding: 10px 12px !important;
+    gap: 4px !important;
+  }
+  .profile-kpi-main-val {
+    font-size: 1.25rem !important;
+  }
+
+  /* Modals on Mobile Phone */
+  .modal-card,
+  .auth-modal-card,
+  .switch-user-card,
+  .thermal-modal-card,
+  .empties-modal-card {
+    width: 95vw !important;
+    max-width: 95vw !important;
+    padding: 16px 14px !important;
+    border-radius: var(--radius-lg) !important;
+  }
+  .empties-summary-row {
+    grid-template-columns: 1fr !important;
+    gap: 8px !important;
+  }
+  .empties-table-wrap {
+    max-height: 250px !important;
+  }
+  .auth-keypad-grid {
+    max-width: 240px;
+  }
+  .btn-auth-key {
+    height: 44px;
+    font-size: 1.1rem;
   }
 }
 
