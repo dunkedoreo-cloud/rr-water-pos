@@ -222,14 +222,15 @@ body:not(.light-mode) .kp-mode-tab.active .ui-icon-xs {
   pointer-events: none;
 }
 
-/* Dark Mode Non-moving Water Background */
+/* Dark Mode Non-moving Water Background (Cohesive Deep Sapphire Theme) */
 body:not(.light-mode) .static-water-bg {
   background-image: url('assets/water_static_bg_dark.jpg');
-  opacity: 0.92;
+  opacity: 0.50;
+  filter: saturate(0.9) brightness(0.85);
 }
 
 body:not(.light-mode) .static-water-bg::after {
-  background: radial-gradient(circle at 50% 35%, rgba(15, 23, 42, 0.2) 0%, rgba(11, 17, 32, 0.55) 100%);
+  background: radial-gradient(circle at 50% 35%, rgba(8, 13, 26, 0.45) 0%, rgba(8, 13, 26, 0.88) 100%);
 }
 
 /* Overall App Flex Container */
@@ -273,6 +274,53 @@ body:not(.light-mode) .static-water-bg::after {
 .sidebar::-webkit-scrollbar-thumb {
   background: var(--border-subtle);
   border-radius: 4px;
+}
+
+/* Dark Mode Left Sidebar Navigation */
+body:not(.light-mode) .sidebar {
+  background-color: rgba(14, 22, 40, 0.92);
+  border-right-color: rgba(255, 255, 255, 0.08);
+}
+
+body:not(.light-mode) .sidebar::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.12);
+}
+
+body:not(.light-mode) .brand-title {
+  color: #f8fafc;
+}
+
+body:not(.light-mode) .nav-item {
+  color: var(--text-muted);
+}
+
+body:not(.light-mode) .nav-item .ui-icon {
+  color: var(--text-muted);
+}
+
+body:not(.light-mode) .nav-item:hover {
+  color: #f8fafc;
+  background-color: rgba(255, 255, 255, 0.06);
+}
+
+body:not(.light-mode) .nav-item:hover .ui-icon {
+  color: #f8fafc;
+}
+
+body:not(.light-mode) .nav-item.active {
+  background-color: #1e3a5f;
+  color: #38bdf8;
+  box-shadow: 0 2px 10px rgba(56, 189, 248, 0.18);
+}
+
+body:not(.light-mode) .nav-item.active .ui-icon {
+  color: #38bdf8 !important;
+}
+
+body:not(.light-mode) .nav-item.active .nav-badge {
+  background-color: rgba(56, 189, 248, 0.16);
+  color: #38bdf8;
+  border-color: rgba(56, 189, 248, 0.32);
 }
 
 .sidebar-brand {
