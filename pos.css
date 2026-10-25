@@ -109,6 +109,12 @@ body:not(.light-mode) {
   -webkit-tap-highlight-color: transparent;
 }
 
+html {
+  scroll-behavior: smooth;
+  overflow-x: hidden;
+  overflow-y: auto;
+}
+
 body {
   font-family: var(--font-sans);
   background-color: var(--bg-app);
@@ -117,6 +123,8 @@ body {
   display: flex;
   transition: background-color 0.25s ease, color 0.25s ease;
   overflow-x: hidden;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
 }
 
 /* ==========================================================================
@@ -503,12 +511,8 @@ body:not(.light-mode) .sidebar-droppy-name {
   flex-direction: column;
   padding: 18px 24px;
   gap: 16px;
-  overflow-y: auto;
-  overflow-x: hidden;
   max-width: 1550px;
   box-sizing: border-box;
-  -webkit-overflow-scrolling: touch;
-  overscroll-behavior-y: contain;
 }
 
 /* Top Greeting & Header (With Distinct Dividing Line) */
@@ -2446,11 +2450,9 @@ body:not(.light-mode) .log-filter-btn.active {
   border-radius: var(--radius-xl);
   box-shadow: var(--shadow-sm);
   overflow-x: auto;
-  overflow-y: hidden;
   width: 100%;
   animation: slide-order 0.2s ease-out;
   -webkit-overflow-scrolling: touch;
-  contain: content;
 }
 
 .orders-data-table {
