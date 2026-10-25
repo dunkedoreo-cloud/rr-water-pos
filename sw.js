@@ -2,13 +2,13 @@
 // R&R Water Refilling Station - Service Worker (Offline-First PWA)
 // ==========================================================================
 
-const CACHE_NAME = 'rr-water-pos-v2.8.16';
+const CACHE_NAME = 'rr-water-pos-v2.8.17';
 const STATIC_ASSETS = [
   './',
   './index.html',
   './pos.html',
-  './pos.css?v=2.8.16',
-  './pos.js?v=2.8.16',
+  './pos.css?v=2.8.17',
+  './pos.js?v=2.8.17',
   './manifest.json',
   './assets/water_static_bg.jpg',
   './assets/water_static_bg_dark.jpg',
@@ -52,7 +52,7 @@ self.addEventListener('fetch', (event) => {
   const url = new URL(event.request.url);
 
   // Network-only for API requests so transactions are always live with SQLite
-  if (url.pathname.startsWith('/api/')) {
+  if (url.pathname.startsWith('/api/') || url.hostname.includes('supabase.co')) {
     return;
   }
 

@@ -252,6 +252,7 @@ document.addEventListener('DOMContentLoaded', () => {
   initStationSummaryDrawer();
   initKeyboardShortcuts();
   initOfflinePWA();
+  SupabaseSync.init();
   renderPresets();
   renderAll();
   initDroppyMascotCycle();
@@ -468,6 +469,7 @@ function saveAuditLogs() {
 function saveCustomers() {
   if (State.customers) {
     localStorage.setItem('rr_pos_customers', JSON.stringify(State.customers));
+  if (Array.isArray(State.customers)) State.customers.forEach(c => SupabaseSync.pushCustomer(c));
   }
 }
 
@@ -1706,6 +1708,7 @@ function processPaymentAndStoreOrder() {
   // Prepend to stored orders array (the specific part of the POS)
   State.storedOrders.unshift(newOrder);
   saveOrders();
+  SupabaseSync.pushOrder(newOrder);
 
   // Process Carboy Borrow / Return Transactions
   if (State.carboysLoaned > 0 || State.carboysReturned > 0) {
@@ -1781,6 +1784,7 @@ function markOrderPaid(orderNo) {
   order.tendered = order.total;
   order.change = 0;
   saveOrders();
+  SupabaseSync.pushOrder(order);
 
   // Sync to backend SQLite database
   fetch(`/api/orders/${encodeURIComponent(orderNo)}/pay`, {
@@ -2193,6 +2197,7 @@ function confirmVoidOrder(orderNo) {
     onAuthorized: (reason, manager) => {
       State.storedOrders = State.storedOrders.filter(o => o.orderNo !== orderNo);
       saveOrders();
+      SupabaseSync.voidOrder(orderNo);
 
       // Sync void to SQLite backend
       fetch(`/api/orders/${encodeURIComponent(orderNo)}/void`, {
@@ -6798,3 +6803,334 @@ function initStationSummaryDrawer() {
   }
 }
 
+
+
+// ==========================================================================
+// SUPABASE CLOUD DATABASE CONTROLLER (Real-time Cloud Sync)
+// ==========================================================================
+const SupabaseSync = {
+  client: null,
+  isConfigured: false,
+  isConnected: false,
+  realtimeChannel: null,
+
+  init() {
+    const url = localStorage.getItem('rr_supabase_url') || (window.ENV_SUPABASE_URL || '');
+    const key = localStorage.getItem('rr_supabase_key') || (window.ENV_SUPABASE_KEY || '');
+    
+    // Fill settings inputs if present
+    const elUrl = document.getElementById('settingSupabaseUrl');
+    const elKey = document.getElementById('settingSupabaseKey');
+    if (elUrl && url) elUrl.value = url;
+    if (elKey && key) elKey.value = key;
+
+    if (url && key) {
+      this.connect(url, key, false);
+    } else {
+      // Check server API config if running on local Node server
+      fetch('/api/config/supabase')
+        .then(res => res.json())
+        .then(data => {
+          if (data && data.configured && data.url && data.anonKey) {
+            localStorage.setItem('rr_supabase_url', data.url);
+            localStorage.setItem('rr_supabase_key', data.anonKey);
+            if (elUrl) elUrl.value = data.url;
+            if (elKey) elKey.value = data.anonKey;
+            this.connect(data.url, data.anonKey, false);
+          } else {
+            this.updateUI();
+          }
+        })
+        .catch(() => {
+          this.updateUI();
+        });
+    }
+
+    this.bindEvents();
+  },
+
+  bindEvents() {
+    const btnConnect = document.getElementById('btnConnectSupabase');
+    if (btnConnect) {
+      btnConnect.onclick = () => {
+        const url = (document.getElementById('settingSupabaseUrl')?.value || '').trim();
+        const key = (document.getElementById('settingSupabaseKey')?.value || '').trim();
+        if (!url || !key) {
+          showToast('Please enter both Supabase Project URL and Anon Key');
+          return;
+        }
+        localStorage.setItem('rr_supabase_url', url);
+        localStorage.setItem('rr_supabase_key', key);
+        this.connect(url, key, true);
+      };
+    }
+
+    const btnToggle = document.getElementById('btnToggleSupabaseKey');
+    if (btnToggle) {
+      btnToggle.onclick = () => {
+        const elKey = document.getElementById('settingSupabaseKey');
+        if (elKey) {
+          elKey.type = elKey.type === 'password' ? 'text' : 'password';
+        }
+      };
+    }
+
+    const btnSyncNow = document.getElementById('btnSyncSupabaseNow');
+    if (btnSyncNow) {
+      btnSyncNow.onclick = async () => {
+        if (!this.client || !this.isConnected) {
+          showToast('Please connect to Supabase first');
+          return;
+        }
+        btnSyncNow.disabled = true;
+        btnSyncNow.innerHTML = '<span>Syncing...</span>';
+        const ok = await this.syncAllOfflineData();
+        btnSyncNow.disabled = false;
+        btnSyncNow.innerHTML = '<svg class="ui-icon-xs" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"></polyline><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path></svg><span>Upload &amp; Sync Local Data</span>';
+        if (ok) {
+          showToast('Supabase cloud sync completed successfully!');
+        } else {
+          showToast('Supabase sync had warnings. Check connection.');
+        }
+      };
+    }
+  },
+
+  async connect(url, key, showToasts = false) {
+    if (typeof window.supabase === 'undefined' || !window.supabase.createClient) {
+      this.isConnected = false;
+      this.updateUI();
+      if (showToasts) showToast('Supabase client library is still loading...');
+      return;
+    }
+
+    try {
+      this.client = window.supabase.createClient(url, key);
+      this.isConfigured = true;
+
+      // Test connection with a lightweight count query
+      const { data, error } = await this.client.from('orders').select('order_no', { count: 'exact', head: true });
+      if (error && error.code !== 'PGRST116') {
+        this.isConnected = false;
+        this.updateUI();
+        if (showToasts) showToast('Supabase connection failed: ' + (error.message || 'Check URL/Key'));
+        return;
+      }
+
+      this.isConnected = true;
+      this.updateUI();
+      this.setupRealtime();
+      this.pullAll();
+      if (showToasts) showToast('Connected to Supabase! Real-time cloud sync is active.');
+    } catch (err) {
+      this.isConnected = false;
+      this.updateUI();
+      if (showToasts) showToast('Connection error: ' + err.message);
+    }
+  },
+
+  updateUI() {
+    const badge = document.getElementById('supabaseStatusBadge');
+    const desc = document.getElementById('supabaseStatusDesc');
+    if (!badge || !desc) return;
+
+    if (this.isConnected) {
+      badge.className = 'meta-badge active-live';
+      badge.innerHTML = '<span class="pulse-indicator"></span> Connected (Live Realtime)';
+      desc.textContent = 'Cloud database connected. Changes sync automatically across all devices.';
+    } else if (this.isConfigured) {
+      badge.className = 'meta-badge disconnected';
+      badge.innerHTML = '<span class="dot-disconnected">✕</span> Connection Error';
+      desc.textContent = 'Configured, but unable to reach Supabase. Operating in offline-safe mode.';
+    } else {
+      badge.className = 'meta-badge disconnected';
+      badge.innerHTML = '<span class="dot-disconnected">○</span> Disconnected';
+      desc.textContent = 'Cloud database credentials not configured. Data is stored locally on this device.';
+    }
+  },
+
+  async pushOrder(order) {
+    if (!this.client || !this.isConnected) return;
+    try {
+      const row = {
+        id: order.id || ('ord_' + Date.now()),
+        order_no: order.orderNo,
+        timestamp: Number(order.timestamp) || Date.now(),
+        date_str: order.dateStr || '',
+        channel: order.channel || 'walkin',
+        prod_key: order.items && order.items[0] && order.items[0].name ? order.items[0].name.toLowerCase() : 'refill',
+        prod_name: order.items && order.items[0] && order.items[0].name ? order.items[0].name : '5-Gallon Purified Refill',
+        gallons: Number(order.gallons) || 1,
+        unit_price: Number(order.items && order.items[0] && order.items[0].price) || 35.00,
+        total: Number(order.total) || 0.00,
+        paid_amount: Number(order.paidAmount) || 0.00,
+        unpaid_amount: Number(order.unpaidAmount) || 0.00,
+        status: order.status || 'paid',
+        payment_method: order.paymentMethod || 'cash',
+        cashier_name: order.cashierName || 'Neil',
+        cashier_role: order.cashierRole || 'manager',
+        driver_name: order.driverName || null,
+        customer_name: order.customerName || null,
+        customer_id: order.customerId || null,
+        address: order.address || null,
+        note: order.note || null,
+        carboys_loaned: Number(order.carboysLoaned) || 0,
+        carboys_returned: Number(order.carboysReturned) || 0,
+        tendered: Number(order.tendered) || 0.00,
+        change_amount: Number(order.change) || 0.00,
+        items: order.items || [],
+        is_voided: order.status === 'voided'
+      };
+      await this.client.from('orders').upsert(row, { onConflict: 'order_no' });
+    } catch (e) {
+      console.warn('[Supabase] pushOrder error:', e);
+    }
+  },
+
+  async voidOrder(orderNo, reason = '', voidedBy = 'Neil') {
+    if (!this.client || !this.isConnected) return;
+    try {
+      await this.client.from('orders').update({
+        status: 'voided',
+        is_voided: true,
+        void_reason: reason,
+        voided_by: voidedBy
+      }).eq('order_no', orderNo);
+    } catch (e) {
+      console.warn('[Supabase] voidOrder error:', e);
+    }
+  },
+
+  async pushCustomer(cust) {
+    if (!this.client || !this.isConnected) return;
+    try {
+      const row = {
+        id: cust.id,
+        name: cust.name,
+        contact: cust.contact || '',
+        address: cust.address || '',
+        carboys_held: Number(cust.carboysHeld) || 0,
+        deposit_amount: Number(cust.depositAmount) || 0,
+        notes: cust.notes || ''
+      };
+      await this.client.from('customers').upsert(row, { onConflict: 'id' });
+    } catch (e) {
+      console.warn('[Supabase] pushCustomer error:', e);
+    }
+  },
+
+  async pullAll() {
+    if (!this.client || !this.isConnected) return;
+    try {
+      // 1. Pull latest orders
+      const { data: cloudOrders } = await this.client
+        .from('orders')
+        .select('*')
+        .order('timestamp', { ascending: false })
+        .limit(200);
+
+      if (Array.isArray(cloudOrders) && cloudOrders.length > 0) {
+        const existingMap = new Map();
+        State.storedOrders.forEach(o => existingMap.set(o.orderNo, o));
+
+        let updated = false;
+        cloudOrders.forEach(co => {
+          if (!existingMap.has(co.order_no)) {
+            State.storedOrders.push({
+              id: co.id,
+              orderNo: co.order_no,
+              timestamp: Number(co.timestamp),
+              dateStr: co.date_str,
+              channel: co.channel,
+              gallons: Number(co.gallons),
+              total: Number(co.total),
+              paidAmount: Number(co.paid_amount),
+              unpaidAmount: Number(co.unpaid_amount),
+              status: co.status,
+              paymentMethod: co.payment_method,
+              cashierName: co.cashier_name,
+              cashierRole: co.cashier_role,
+              driverName: co.driver_name,
+              customerName: co.customer_name,
+              customerId: co.customer_id,
+              address: co.address,
+              note: co.note,
+              carboysLoaned: Number(co.carboys_loaned),
+              carboysReturned: Number(co.carboys_returned),
+              tendered: Number(co.tendered),
+              change: Number(co.change_amount),
+              items: co.items || [{ name: co.prod_name, price: Number(co.unit_price), qty: Number(co.gallons), total: Number(co.total) }]
+            });
+            updated = true;
+          }
+        });
+
+        if (updated) {
+          saveOrders();
+          renderOrdersTable();
+          renderReports();
+          renderDeepDiveReport();
+        }
+      }
+
+      // 2. Pull customers
+      const { data: cloudCusts } = await this.client.from('customers').select('*');
+      if (Array.isArray(cloudCusts) && cloudCusts.length > 0) {
+        State.customers = cloudCusts.map(cc => ({
+          id: cc.id,
+          name: cc.name,
+          contact: cc.contact,
+          address: cc.address,
+          carboysHeld: Number(cc.carboys_held),
+          depositAmount: Number(cc.deposit_amount),
+          notes: cc.notes
+        }));
+        saveCustomers();
+        updateCarboyHeaderBadge();
+        const emptiesModal = document.getElementById('carboyEmptiesModal');
+        if (emptiesModal && emptiesModal.style.display === 'flex') {
+          renderEmptiesTable();
+        }
+      }
+    } catch (e) {
+      console.warn('[Supabase] pullAll error:', e);
+    }
+  },
+
+  async syncAllOfflineData() {
+    if (!this.client) return false;
+    try {
+      for (const o of State.storedOrders) {
+        await this.pushOrder(o);
+      }
+      for (const c of State.customers) {
+        await this.pushCustomer(c);
+      }
+      await this.pullAll();
+      return true;
+    } catch (e) {
+      console.warn('[Supabase] syncAllOfflineData error:', e);
+      return false;
+    }
+  },
+
+  setupRealtime() {
+    if (!this.client) return;
+    try {
+      if (this.realtimeChannel) {
+        this.client.removeChannel(this.realtimeChannel);
+      }
+      this.realtimeChannel = this.client
+        .channel('rr_station_realtime')
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'orders' }, (payload) => {
+          this.pullAll();
+        })
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'customers' }, (payload) => {
+          this.pullAll();
+        })
+        .subscribe();
+    } catch (e) {
+      console.warn('[Supabase] setupRealtime error:', e);
+    }
+  }
+};

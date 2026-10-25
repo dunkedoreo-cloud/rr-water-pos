@@ -11114,3 +11114,47 @@ body:not(.light-mode) .person-sub-status.ready {
     scroll-behavior: auto !important;
   }
 }
+
+
+/* Supabase Cloud Sync Badges */
+.meta-badge.active-live {
+  background-color: rgba(16, 185, 129, 0.12) !important;
+  color: #10b981 !important;
+  border-color: rgba(16, 185, 129, 0.28) !important;
+}
+
+.meta-badge.disconnected {
+  background-color: rgba(148, 163, 184, 0.12) !important;
+  color: var(--text-muted) !important;
+  border-color: rgba(148, 163, 184, 0.24) !important;
+}
+
+.setting-input-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 8px;
+}
+
+.setting-input-group label {
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--text-dim);
+}
+
+.setting-input-group input {
+  padding: 8px 12px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-subtle);
+  background-color: var(--bg-surface);
+  color: var(--text-main);
+  font-family: var(--font-mono);
+  font-size: 0.82rem;
+  outline: none;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.setting-input-group input:focus {
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 2px rgba(2, 132, 199, 0.15);
+}

@@ -8,6 +8,22 @@ const fs = require('fs');
 const path = require('path');
 const url = require('url');
 const db = require('./database.js');
+// Load .env if present (Zero external dependencies)
+try {
+  const envPath = path.join(__dirname, '.env');
+  if (fs.existsSync(envPath)) {
+    const envLines = fs.readFileSync(envPath, 'utf8').split(/\r?\n/);
+    envLines.forEach(line => {
+      const trimmed = line.trim();
+      if (trimmed && !trimmed.startsWith('#') && trimmed.includes('=')) {
+        const idx = trimmed.indexOf('=');
+        const key = trimmed.substring(0, idx).trim();
+        const val = trimmed.substring(idx + 1).trim().replace(/^['"]|['"]$/g, '');
+        if (key && !process.env[key]) process.env[key] = val;
+      }
+    });
+  }
+} catch (e) {}
 
 const PORT = process.env.PORT || 3000;
 const PUBLIC_DIR = __dirname;
@@ -76,6 +92,16 @@ const server = http.createServer(async (req, res) => {
   // --- RESTFUL API ROUTES ---
   if (pathname.startsWith('/api/')) {
     try {
+            // 0. Supabase Cloud Config Endpoint
+      if (pathname === '/api/config/supabase' && req.method === 'GET') {
+        return sendJson(res, 200, {
+          success: true,
+          configured: Boolean(process.env.SUPABASE_URL && process.env.SUPABASE_ANON_KEY),
+          url: process.env.SUPABASE_URL || null,
+          anonKey: process.env.SUPABASE_ANON_KEY || null
+        });
+      }
+
       // 1. Station Summary & Health
       if (pathname === '/api/status' && req.method === 'GET') {
         const summary = db.getStationSummary();
