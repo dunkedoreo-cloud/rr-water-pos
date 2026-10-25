@@ -486,7 +486,7 @@ function saveStationData() {
   const badge = document.getElementById('badgePersistenceStatus');
   if (badge) {
     badge.textContent = 'Saved Just Now';
-    badge.className = 'meta-badge green';
+    badge.className = 'meta-badge';
   }
   showToast('✓ Station data, orders, staff, customers & settings saved to LocalStorage!');
 }
