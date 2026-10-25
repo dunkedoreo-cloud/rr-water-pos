@@ -708,16 +708,21 @@ a.header-icon-btn svg {
   aspect-ratio: 1 / 1;
   box-sizing: border-box;
   border-radius: var(--radius-full);
-  background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+  background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);
   color: #ffffff;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   font-weight: 800;
   font-size: 0.9rem;
-  box-shadow: 0 2px 8px rgba(245, 158, 11, 0.3);
+  box-shadow: 0 2px 8px rgba(2, 132, 199, 0.3);
   cursor: pointer;
   outline: none;
+}
+
+body:not(.light-mode) .cashier-avatar {
+  background: linear-gradient(135deg, #0284c7 0%, #0c4a6e 100%);
+  box-shadow: 0 2px 10px rgba(56, 189, 248, 0.25);
 }
 
 /* Sub-header Bar */
@@ -9110,13 +9115,15 @@ body:not(.light-mode) .meta-badge.emerald {
 }
 
 .btn-profile-top-action.danger {
-  color: var(--color-danger);
-  border-color: rgba(239, 68, 68, 0.3);
-  background: rgba(239, 68, 68, 0.05);
+  color: var(--text-main);
+  border-color: var(--border-card);
+  background: var(--bg-surface);
 }
 
 .btn-profile-top-action.danger:hover {
-  background: rgba(239, 68, 68, 0.12);
+  background: var(--bg-card-hover);
+  border-color: var(--color-primary);
+  color: var(--color-primary);
 }
 
 /* Hero Operator Banner */
@@ -9151,27 +9158,33 @@ body:not(.light-mode) .meta-badge.emerald {
   width: 76px;
   height: 76px;
   border-radius: var(--radius-full);
-  background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+  background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);
   color: #ffffff;
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: 2rem;
   font-weight: 800;
-  box-shadow: 0 4px 16px rgba(245, 158, 11, 0.35);
+  box-shadow: 0 4px 16px rgba(2, 132, 199, 0.35);
   border: 3px solid var(--bg-surface);
+}
+
+body:not(.light-mode) .profile-hero-avatar {
+  background: linear-gradient(135deg, #0284c7 0%, #0c4a6e 100%);
+  border-color: var(--bg-card);
+  box-shadow: 0 4px 20px rgba(56, 189, 248, 0.25);
 }
 
 .profile-live-pulse-dot {
   position: absolute;
   bottom: 2px;
   right: 2px;
-  width: 16px;
-  height: 16px;
+  width: 14px;
+  height: 14px;
   border-radius: var(--radius-full);
-  background: #10b981;
+  background: var(--color-accent);
   border: 2px solid var(--bg-card);
-  box-shadow: 0 0 8px rgba(16, 185, 129, 0.8);
+  box-shadow: 0 0 8px rgba(56, 189, 248, 0.6);
   animation: pulse-ring 2s infinite ease-in-out;
 }
 
@@ -9208,18 +9221,24 @@ body:not(.light-mode) .meta-badge.emerald {
   gap: 6px;
   font-size: 0.76rem;
   font-weight: 700;
-  color: #10b981;
-  background: rgba(16, 185, 129, 0.1);
+  color: var(--color-primary);
+  background: rgba(2, 132, 199, 0.08);
   padding: 4px 10px;
   border-radius: var(--radius-full);
-  border: 1px solid rgba(16, 185, 129, 0.25);
+  border: 1px solid rgba(2, 132, 199, 0.2);
+}
+
+body:not(.light-mode) .profile-status-pill {
+  color: #38bdf8;
+  background: rgba(56, 189, 248, 0.1);
+  border-color: rgba(56, 189, 248, 0.25);
 }
 
 .profile-status-pill .pulse-indicator {
   width: 6px;
   height: 6px;
   border-radius: var(--radius-full);
-  background: #10b981;
+  background: currentColor;
 }
 
 .profile-meta-tags {
@@ -9241,6 +9260,10 @@ body:not(.light-mode) .meta-badge.emerald {
 .profile-meta-item.highlight {
   color: var(--color-primary);
   font-weight: 700;
+}
+
+body:not(.light-mode) .profile-meta-item.highlight {
+  color: #38bdf8;
 }
 
 .profile-hero-right {
@@ -9271,8 +9294,12 @@ body:not(.light-mode) .meta-badge.emerald {
   font-family: var(--font-mono);
   font-size: 1.6rem;
   font-weight: 800;
-  color: #10b981;
+  color: var(--color-primary);
   line-height: 1.2;
+}
+
+body:not(.light-mode) .profile-quick-stat-val {
+  color: #38bdf8;
 }
 
 .profile-quick-stat-sub {
@@ -9281,7 +9308,7 @@ body:not(.light-mode) .meta-badge.emerald {
   font-weight: 600;
 }
 
-/* KPI Cards Grid */
+/* Unified Clean Theme Profile KPI Cards */
 .profile-kpis-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
@@ -9303,6 +9330,7 @@ body:not(.light-mode) .meta-badge.emerald {
 .profile-kpi-card:hover {
   transform: translateY(-2px);
   box-shadow: var(--shadow-card);
+  border-color: var(--color-accent);
 }
 
 .profile-kpi-top {
@@ -9320,43 +9348,22 @@ body:not(.light-mode) .meta-badge.emerald {
 }
 
 .profile-kpi-icon-badge {
-  width: 30px;
-  height: 30px;
+  width: 32px;
+  height: 32px;
   border-radius: var(--radius-md);
   display: flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
+  background: rgba(2, 132, 199, 0.08);
+  color: var(--color-primary);
+  border: 1px solid rgba(2, 132, 199, 0.18);
 }
 
-.profile-kpi-icon-badge.green {
-  background: rgba(16, 185, 129, 0.12);
-  color: #10b981;
-}
-
-.profile-kpi-icon-badge.blue {
-  background: rgba(2, 132, 199, 0.12);
-  color: #0284c7;
-}
-
-.profile-kpi-icon-badge.purple {
-  background: rgba(139, 92, 246, 0.12);
-  color: #8b5cf6;
-}
-
-.profile-kpi-icon-badge.amber {
-  background: rgba(245, 158, 11, 0.12);
-  color: #f59e0b;
-}
-
-.profile-kpi-icon-badge.cyan {
-  background: rgba(6, 182, 212, 0.12);
-  color: #06b6d4;
-}
-
-.profile-kpi-icon-badge.indigo {
-  background: rgba(99, 102, 241, 0.12);
-  color: #6366f1;
+body:not(.light-mode) .profile-kpi-icon-badge {
+  background: rgba(56, 189, 248, 0.12);
+  color: #38bdf8;
+  border-color: rgba(56, 189, 248, 0.22);
 }
 
 .profile-kpi-main-val {
@@ -9376,18 +9383,21 @@ body:not(.light-mode) .meta-badge.emerald {
 }
 
 .kpi-tag {
-  padding: 2px 7px;
+  padding: 3px 8px;
   border-radius: var(--radius-full);
   font-weight: 700;
-  font-size: 0.7rem;
+  font-size: 0.72rem;
+  font-family: var(--font-mono);
+  background: rgba(2, 132, 199, 0.08);
+  color: var(--color-primary);
+  border: 1px solid rgba(2, 132, 199, 0.15);
 }
 
-.kpi-tag.green { background: rgba(16, 185, 129, 0.12); color: #10b981; }
-.kpi-tag.blue { background: rgba(2, 132, 199, 0.12); color: #0284c7; }
-.kpi-tag.purple { background: rgba(139, 92, 246, 0.12); color: #8b5cf6; }
-.kpi-tag.amber { background: rgba(245, 158, 11, 0.12); color: #f59e0b; }
-.kpi-tag.cyan { background: rgba(6, 182, 212, 0.12); color: #06b6d4; }
-.kpi-tag.indigo { background: rgba(99, 102, 241, 0.12); color: #6366f1; }
+body:not(.light-mode) .kpi-tag {
+  background: rgba(56, 189, 248, 0.10);
+  color: #38bdf8;
+  border-color: rgba(56, 189, 248, 0.22);
+}
 
 .kpi-sub-text {
   color: var(--text-muted);

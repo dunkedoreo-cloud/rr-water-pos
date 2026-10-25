@@ -41,9 +41,9 @@ function generateRandomOrderNo() {
 
 // --- SECURITY & STAFF ROLES ---
 const DEFAULT_STAFF = [
-  { id: 'usr_1', name: 'Neil', role: 'manager', pin: '1234', title: 'Station Manager', avatarColor: 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)' },
-  { id: 'usr_2', name: 'Sarah', role: 'cashier', pin: '2222', title: 'Front-Desk Cashier', avatarColor: '#10b981' },
-  { id: 'usr_3', name: 'Kuya Jun', role: 'driver', pin: '3333', title: 'Multicab Driver / Courier', avatarColor: '#8b5cf6' }
+  { id: 'usr_1', name: 'Neil', role: 'manager', pin: '1234', title: 'Station Manager', avatarColor: 'linear-gradient(135deg, #0284c7 0%, #0369a1 100%)' },
+  { id: 'usr_2', name: 'Sarah', role: 'cashier', pin: '2222', title: 'Front-Desk Cashier', avatarColor: '#0284c7' },
+  { id: 'usr_3', name: 'Kuya Jun', role: 'driver', pin: '3333', title: 'Multicab Driver / Courier', avatarColor: '#0369a1' }
 ];
 
 // --- APPLICATION STATE ---
@@ -420,8 +420,8 @@ function loadSavedData() {
     } catch (e) {}
   }
   const neilUser = (State.staff || []).find(s => s.id === 'usr_1');
-  if (neilUser && (!neilUser.avatarColor || neilUser.avatarColor === '#0284c7')) {
-    neilUser.avatarColor = 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)';
+  if (neilUser) {
+    neilUser.avatarColor = 'linear-gradient(135deg, #0284c7 0%, #0369a1 100%)';
   }
 
   const savedUserId = localStorage.getItem('rr_pos_current_user_id');
@@ -6038,7 +6038,7 @@ function renderProfileView() {
   const heroAvatar = document.getElementById('profileHeroAvatar');
   if (heroAvatar) {
     heroAvatar.textContent = user.name.charAt(0).toUpperCase();
-    heroAvatar.style.background = user.avatarColor || 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)';
+    heroAvatar.style.background = user.avatarColor || 'linear-gradient(135deg, #0284c7 0%, #0369a1 100%)';
   }
 
   const opName = document.getElementById('profileOperatorName');
