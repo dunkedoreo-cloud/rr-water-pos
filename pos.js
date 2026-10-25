@@ -252,6 +252,7 @@ document.addEventListener('DOMContentLoaded', () => {
   initStationSummaryDrawer();
   initKeyboardShortcuts();
   initOfflinePWA();
+  initBatchReconcileEvents();
   SupabaseSync.init();
   renderPresets();
   renderAll();
@@ -2082,6 +2083,22 @@ function renderStoredOrders() {
       ? `<button class="btn-mark-paid btn-table-collect" data-orderno="${escapeHtml(order.orderNo || '')}" title="Collect and mark paid">✓ Collect &amp; Remit</button>`
       : '';
 
+    const reconcileBtn = isDeliv
+      ? `<button type="button" class="btn-order-reconcile ${order.isBatchReconciled ? 'reconciled' : ''}" data-orderno="${escapeHtml(order.orderNo || '')}" title="Edit / Reconcile Batch Sold vs Returned">
+          <svg class="ui-icon-xs" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+          <span>${order.isBatchReconciled ? 'Batch Reconciled' : 'Reconcile Batch'}</span>
+        </button>`
+      : '';
+
+    const batchPillHtml = (isDeliv && order.isBatchReconciled)
+      ? `<div class="batch-reconciled-pill">
+          <span class="batch-pill-sold">● ${galCount} Sold</span>
+          <span class="batch-pill-sep">•</span>
+          <span class="batch-pill-left">${order.gallonsReturned ?? (order.batchLoaded - galCount)} Left</span>
+          <span class="batch-pill-total">(${order.batchLoaded} loaded)</span>
+        </div>`
+      : '';
+
     rowsHtml += `
       <tr class="orders-table-row ${isPending ? 'row-pending' : ''}" data-orderno="${escapeHtml(order.orderNo || '')}">
         <td class="td-orderno">
@@ -2097,6 +2114,7 @@ function renderStoredOrders() {
         <td class="td-product">
           <div class="product-volume-title">${prodTitle}</div>
           <div class="product-sub-desc">${prodSub}</div>
+          ${batchPillHtml}
         </td>
         <td class="td-channel">
           ${channelTag}
@@ -2110,6 +2128,7 @@ function renderStoredOrders() {
         </td>
         <td class="td-actions">
           <div class="table-actions-cell">
+            ${reconcileBtn}
             ${markPaidBtn}
             <button class="btn-order-print" data-orderno="${escapeHtml(order.orderNo || '')}" title="Print Thermal ESC/POS Receipt (F9)">
               <svg class="ui-icon-xs" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><polyline points="6 9 6 2 18 2 18 9"></polyline><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path><rect x="6" y="14" width="12" height="8"></rect></svg>
@@ -2170,6 +2189,15 @@ function renderStoredOrders() {
       const no = btn.getAttribute('data-orderno');
       const order = State.storedOrders.find(o => o.orderNo === no);
       if (order) openThermalReceiptModal(order);
+    });
+  });
+
+  // Bind Reconcile Batch actions
+  container.querySelectorAll('.btn-order-reconcile').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const no = btn.getAttribute('data-orderno');
+      openBatchReconcileModal(no);
     });
   });
 
@@ -2333,6 +2361,14 @@ function renderFleetDelivered() {
               <span class="order-time-label">${o.time}</span>
               ${notePart}
             </div>
+            ${o.isBatchReconciled ? `
+              <div class="batch-reconciled-pill" style="margin-top: 5px;">
+                <span class="batch-pill-sold">● ${galCount} Sold</span>
+                <span class="batch-pill-sep">•</span>
+                <span class="batch-pill-left">${o.gallonsReturned ?? (o.batchLoaded - galCount)} Left</span>
+                <span class="batch-pill-total">(${o.batchLoaded} loaded)</span>
+              </div>
+            ` : ''}
           </div>
         </div>
 
@@ -2340,6 +2376,10 @@ function renderFleetDelivered() {
           <div class="order-amounts-box">
             <div class="order-amount-big">₱ ${formatPeso(o.total)}</div>
             ${isPending ? `<span class="tag-amount-unpaid">Pending: ₱${formatPeso(unpaidVal)}</span>${markPaidBtn}` : ''}
+            <button type="button" class="btn-order-reconcile btn-fleet-reconcile ${o.isBatchReconciled ? 'reconciled' : ''}" data-orderno="${o.orderNo}" style="margin-top: 6px;" title="Edit / Reconcile Batch Sold vs Returned">
+              <svg class="ui-icon-xs" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+              <span>${o.isBatchReconciled ? 'Batch Reconciled' : 'Reconcile Batch'}</span>
+            </button>
           </div>
         </div>
       </div>
@@ -2354,6 +2394,15 @@ function renderFleetDelivered() {
       e.stopPropagation();
       const no = btn.getAttribute('data-orderno');
       markOrderPaid(no);
+    });
+  });
+
+  // Bind Batch Reconcile in Fleet view
+  container.querySelectorAll('.btn-fleet-reconcile').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const no = btn.getAttribute('data-orderno');
+      openBatchReconcileModal(no);
     });
   });
 
@@ -4436,6 +4485,18 @@ function renderMiniOrders(filter = currentMiniOrdersFilter) {
           <div class="mini-card-amount">₱ ${formatPeso(order.total)}</div>
           ${collectBtn}
         </div>
+        ${order.channel === 'delivery' ? `
+          <div style="display: flex; gap: 6px; align-items: center; justify-content: flex-end; margin-top: 6px; padding-top: 6px; border-top: 1px dashed #e2e8f0;">
+            ${order.isBatchReconciled ? `
+              <span class="batch-reconciled-pill" style="font-size: 0.65rem; padding: 2px 6px;">
+                ● ${order.gallons} Sold • ${order.gallonsReturned ?? (order.batchLoaded - order.gallons)} Left
+              </span>
+            ` : ''}
+            <button class="mini-btn-reconcile" data-orderno="${order.orderNo}" style="background: #f0fdf4; border: 1px solid #16a34a; color: #166534; font-size: 0.72rem; font-weight: 700; padding: 3px 8px; border-radius: 6px; cursor: pointer; display: inline-flex; align-items: center; gap: 4px;">
+              📦 Reconcile
+            </button>
+          </div>
+        ` : ''}
       </div>
     `;
   });
@@ -4449,6 +4510,15 @@ function renderMiniOrders(filter = currentMiniOrdersFilter) {
       const no = btn.getAttribute('data-orderno');
       markOrderPaid(no);
       renderMiniOrders(currentMiniOrdersFilter);
+    });
+  });
+
+  // Bind mini reconcile actions
+  container.querySelectorAll('.mini-btn-reconcile').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const no = btn.getAttribute('data-orderno');
+      openBatchReconcileModal(no);
     });
   });
 }
@@ -5565,6 +5635,18 @@ function renderThermalReceipt(order) {
     `;
   }
 
+  let batchReceiptBlock = '';
+  if (o.isBatchReconciled) {
+    batchReceiptBlock = `
+      <div class="receipt-divider-dash"></div>
+      <div class="receipt-meta-grid" style="font-size: 11px;">
+        <div class="receipt-meta-row" style="font-weight: 700; color: #0284c7;"><span>MULTICAB BATCH LOAD:</span><span>${o.batchLoaded} Gals Dispatched</span></div>
+        <div class="receipt-meta-row"><span>Actual Sold (Orders Tab):</span><strong>${o.gallons} Gals</strong></div>
+        <div class="receipt-meta-row"><span>Unsold / Returned:</span><span style="color: #d97706; font-weight: 700;">${o.gallonsReturned ?? (o.batchLoaded - o.gallons)} Gals Left</span></div>
+      </div>
+    `;
+  }
+
   target.innerHTML = `
     <div class="receipt-center-header">
       <div class="receipt-store-title">R&amp;R WATER REFILLING</div>
@@ -5620,6 +5702,7 @@ function renderThermalReceipt(order) {
     </div>
 
     ${carboyLine}
+    ${batchReceiptBlock}
 
     <div class="receipt-status-stamp">${statusStamp}</div>
 
@@ -5669,11 +5752,25 @@ function renderDispatchSlip(order) {
     <div class="receipt-divider-dash"></div>
 
     <div style="margin: 8px 0; font-size: 13px; font-weight: 800;">
-      CARGO LOAD: ${Number(o.gallons || 1).toLocaleString()} Sealed 5-Gal Blue Carboys
+      CARGO LOAD: ${Number(o.isBatchReconciled ? o.batchLoaded : (o.gallons || 1)).toLocaleString()} Sealed 5-Gal Blue Carboys
     </div>
-    <div style="font-size: 11px; color: #374151;">
-      Empties to Retrieve: ${Number(o.gallons || 1).toLocaleString()} empty swapped jugs
-    </div>
+    ${o.isBatchReconciled ? `
+      <div style="background: #f0f9ff; border: 1px dashed #0284c7; padding: 6px; border-radius: 4px; margin: 6px 0; font-size: 11px;">
+        <div style="font-weight: 700; color: #0284c7;">✓ BATCH TRIP RECONCILED:</div>
+        <div style="display: flex; justify-content: space-between; margin-top: 2px;">
+          <span>• Actual Sold (Orders Tab):</span>
+          <strong>${o.gallons} Gallons</strong>
+        </div>
+        <div style="display: flex; justify-content: space-between; margin-top: 2px; color: #b45309;">
+          <span>• Unsold Left (Returned):</span>
+          <strong>${o.gallonsReturned ?? (o.batchLoaded - o.gallons)} Left</strong>
+        </div>
+      </div>
+    ` : `
+      <div style="font-size: 11px; color: #374151;">
+        Empties to Retrieve: ${Number(o.gallons || 1).toLocaleString()} empty swapped jugs
+      </div>
+    `}
 
     <div class="receipt-divider-double"></div>
 
@@ -7160,3 +7257,197 @@ const SupabaseSync = {
     }
   }
 };
+
+
+// ==========================================================================
+// MULTICAB BATCH DELIVERY RECONCILIATION CONTROLLER
+// ==========================================================================
+let activeReconcileOrderNo = null;
+
+function openBatchReconcileModal(orderNo) {
+  const order = State.storedOrders.find(o => o.orderNo === orderNo);
+  if (!order) return;
+
+  activeReconcileOrderNo = orderNo;
+  const modal = document.getElementById('batchReconcileModal');
+  if (!modal) return;
+
+  const subtitleEl = document.getElementById('batchModalSubtitle');
+  if (subtitleEl) {
+    subtitleEl.textContent = `Batch Order ${order.orderNo} • ${order.driverName || 'Multicab #1'}`;
+  }
+
+  // Pre-fill fields
+  const unitRate = Number(order.items && order.items[0] && order.items[0].price) || 35.00;
+  const loadedGals = order.batchLoaded || (order.isBatchReconciled ? (order.gallons + (order.gallonsReturned || 0)) : (Number(order.gallons) || 100));
+  const soldGals = order.isBatchReconciled ? Number(order.gallons) : (Number(order.gallons) === 100 ? 56 : Number(order.gallons));
+  const leftGals = Math.max(0, loadedGals - soldGals);
+
+  const inLoaded = document.getElementById('inputBatchLoadedGals');
+  const inSold = document.getElementById('inputBatchSoldGals');
+  const rateDisplay = document.getElementById('batchUnitRateDisplay');
+  const noteInput = document.getElementById('batchReconcileNote');
+
+  if (inLoaded) inLoaded.value = loadedGals;
+  if (inSold) inSold.value = soldGals;
+  if (rateDisplay) rateDisplay.textContent = `₱${formatPeso(unitRate)} / gallon`;
+  if (noteInput) noteInput.value = order.batchNote || '';
+
+  // Select payment radio
+  const radios = document.querySelectorAll('input[name="batchPaymentStatus"]');
+  radios.forEach(r => {
+    r.checked = (r.value === (order.status || 'paid'));
+  });
+
+  updateBatchModalCalculations();
+  modal.style.display = 'flex';
+  modal.classList.add('show');
+  soundCtrl.playTap();
+}
+
+function closeBatchReconcileModal() {
+  const modal = document.getElementById('batchReconcileModal');
+  if (modal) {
+    modal.style.display = 'none';
+    modal.classList.remove('show');
+  }
+  activeReconcileOrderNo = null;
+}
+
+function updateBatchModalCalculations() {
+  const order = State.storedOrders.find(o => o.orderNo === activeReconcileOrderNo);
+  const unitRate = order ? (Number(order.items && order.items[0] && order.items[0].price) || 35.00) : 35.00;
+
+  const inLoaded = document.getElementById('inputBatchLoadedGals');
+  const inSold = document.getElementById('inputBatchSoldGals');
+  const leftDisplay = document.getElementById('batchLeftGalsDisplay');
+  const salesDisplay = document.getElementById('batchTotalSalesDisplay');
+  const previewSub = document.getElementById('batchSoldRevenuePreview');
+  const btnText = document.getElementById('btnSaveBatchText');
+
+  const loaded = Math.max(1, Number(inLoaded ? inLoaded.value : 100) || 1);
+  const sold = Math.max(0, Math.min(loaded, Number(inSold ? inSold.value : 0) || 0));
+  const left = Math.max(0, loaded - sold);
+  const totalSales = sold * unitRate;
+
+  if (leftDisplay) leftDisplay.textContent = left;
+  if (salesDisplay) salesDisplay.textContent = `₱ ${formatPeso(totalSales)}`;
+  if (previewSub) previewSub.textContent = `₱${formatPeso(totalSales)} sales recorded`;
+  if (btnText) btnText.textContent = `Confirm & Record ${sold} Sold (${left} Left)`;
+}
+
+function renderOrdersTable() {
+  renderStoredOrders();
+}
+
+function saveBatchReconciliation() {
+  const order = State.storedOrders.find(o => o.orderNo === activeReconcileOrderNo);
+  if (!order) return;
+
+  const unitRate = Number(order.items && order.items[0] && order.items[0].price) || 35.00;
+  const inLoaded = document.getElementById('inputBatchLoadedGals');
+  const inSold = document.getElementById('inputBatchSoldGals');
+  const noteInput = document.getElementById('batchReconcileNote');
+
+  const loaded = Math.max(1, Number(inLoaded ? inLoaded.value : 100) || 1);
+  const sold = Math.max(0, Math.min(loaded, Number(inSold ? inSold.value : 0) || 0));
+  const left = Math.max(0, loaded - sold);
+  const totalSales = sold * unitRate;
+  const customNote = (noteInput ? noteInput.value : '').trim();
+
+  // Get selected payment status
+  const checkedRadio = document.querySelector('input[name="batchPaymentStatus"]:checked');
+  const payStatus = checkedRadio ? checkedRadio.value : 'paid';
+
+  // Apply Reconciliation
+  order.batchLoaded = loaded;
+  order.gallons = sold;
+  order.gallonsReturned = left;
+  order.total = totalSales;
+  order.isBatchReconciled = true;
+  order.batchNote = customNote;
+
+  if (payStatus === 'paid') {
+    order.status = 'paid';
+    order.paidAmount = totalSales;
+    order.unpaidAmount = 0;
+  } else {
+    order.status = 'pending';
+    order.paidAmount = 0;
+    order.unpaidAmount = totalSales;
+  }
+
+  if (order.items && order.items[0]) {
+    order.items[0].qty = sold;
+    order.items[0].total = totalSales;
+  }
+
+  // Update order note to clearly show batch breakdown
+  const cleanBase = (order.note || '').replace(/Batch Reconciled:[sS]*?(?=.s|$)/i, '').replace(/^[.s]+/, '');
+  order.note = `Batch Reconciled: ${sold} Sold • ${left} Left in Batch (out of ${loaded} loaded).` + (cleanBase ? ` ${cleanBase}` : '') + (customNote ? ` (${customNote})` : '');
+
+  // Save to LocalStorage
+  saveOrders();
+
+  // Push to Supabase Cloud Database
+  if (typeof SupabaseSync !== 'undefined' && SupabaseSync.pushOrder) {
+    SupabaseSync.pushOrder(order);
+  }
+
+  // Log Audit Event
+  if (typeof logAuditEvent === 'function') {
+    const user = typeof getCurrentUser === 'function' ? getCurrentUser() : { name: 'Neil', role: 'manager' };
+    logAuditEvent(
+      'MULTICAB_BATCH_RECONCILED',
+      `Batch ${order.orderNo} reconciled: ${sold} Sold (₱${formatPeso(totalSales)}), ${left} Left / Returned to Station.`,
+      user.name,
+      user.role
+    );
+  }
+
+  closeBatchReconcileModal();
+  soundCtrl.playPaymentChime();
+
+  // Re-render UI
+  renderStoredOrders();
+  renderFleetDelivered();
+  renderAll();
+  renderReports();
+  renderDeepDiveReport();
+  if (typeof renderStationSummaryDrawer === 'function') renderStationSummaryDrawer();
+
+  showToast(`Multicab batch reconciled: ${sold} sold recorded in Orders tab, ${left} left in batch!`);
+}
+
+function initBatchReconcileEvents() {
+  const btnClose = document.getElementById('btnCloseBatchModal');
+  const btnCancel = document.getElementById('btnCancelBatchModal');
+  const btnSave = document.getElementById('btnSaveBatchReconciliation');
+  const inLoaded = document.getElementById('inputBatchLoadedGals');
+  const inSold = document.getElementById('inputBatchSoldGals');
+
+  if (btnClose) btnClose.onclick = closeBatchReconcileModal;
+  if (btnCancel) btnCancel.onclick = closeBatchReconcileModal;
+  if (btnSave) btnSave.onclick = saveBatchReconciliation;
+
+  if (inLoaded) {
+    inLoaded.oninput = updateBatchModalCalculations;
+  }
+  if (inSold) {
+    inSold.oninput = updateBatchModalCalculations;
+  }
+
+  // Quick step buttons
+  document.querySelectorAll('.btn-batch-step').forEach(btn => {
+    btn.onclick = () => {
+      soundCtrl.playTap();
+      const step = parseInt(btn.getAttribute('data-step'), 10) || 0;
+      if (inSold) {
+        const cur = parseInt(inSold.value, 10) || 0;
+        const loaded = parseInt(inLoaded ? inLoaded.value : 100, 10) || 100;
+        inSold.value = Math.max(0, Math.min(loaded, cur + step));
+        updateBatchModalCalculations();
+      }
+    };
+  });
+}

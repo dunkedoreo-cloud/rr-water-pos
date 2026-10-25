@@ -11158,3 +11158,310 @@ body:not(.light-mode) .person-sub-status.ready {
   border-color: var(--color-primary);
   box-shadow: 0 0 0 2px rgba(2, 132, 199, 0.15);
 }
+
+
+/* ==========================================================================
+   MULTICAB BATCH RECONCILIATION MODAL & BADGES
+   ========================================================================== */
+.batch-reconcile-card {
+  max-width: 580px;
+  width: 100%;
+}
+
+.batch-modal-body {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 12px 0;
+}
+
+.batch-metrics-summary-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+}
+
+.batch-kpi-card {
+  background: var(--bg-card-subtle);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  padding: 12px 8px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 4px;
+}
+
+.batch-kpi-card.loaded {
+  border-color: rgba(2, 132, 199, 0.3);
+  background: rgba(2, 132, 199, 0.04);
+}
+
+.batch-kpi-card.sold {
+  border-color: rgba(16, 185, 129, 0.38);
+  background: rgba(16, 185, 129, 0.06);
+}
+
+.batch-kpi-card.left {
+  border-color: rgba(245, 158, 11, 0.38);
+  background: rgba(245, 158, 11, 0.06);
+}
+
+.batch-kpi-label {
+  font-size: 0.70rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.batch-kpi-val-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: center;
+  gap: 4px;
+  margin: 2px 0;
+}
+
+.batch-kpi-input {
+  width: 72px;
+  font-size: 1.25rem;
+  font-weight: 800;
+  font-family: var(--font-mono);
+  text-align: center;
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-sm);
+  background: var(--bg-surface);
+  color: var(--text-main);
+  padding: 4px 6px;
+  outline: none;
+}
+
+.batch-kpi-input.primary {
+  color: #10b981;
+  border-color: rgba(16, 185, 129, 0.45);
+}
+
+body:not(.light-mode) .batch-kpi-input.primary {
+  color: #34d399;
+}
+
+.batch-kpi-val-display {
+  font-size: 1.4rem;
+  font-weight: 800;
+  font-family: var(--font-mono);
+  color: #d97706;
+}
+
+body:not(.light-mode) .batch-kpi-val-display {
+  color: #fbbf24;
+}
+
+.batch-kpi-unit {
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--text-muted);
+}
+
+.batch-kpi-sub {
+  font-size: 0.68rem;
+  color: var(--text-dim);
+}
+
+.batch-quick-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: var(--bg-card);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  padding: 8px 12px;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.batch-quick-lbl {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--text-muted);
+}
+
+.batch-quick-btns {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.btn-batch-step {
+  padding: 5px 9px;
+  font-size: 0.74rem;
+  font-weight: 700;
+  font-family: var(--font-mono);
+  background: var(--bg-card-subtle);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-sm);
+  color: var(--text-main);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.btn-batch-step:hover {
+  background: var(--color-primary);
+  color: #ffffff;
+  border-color: var(--color-primary);
+}
+
+.batch-financial-impact-box {
+  background: var(--bg-card);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  padding: 12px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.impact-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.82rem;
+  color: var(--text-muted);
+}
+
+.impact-row.highlight {
+  border-top: 1px dashed var(--border-subtle);
+  padding-top: 8px;
+  font-weight: 700;
+  color: var(--text-main);
+}
+
+.impact-amt {
+  font-size: 1.15rem;
+  color: #0284c7;
+}
+
+body:not(.light-mode) .impact-amt {
+  color: #38bdf8;
+}
+
+.batch-status-toggle-wrap {
+  display: flex;
+  gap: 12px;
+  font-size: 0.76rem;
+}
+
+.batch-radio-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  cursor: pointer;
+}
+
+.batch-modal-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  padding-top: 12px;
+  border-top: 1px solid var(--border-subtle);
+}
+
+/* Button & Pill in Orders Table */
+.btn-order-reconcile {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 9px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  border-radius: var(--radius-md);
+  background: rgba(2, 132, 199, 0.08);
+  border: 1px solid rgba(2, 132, 199, 0.22);
+  color: #0284c7;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  white-space: nowrap;
+}
+
+body:not(.light-mode) .btn-order-reconcile {
+  background: rgba(56, 189, 248, 0.12);
+  border-color: rgba(56, 189, 248, 0.3);
+  color: #38bdf8;
+}
+
+.btn-order-reconcile:hover {
+  background: #0284c7;
+  color: #ffffff;
+  border-color: #0284c7;
+}
+
+.btn-order-reconcile.reconciled {
+  background: rgba(245, 158, 11, 0.1);
+  color: #d97706;
+  border-color: rgba(245, 158, 11, 0.28);
+}
+
+body:not(.light-mode) .btn-order-reconcile.reconciled {
+  color: #fbbf24;
+  border-color: rgba(251, 191, 36, 0.3);
+  background: rgba(245, 158, 11, 0.16);
+}
+
+.batch-reconciled-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.68rem;
+  font-weight: 700;
+  font-family: var(--font-mono);
+  background: rgba(245, 158, 11, 0.08);
+  color: #d97706;
+  border: 1px solid rgba(245, 158, 11, 0.25);
+  padding: 2px 7px;
+  border-radius: var(--radius-sm);
+  margin-top: 3px;
+}
+
+body:not(.light-mode) .batch-reconciled-pill {
+  color: #fbbf24;
+  border-color: rgba(251, 191, 36, 0.3);
+  background: rgba(245, 158, 11, 0.15);
+}
+
+.batch-pill-sold {
+  color: #10b981;
+}
+
+body:not(.light-mode) .batch-pill-sold {
+  color: #34d399;
+}
+
+.batch-pill-left {
+  color: #f59e0b;
+}
+
+body:not(.light-mode) .batch-pill-left {
+  color: #fbbf24;
+}
+
+.batch-pill-sep {
+  opacity: 0.5;
+}
+
+.batch-pill-total {
+  opacity: 0.75;
+}
+
+@media (max-width: 640px) {
+  .batch-metrics-summary-grid {
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+  .batch-quick-row {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .batch-quick-btns {
+    justify-content: center;
+  }
+}
