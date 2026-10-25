@@ -97,11 +97,7 @@ const State = {
   tenderAmount: 0,
   carboysLoaned: 0,
   carboysReturned: 0,
-  customers: [
-    { id: 'cust_1', name: 'Aling Tess', contact: '0917-123-4567', address: 'Purok 1, Near Barangay Hall', carboysHeld: 3, depositAmount: 600 },
-    { id: 'cust_2', name: 'Mang Carlos', contact: '0928-876-5432', address: 'Purok 2, Yellow Gate', carboysHeld: 5, depositAmount: 1000 },
-    { id: 'cust_3', name: 'Bgy. Hall - Admin Desk', contact: '0919-555-0199', address: 'Barangay Center', carboysHeld: 12, depositAmount: 2400 }
-  ],
+  customers: [],
   receiptFormat: '80mm',
   activePrintOrder: null
 };
@@ -285,8 +281,9 @@ function loadSavedData() {
   if (savedOrders !== null) {
     try {
       const parsed = JSON.parse(savedOrders);
-      // Retain the user's actual stored orders (or clean empty array)
-      State.storedOrders = Array.isArray(parsed) ? parsed : [];
+      // Retain real orders, purge any previous legacy mock/sample orders
+      const mockOrderNumbers = new Set(['#839102', '#104928', '#8238283', '#8238275', '#8238270']);
+      State.storedOrders = (Array.isArray(parsed) ? parsed : []).filter(o => !mockOrderNumbers.has(o.orderNo));
     } catch (e) {
       State.storedOrders = [];
     }
@@ -2775,29 +2772,17 @@ function renderReports() {
   const kpiUncollSubEl = document.getElementById('kpiUncollectedSub');
   const kpiRevSubEl = document.getElementById('kpiRevenueSub');
 
-  // Format text matching the reference UI
+  // Format live text from actual orders (Clean 0-state when empty)
   if (kpiDispensedEl) {
-    if (State.reportPeriod === 'yearly' && filteredOrders.length >= 8) {
-      kpiDispensedEl.textContent = '1,612,132';
-    } else {
-      kpiDispensedEl.textContent = totalGallons > 0 ? totalGallons.toLocaleString() : '0';
-    }
+    kpiDispensedEl.textContent = totalGallons > 0 ? totalGallons.toLocaleString() : '0';
   }
 
   if (kpiUncollectedEl) {
-    if (State.reportPeriod === 'yearly' && filteredOrders.length >= 8) {
-      kpiUncollectedEl.textContent = '₱145,520';
-    } else {
-      kpiUncollectedEl.textContent = '₱' + totalTax.toLocaleString('en-US');
-    }
+    kpiUncollectedEl.textContent = '₱' + totalTax.toLocaleString('en-US');
   }
 
   if (kpiRevenueEl) {
-    if (State.reportPeriod === 'yearly' && filteredOrders.length >= 8) {
-      kpiRevenueEl.textContent = '₱2,012,132';
-    } else {
-      kpiRevenueEl.textContent = '₱' + totalRevenue.toLocaleString('en-US');
-    }
+    kpiRevenueEl.textContent = '₱' + totalRevenue.toLocaleString('en-US');
   }
 
   // Dynamic Subtexts
@@ -2854,7 +2839,7 @@ function renderDeepDiveReport() {
     welcomeTitle.textContent = `Welcome, ${operatorName} 👋`;
   }
 
-  // Calculate live metrics from State.storedOrders
+  // Calculate live metrics strictly from State.storedOrders
   const allOrders = State.storedOrders || [];
   let totalVolume = 0;
   let totalRevenue = 0;
@@ -2863,6 +2848,25 @@ function renderDeepDiveReport() {
   let walkinCount = 0;
   let deliveryCount = 0;
   const customersSet = new Set();
+
+  // Product categories tracking
+  let prod1Revenue = 0;
+  let prod2Revenue = 0;
+  let prod3Revenue = 0;
+  let prod4Revenue = 0;
+
+  // Route breakdown tracking
+  const routeCounts = {
+    purok1: { rev: 0, carboys: 0 },
+    purok2: { rev: 0, carboys: 0 },
+    purok3: { rev: 0, carboys: 0 },
+    highway: { rev: 0, carboys: 0 }
+  };
+
+  // Month breakdown tracking
+  const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+  const monthStats = {};
+  monthNames.forEach(m => { monthStats[m] = { gals: 0, rev: 0 }; });
 
   allOrders.forEach(o => {
     const gals = Number(o.gallons) || 1;
@@ -2877,19 +2881,62 @@ function renderDeepDiveReport() {
 
     if (o.channel === 'delivery') {
       deliveryCount++;
+      const addr = (o.address || o.note || '').toLowerCase();
+      if (addr.includes('purok 1') || addr.includes('centro')) {
+        routeCounts.purok1.rev += paid;
+        routeCounts.purok1.carboys += gals;
+      } else if (addr.includes('purok 2') || addr.includes('east')) {
+        routeCounts.purok2.rev += paid;
+        routeCounts.purok2.carboys += gals;
+      } else if (addr.includes('purok 3') || addr.includes('river')) {
+        routeCounts.purok3.rev += paid;
+        routeCounts.purok3.carboys += gals;
+      } else {
+        routeCounts.highway.rev += paid;
+        routeCounts.highway.carboys += gals;
+      }
+
       if (o.address) customersSet.add(o.address.toLowerCase().trim());
       else if (o.note) customersSet.add(o.note.toLowerCase().trim());
     } else {
       walkinCount++;
       if (o.note) customersSet.add(o.note.toLowerCase().trim());
     }
+
+    // Categorize product revenue
+    const itemName = (o.items && o.items[0] && o.items[0].name) ? o.items[0].name.toLowerCase() : '';
+    if (itemName.includes('refill')) {
+      prod1Revenue += paid;
+    } else if (itemName.includes('slim')) {
+      prod2Revenue += paid;
+    } else if (itemName.includes('round') || itemName.includes('carboy')) {
+      prod3Revenue += paid;
+    } else if (itemName.includes('loan') || itemName.includes('deposit')) {
+      prod4Revenue += paid;
+    } else {
+      prod1Revenue += paid;
+    }
+
+    // Monthly aggregation
+    if (o.date || o.createdAt) {
+      try {
+        const d = new Date(o.date || o.createdAt);
+        if (!isNaN(d.getTime())) {
+          const m = monthNames[d.getMonth()];
+          if (monthStats[m]) {
+            monthStats[m].gals += gals;
+            monthStats[m].rev += paid;
+          }
+        }
+      } catch (e) {}
+    }
   });
 
-  const displaySales = allOrders.length > 5 ? allOrders.length.toLocaleString() : '12,485';
-  const displayCust = customersSet.size > 5 ? (customersSet.size * 18).toLocaleString() : '4,263';
-  const displayRev = totalRevenue > 1000 ? `₱${formatPeso(totalRevenue)}` : '₱68,837';
-  const displayPending = pendingCount > 0 ? pendingCount.toLocaleString() : '187';
-  const displayProfitHeadline = totalRevenue > 1000 ? `₱${formatPeso(Math.round(totalRevenue * 1.35))}` : '₱98,643.24';
+  const displaySales = allOrders.length > 0 ? allOrders.length.toLocaleString() : '0';
+  const displayCust = customersSet.size > 0 ? customersSet.size.toLocaleString() : '0';
+  const displayRev = totalRevenue > 0 ? `₱${formatPeso(totalRevenue)}` : '₱0.00';
+  const displayPending = pendingCount > 0 ? pendingCount.toLocaleString() : '0';
+  const displayProfitHeadline = totalRevenue > 0 ? `₱${formatPeso(totalRevenue)}` : '₱0.00';
 
   const elSales = document.getElementById('ddTotalSalesVal');
   const elCust = document.getElementById('ddActiveCustomersVal');
@@ -2898,17 +2945,58 @@ function renderDeepDiveReport() {
   const elHeadline = document.getElementById('ddProfitHeadlineAmt');
   const elWalkinSales = document.getElementById('ddWalkinSalesCount');
   const elDeliverySales = document.getElementById('ddDeliverySalesCount');
+  const elOrdersCycle = document.getElementById('ddOrdersCycleVal');
 
   if (elSales) elSales.textContent = displaySales;
   if (elCust) elCust.textContent = displayCust;
   if (elRev) elRev.textContent = displayRev;
   if (elPending) elPending.textContent = displayPending;
   if (elHeadline) elHeadline.textContent = displayProfitHeadline;
-  if (elWalkinSales) elWalkinSales.textContent = `${walkinCount > 0 ? walkinCount : 206} Sales`;
-  if (elDeliverySales) elDeliverySales.textContent = `${deliveryCount > 0 ? deliveryCount : 400} Sales`;
+  if (elWalkinSales) elWalkinSales.textContent = `${walkinCount} Sales`;
+  if (elDeliverySales) elDeliverySales.textContent = `${deliveryCount} Sales`;
+  if (elOrdersCycle) elOrdersCycle.textContent = displaySales;
 
-  // Attach interactive click handlers for the bar chart columns
+  // Update dynamic Top Products
+  const elProd1 = document.getElementById('ddProdVol1');
+  const elProd2 = document.getElementById('ddProdVol2');
+  const elProd3 = document.getElementById('ddProdVol3');
+  const elProd4 = document.getElementById('ddProdVol4');
+  if (elProd1) elProd1.textContent = prod1Revenue > 0 ? `₱${formatPeso(prod1Revenue)} total` : '₱0.00 total';
+  if (elProd2) elProd2.textContent = prod2Revenue > 0 ? `₱${formatPeso(prod2Revenue)} total` : '₱0.00 total';
+  if (elProd3) elProd3.textContent = prod3Revenue > 0 ? `₱${formatPeso(prod3Revenue)} total` : '₱0.00 total';
+  if (elProd4) elProd4.textContent = prod4Revenue > 0 ? `₱${formatPeso(prod4Revenue)} total` : '₱0.00 total';
+
+  // Update dynamic Delivery Routes
+  const totalDelivCarboys = deliveryCount > 0 ? (routeCounts.purok1.carboys + routeCounts.purok2.carboys + routeCounts.purok3.carboys + routeCounts.highway.carboys) : 0;
+  const updateRoute = (num, data) => {
+    const elAmt = document.getElementById(`ddRoute${num}Amt`);
+    const elBar = document.getElementById(`ddRoute${num}Bar`);
+    const elShare = document.getElementById(`ddRoute${num}Share`);
+    const elCarboys = document.getElementById(`ddRoute${num}Carboys`);
+    const pct = totalDelivCarboys > 0 ? Math.round((data.carboys / totalDelivCarboys) * 100) : 0;
+    if (elAmt) elAmt.textContent = data.rev > 0 ? `₱${formatPeso(data.rev)}` : '₱0.00';
+    if (elBar) elBar.style.width = `${pct}%`;
+    if (elShare) elShare.textContent = `${pct}% of deliveries`;
+    if (elCarboys) elCarboys.textContent = `${data.carboys} carboys`;
+  };
+  updateRoute(1, routeCounts.purok1);
+  updateRoute(2, routeCounts.purok2);
+  updateRoute(3, routeCounts.purok3);
+  updateRoute(4, routeCounts.highway);
+
+  // Update dynamic 12-month Bar Chart
+  const maxMonthRev = Math.max(...Object.values(monthStats).map(s => s.rev), 100);
   document.querySelectorAll('.dd-bar-col').forEach(col => {
+    const m = col.getAttribute('data-month');
+    const stats = monthStats[m] || { gals: 0, rev: 0 };
+    col.setAttribute('data-gals', stats.gals > 0 ? stats.gals.toLocaleString() : '0');
+    col.setAttribute('data-rev', stats.rev > 0 ? `₱${formatPeso(stats.rev)}` : '₱0.00');
+    const fill = col.querySelector('.dd-bar-fill');
+    if (fill) {
+      const heightPct = stats.rev > 0 ? Math.max(6, Math.round((stats.rev / maxMonthRev) * 94)) : 4;
+      fill.style.height = `${heightPct}%`;
+    }
+
     col.onclick = () => {
       document.querySelectorAll('.dd-bar-col').forEach(c => {
         c.classList.remove('active');
@@ -2917,8 +3005,8 @@ function renderDeepDiveReport() {
       });
       col.classList.add('active');
       const month = col.getAttribute('data-month') || 'Month';
-      const gals = col.getAttribute('data-gals') || '50,000';
-      const rev = col.getAttribute('data-rev') || '₱420,000';
+      const gals = col.getAttribute('data-gals') || '0';
+      const rev = col.getAttribute('data-rev') || '₱0.00';
       const tooltip = document.createElement('div');
       tooltip.className = 'dd-active-bar-tooltip';
       tooltip.innerHTML = `<strong>${month} 2026</strong><span>● ${gals} Gals</span><span>● ${rev}</span>`;
@@ -2929,33 +3017,34 @@ function renderDeepDiveReport() {
 }
 
 function exportDeepDiveCSV() {
+  const allOrders = State.storedOrders || [];
   const rows = [
     ['R&R WATER REFILLING STATION - EXECUTIVE ANALYTICS DEEP DIVE REPORT'],
     ['Generated', new Date().toLocaleString()],
     ['Operator', State.currentUser ? State.currentUser.name : 'Neil'],
     [],
     ['METRIC', 'VALUE', 'NOTE'],
-    ['Total Sales (Transactions)', document.getElementById('ddTotalSalesVal')?.textContent || '12,485', 'Total completed walk-in and delivery orders'],
-    ['Active Customers', document.getElementById('ddActiveCustomersVal')?.textContent || '4,263', 'Unique household accounts & regular patrons'],
-    ['Total Revenue', document.getElementById('ddTotalRevenueVal')?.textContent || '₱68,837', 'Gross collections from refills and container sales'],
-    ['Uncollected Receivables', document.getElementById('ddRefundVal')?.textContent || '187', 'Pending balances with delivery drivers'],
-    ['Total Profit Overview', document.getElementById('ddProfitHeadlineAmt')?.textContent || '₱98,643.24', 'Net profit overview for current cycle'],
+    ['Total Sales (Transactions)', document.getElementById('ddTotalSalesVal')?.textContent || '0', 'Total completed walk-in and delivery orders'],
+    ['Active Customers', document.getElementById('ddActiveCustomersVal')?.textContent || '0', 'Unique household accounts & regular patrons'],
+    ['Total Revenue', document.getElementById('ddTotalRevenueVal')?.textContent || '₱0.00', 'Gross collections from refills and container sales'],
+    ['Uncollected Receivables', document.getElementById('ddRefundVal')?.textContent || '0', 'Pending balances with delivery drivers'],
+    ['Total Profit Overview', document.getElementById('ddProfitHeadlineAmt')?.textContent || '₱0.00', 'Net profit overview for current cycle'],
     [],
     ['CHANNEL BREAKDOWN', 'COUNT'],
-    ['Walk-in Counter Sales', document.getElementById('ddWalkinSalesCount')?.textContent || '206 Sales'],
-    ['Multicab Delivery Sales', document.getElementById('ddDeliverySalesCount')?.textContent || '400 Sales'],
+    ['Walk-in Counter Sales', document.getElementById('ddWalkinSalesCount')?.textContent || '0 Sales'],
+    ['Multicab Delivery Sales', document.getElementById('ddDeliverySalesCount')?.textContent || '0 Sales'],
     [],
     ['TOP PRODUCTS', 'UNIT PRICE', 'TOTAL REVENUE'],
-    ['5-Gal Purified Refill (Swap)', '₱35.00', '₱142,450'],
-    ['New Blue Slim Jug + Water', '₱250.00', '₱32,500'],
-    ['New Round Dispenser Carboy', '₱250.00', '₱18,250'],
-    ['Carboy Loan & Deposit', '₱200.00', '₱5,400'],
+    ['5-Gal Purified Refill (Swap)', '₱35.00', document.getElementById('ddProdVol1')?.textContent || '₱0.00 total'],
+    ['New Blue Slim Jug + Water', '₱250.00', document.getElementById('ddProdVol2')?.textContent || '₱0.00 total'],
+    ['New Round Dispenser Carboy', '₱250.00', document.getElementById('ddProdVol3')?.textContent || '₱0.00 total'],
+    ['Carboy Loan & Deposit', '₱200.00', document.getElementById('ddProdVol4')?.textContent || '₱0.00 total'],
     [],
     ['DELIVERY ROUTE', 'REVENUE', 'SHARE', 'ESTIMATED CARBOYS'],
-    ['Purok 1 (Centro)', '₱120,000', '42%', '1,420 carboys'],
-    ['Purok 2 (Poblacion East)', '₱85,450', '28%', '980 carboys'],
-    ['Purok 3 (Riverside Subd)', '₱48,200', '18%', '560 carboys'],
-    ['Highway & Outskirts', '₱24,350', '12%', '280 carboys']
+    ['Purok 1 (Centro)', document.getElementById('ddRoute1Amt')?.textContent || '₱0.00', document.getElementById('ddRoute1Share')?.textContent || '0%', document.getElementById('ddRoute1Carboys')?.textContent || '0 carboys'],
+    ['Purok 2 (Poblacion East)', document.getElementById('ddRoute2Amt')?.textContent || '₱0.00', document.getElementById('ddRoute2Share')?.textContent || '0%', document.getElementById('ddRoute2Carboys')?.textContent || '0 carboys'],
+    ['Purok 3 (Riverside Subd)', document.getElementById('ddRoute3Amt')?.textContent || '₱0.00', document.getElementById('ddRoute3Share')?.textContent || '0%', document.getElementById('ddRoute3Carboys')?.textContent || '0 carboys'],
+    ['Highway & Outskirts', document.getElementById('ddRoute4Amt')?.textContent || '₱0.00', document.getElementById('ddRoute4Share')?.textContent || '0%', document.getElementById('ddRoute4Carboys')?.textContent || '0 carboys']
   ];
 
   const csvContent = 'data:text/csv;charset=utf-8,' + rows.map(e => e.map(cell => `"${String(cell).replace(/"/g, '""')}"`).join(',')).join('\n');

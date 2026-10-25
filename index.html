@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>R&R Water - Station POS</title>
-  <link rel="stylesheet" href="pos.css?v=2.8.14">
+  <link rel="stylesheet" href="pos.css?v=2.8.15">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700;800&display=swap" rel="stylesheet">
@@ -359,7 +359,7 @@
             <div class="panel-order-header">
               <div class="order-number-wrap">
                 <span class="order-num-label">Order:</span>
-                <strong class="order-num-val" id="currentOrderNumber">#849201</strong>
+                <strong class="order-num-val" id="currentOrderNumber">#000000</strong>
               </div>
 
               <!-- Channel Switcher: Walk-in vs Multicab Delivery -->
@@ -431,7 +431,7 @@
                   <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
                   <circle cx="12" cy="10" r="3"></circle>
                 </svg>
-                <input type="text" id="orderDeliveryAddress" placeholder="Delivery destination / customer (e.g. Purok 1)">
+                <input type="text" id="orderDeliveryAddress" placeholder="Delivery destination / customer name...">
               </div>
             </div>
 
@@ -442,7 +442,7 @@
                   <path d="M12 20h9"></path>
                   <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path>
                 </svg>
-                <input type="text" id="orderNoteInput" placeholder="Customer name / note (e.g. Aling Tess)">
+                <input type="text" id="orderNoteInput" placeholder="Customer name / order notes...">
               </div>
             </div>
 
@@ -748,11 +748,11 @@
           <div class="orders-footer-summary">
             <div class="footer-stat">
               <span class="lbl">Total Shift Volume:</span>
-              <strong id="shiftVolumeVal">52 Gallons</strong>
+              <strong id="shiftVolumeVal">0 Gallons</strong>
             </div>
             <div class="footer-stat">
               <span class="lbl">Total Cash Collected:</span>
-              <strong id="shiftCashVal">₱2,680.00</strong>
+              <strong id="shiftCashVal">₱0.00</strong>
             </div>
             <button class="btn-reset-shift-log" id="btnResetShiftLog">
               <svg class="ui-icon-xs" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"></polyline><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path></svg>
@@ -848,7 +848,7 @@
                   <span class="kpi-label">Total Dispensed</span>
                   <span class="sparkline-mini-cue">Charts ↗</span>
                 </div>
-                <strong class="kpi-value" id="kpiDispensedVal">1,612,132</strong>
+                <strong class="kpi-value" id="kpiDispensedVal">0</strong>
                 <span class="kpi-subtext" id="kpiDispensedSub">Total Volume last 365 days</span>
               </div>
               <div class="sparkline-graph-wrap">
@@ -872,7 +872,7 @@
                   <span class="kpi-label">Total Uncollected</span>
                   <span class="sparkline-mini-cue">Charts ↗</span>
                 </div>
-                <strong class="kpi-value" id="kpiUncollectedVal">₱1,45,520</strong>
+                <strong class="kpi-value" id="kpiUncollectedVal">₱0.00</strong>
                 <span class="kpi-subtext" id="kpiUncollectedSub">Pending driver balances</span>
               </div>
               <div class="sparkline-graph-wrap">
@@ -896,7 +896,7 @@
                   <span class="kpi-label">Total Amount</span>
                   <span class="sparkline-mini-cue">Charts ↗</span>
                 </div>
-                <strong class="kpi-value" id="kpiRevenueVal">₱2,012,132</strong>
+                <strong class="kpi-value" id="kpiRevenueVal">₱0.00</strong>
                 <span class="kpi-subtext" id="kpiRevenueSub">Total Amount last 365 days</span>
               </div>
               <div class="sparkline-graph-wrap">
@@ -1157,9 +1157,9 @@
                   </svg>
                 </div>
               </div>
-              <div class="dd-kpi-val" id="ddTotalSalesVal">12,485</div>
+              <div class="dd-kpi-val" id="ddTotalSalesVal">0</div>
               <div class="dd-kpi-meta">
-                <span class="dd-trend positive">▲ +3.1% <span class="dd-trend-lbl">vs Last Week</span></span>
+                <span class="dd-trend">0.0% <span class="dd-trend-lbl">vs Last Week</span></span>
                 <a href="javascript:void(0)" class="dd-details-link" id="ddLinkSalesDetails">View Details ↗</a>
               </div>
               <p class="dd-kpi-explain">Total confirmed walk-in refills &amp; multicab delivery drops.</p>
@@ -1178,9 +1178,9 @@
                   </svg>
                 </div>
               </div>
-              <div class="dd-kpi-val" id="ddActiveCustomersVal">4,263</div>
+              <div class="dd-kpi-val" id="ddActiveCustomersVal">0</div>
               <div class="dd-kpi-meta">
-                <span class="dd-trend positive">▲ +1.8% <span class="dd-trend-lbl">New Customers</span></span>
+                <span class="dd-trend">0.0% <span class="dd-trend-lbl">New Customers</span></span>
                 <a href="javascript:void(0)" class="dd-details-link" id="ddLinkCustomerDetails">View Details ↗</a>
               </div>
               <p class="dd-kpi-explain">Unique household accounts &amp; commercial repeat patrons.</p>
@@ -1197,9 +1197,9 @@
                   </svg>
                 </div>
               </div>
-              <div class="dd-kpi-val" id="ddTotalRevenueVal">₱68,837</div>
+              <div class="dd-kpi-val" id="ddTotalRevenueVal">₱0.00</div>
               <div class="dd-kpi-meta">
-                <span class="dd-trend positive">▲ +2.4% <span class="dd-trend-lbl">vs Last Week</span></span>
+                <span class="dd-trend">0.0% <span class="dd-trend-lbl">vs Last Week</span></span>
                 <a href="javascript:void(0)" class="dd-details-link" id="ddLinkRevenueDetails">View Details ↗</a>
               </div>
               <p class="dd-kpi-explain">Gross collections from counter sales and paid deliveries.</p>
@@ -1216,7 +1216,7 @@
                   </svg>
                 </div>
               </div>
-              <div class="dd-kpi-val" id="ddRefundVal">187</div>
+              <div class="dd-kpi-val" id="ddRefundVal">0</div>
               <div class="dd-kpi-meta">
                 <span class="dd-trend neutral">▼ -0.6% <span class="dd-trend-lbl">vs Last Week</span></span>
                 <a href="javascript:void(0)" class="dd-details-link" id="ddLinkReceivableDetails">View Details ↗</a>
@@ -1233,8 +1233,8 @@
                 <div class="dd-card-title-group">
                   <h4>Total Profit Overview</h4>
                   <div class="dd-profit-headline-row">
-                    <strong class="dd-headline-amt" id="ddProfitHeadlineAmt">₱98,643.24</strong>
-                    <span class="dd-trend-pill positive">+8.4% ↗</span>
+                    <strong class="dd-headline-amt" id="ddProfitHeadlineAmt">₱0.00</strong>
+                    <span class="dd-trend-pill">0.0%</span>
                   </div>
                 </div>
                 <div class="dd-card-header-right">
@@ -1248,7 +1248,7 @@
                       </div>
                       <div>
                         <span class="dd-ch-name">Walk-in Counter</span>
-                        <strong class="dd-ch-val" id="ddWalkinSalesCount">206 Sales</strong>
+                        <strong class="dd-ch-val" id="ddWalkinSalesCount">0 Sales</strong>
                       </div>
                     </div>
                     <div class="dd-channel-badge">
@@ -1262,7 +1262,7 @@
                       </div>
                       <div>
                         <span class="dd-ch-name">Multicab Delivery</span>
-                        <strong class="dd-ch-val" id="ddDeliverySalesCount">400 Sales</strong>
+                        <strong class="dd-ch-val" id="ddDeliverySalesCount">0 Sales</strong>
                       </div>
                     </div>
                   </div>
@@ -1280,68 +1280,63 @@
               <div class="dd-chart-container">
                 <div class="dd-bar-chart" id="ddBarChart">
                   <!-- Jan -->
-                  <div class="dd-bar-col" data-month="Jan" data-gals="42,100" data-rev="₱345,200">
-                    <div class="dd-bar-track"><div class="dd-bar-fill" style="height: 52%;"></div></div>
+                  <div class="dd-bar-col" data-month="Jan" data-gals="0" data-rev="₱0.00">
+                    <div class="dd-bar-track"><div class="dd-bar-fill" style="height: 4px;"></div></div>
                     <span class="dd-bar-month">Jan</span>
                   </div>
                   <!-- Feb -->
-                  <div class="dd-bar-col" data-month="Feb" data-gals="45,800" data-rev="₱380,400">
-                    <div class="dd-bar-track"><div class="dd-bar-fill" style="height: 58%;"></div></div>
+                  <div class="dd-bar-col" data-month="Feb" data-gals="0" data-rev="₱0.00">
+                    <div class="dd-bar-track"><div class="dd-bar-fill" style="height: 4px;"></div></div>
                     <span class="dd-bar-month">Feb</span>
                   </div>
                   <!-- Mar -->
-                  <div class="dd-bar-col" data-month="Mar" data-gals="56,300" data-rev="₱462,000">
-                    <div class="dd-bar-track"><div class="dd-bar-fill" style="height: 68%;"></div></div>
+                  <div class="dd-bar-col" data-month="Mar" data-gals="0" data-rev="₱0.00">
+                    <div class="dd-bar-track"><div class="dd-bar-fill" style="height: 4px;"></div></div>
                     <span class="dd-bar-month">Mar</span>
                   </div>
                   <!-- Apr -->
-                  <div class="dd-bar-col" data-month="Apr" data-gals="62,400" data-rev="₱518,000">
-                    <div class="dd-bar-track"><div class="dd-bar-fill" style="height: 74%;"></div></div>
+                  <div class="dd-bar-col" data-month="Apr" data-gals="0" data-rev="₱0.00">
+                    <div class="dd-bar-track"><div class="dd-bar-fill" style="height: 4px;"></div></div>
                     <span class="dd-bar-month">Apr</span>
                   </div>
-                  <!-- May (Active highlighted month matching reference image) -->
-                  <div class="dd-bar-col active" data-month="May" data-gals="73,940" data-rev="₱637,738.83">
-                    <div class="dd-active-bar-tooltip">
-                      <strong>May 2026</strong>
-                      <span>● 73,940 Gals</span>
-                      <span>● ₱637,738.83</span>
-                    </div>
-                    <div class="dd-bar-track"><div class="dd-bar-fill" style="height: 88%;"></div></div>
+                  <!-- May -->
+                  <div class="dd-bar-col" data-month="May" data-gals="0" data-rev="₱0.00">
+                    <div class="dd-bar-track"><div class="dd-bar-fill" style="height: 4px;"></div></div>
                     <span class="dd-bar-month">May</span>
                   </div>
                   <!-- Jun -->
-                  <div class="dd-bar-col" data-month="Jun" data-gals="58,900" data-rev="₱490,200">
-                    <div class="dd-bar-track"><div class="dd-bar-fill" style="height: 70%;"></div></div>
+                  <div class="dd-bar-col" data-month="Jun" data-gals="0" data-rev="₱0.00">
+                    <div class="dd-bar-track"><div class="dd-bar-fill" style="height: 4px;"></div></div>
                     <span class="dd-bar-month">Jun</span>
                   </div>
                   <!-- Jul -->
-                  <div class="dd-bar-col" data-month="Jul" data-gals="64,200" data-rev="₱538,000">
-                    <div class="dd-bar-track"><div class="dd-bar-fill" style="height: 76%;"></div></div>
+                  <div class="dd-bar-col" data-month="Jul" data-gals="0" data-rev="₱0.00">
+                    <div class="dd-bar-track"><div class="dd-bar-fill" style="height: 4px;"></div></div>
                     <span class="dd-bar-month">Jul</span>
                   </div>
                   <!-- Aug -->
-                  <div class="dd-bar-col" data-month="Aug" data-gals="71,500" data-rev="₱610,000">
-                    <div class="dd-bar-track"><div class="dd-bar-fill" style="height: 84%;"></div></div>
+                  <div class="dd-bar-col" data-month="Aug" data-gals="0" data-rev="₱0.00">
+                    <div class="dd-bar-track"><div class="dd-bar-fill" style="height: 4px;"></div></div>
                     <span class="dd-bar-month">Aug</span>
                   </div>
                   <!-- Sep -->
-                  <div class="dd-bar-col" data-month="Sep" data-gals="66,800" data-rev="₱558,400">
-                    <div class="dd-bar-track"><div class="dd-bar-fill" style="height: 78%;"></div></div>
+                  <div class="dd-bar-col" data-month="Sep" data-gals="0" data-rev="₱0.00">
+                    <div class="dd-bar-track"><div class="dd-bar-fill" style="height: 4px;"></div></div>
                     <span class="dd-bar-month">Sep</span>
                   </div>
                   <!-- Oct -->
-                  <div class="dd-bar-col" data-month="Oct" data-gals="69,400" data-rev="₱584,200">
-                    <div class="dd-bar-track"><div class="dd-bar-fill" style="height: 82%;"></div></div>
+                  <div class="dd-bar-col" data-month="Oct" data-gals="0" data-rev="₱0.00">
+                    <div class="dd-bar-track"><div class="dd-bar-fill" style="height: 4px;"></div></div>
                     <span class="dd-bar-month">Oct</span>
                   </div>
                   <!-- Nov -->
-                  <div class="dd-bar-col" data-month="Nov" data-gals="60,200" data-rev="₱508,000">
-                    <div class="dd-bar-track"><div class="dd-bar-fill" style="height: 72%;"></div></div>
+                  <div class="dd-bar-col" data-month="Nov" data-gals="0" data-rev="₱0.00">
+                    <div class="dd-bar-track"><div class="dd-bar-fill" style="height: 4px;"></div></div>
                     <span class="dd-bar-month">Nov</span>
                   </div>
                   <!-- Dec -->
-                  <div class="dd-bar-col" data-month="Dec" data-gals="78,500" data-rev="₱670,000">
-                    <div class="dd-bar-track"><div class="dd-bar-fill" style="height: 94%;"></div></div>
+                  <div class="dd-bar-col" data-month="Dec" data-gals="0" data-rev="₱0.00">
+                    <div class="dd-bar-track"><div class="dd-bar-fill" style="height: 4px;"></div></div>
                     <span class="dd-bar-month">Dec</span>
                   </div>
                 </div>
@@ -1373,7 +1368,7 @@
                   </div>
                   <div class="dd-prod-meta">
                     <strong class="dd-prod-price">₱35.00</strong>
-                    <span class="dd-prod-vol">₱142,450 total</span>
+                    <span class="dd-prod-vol" id="ddProdVol1">₱0.00 total</span>
                   </div>
                 </div>
 
@@ -1388,7 +1383,7 @@
                   </div>
                   <div class="dd-prod-meta">
                     <strong class="dd-prod-price">₱250.00</strong>
-                    <span class="dd-prod-vol">₱32,500 total</span>
+                    <span class="dd-prod-vol" id="ddProdVol2">₱0.00 total</span>
                   </div>
                 </div>
 
@@ -1403,7 +1398,7 @@
                   </div>
                   <div class="dd-prod-meta">
                     <strong class="dd-prod-price">₱250.00</strong>
-                    <span class="dd-prod-vol">₱18,250 total</span>
+                    <span class="dd-prod-vol" id="ddProdVol3">₱0.00 total</span>
                   </div>
                 </div>
 
@@ -1418,7 +1413,7 @@
                   </div>
                   <div class="dd-prod-meta">
                     <strong class="dd-prod-price">₱200.00</strong>
-                    <span class="dd-prod-vol">₱5,400 total</span>
+                    <span class="dd-prod-vol" id="ddProdVol4">₱0.00 total</span>
                   </div>
                 </div>
               </div>
@@ -1444,10 +1439,10 @@
               </div>
 
               <div class="dd-orders-stat-row">
-                <strong class="dd-orders-big-val" id="ddOrdersCycleVal">45,637</strong>
+                <strong class="dd-orders-big-val" id="ddOrdersCycleVal">0</strong>
                 <div class="dd-orders-badges">
-                  <span class="dd-trend-pill positive">+9.4% ↗</span>
-                  <span class="dd-sub-pill">+245 today</span>
+                  <span class="dd-trend-pill">0.0%</span>
+                  <span class="dd-sub-pill">0 today</span>
                 </div>
               </div>
 
@@ -1506,13 +1501,13 @@
               <div class="dd-routes-content">
                 <div class="dd-routes-summary-col">
                   <span class="dd-routes-lbl">Top Performing Route</span>
-                  <strong class="dd-routes-highlight" id="ddTopRouteName">Purok 1 (Centro)</strong>
-                  <span class="dd-routes-amt" id="ddTopRouteAmt">₱120,000</span>
+                  <strong class="dd-routes-highlight" id="ddTopRouteName">None</strong>
+                  <span class="dd-routes-amt" id="ddTopRouteAmt">₱0.00</span>
                   <span class="dd-routes-sub">Commercial &amp; residential hub</span>
 
                   <div class="dd-growth-badge-wrap">
                     <span class="dd-routes-lbl">Revenue Growth</span>
-                    <span class="dd-growth-stat">+34%</span>
+                    <span class="dd-growth-stat" id="ddGrowthStat">0%</span>
                     <span class="dd-routes-sub">Leading town route delivery</span>
                   </div>
                 </div>
@@ -1522,14 +1517,14 @@
                   <div class="dd-route-row">
                     <div class="dd-route-top">
                       <span class="dd-route-badge-pin">📍 Purok 1 (Centro)</span>
-                      <strong class="dd-route-sum">₱120,000</strong>
+                      <strong class="dd-route-sum" id="ddRoute1Amt">₱0.00</strong>
                     </div>
                     <div class="dd-progress-track">
-                      <div class="dd-progress-bar" style="width: 42%;"></div>
+                      <div class="dd-progress-bar" id="ddRoute1Bar" style="width: 0%;"></div>
                     </div>
                     <div class="dd-route-sub-meta">
-                      <span>42% of deliveries</span>
-                      <span>1,420 carboys</span>
+                      <span id="ddRoute1Share">0% of deliveries</span>
+                      <span id="ddRoute1Carboys">0 carboys</span>
                     </div>
                   </div>
 
@@ -1537,14 +1532,14 @@
                   <div class="dd-route-row">
                     <div class="dd-route-top">
                       <span class="dd-route-badge-pin">📍 Purok 2 (Poblacion East)</span>
-                      <strong class="dd-route-sum">₱85,450</strong>
+                      <strong class="dd-route-sum" id="ddRoute2Amt">₱0.00</strong>
                     </div>
                     <div class="dd-progress-track">
-                      <div class="dd-progress-bar" style="width: 28%;"></div>
+                      <div class="dd-progress-bar" id="ddRoute2Bar" style="width: 0%;"></div>
                     </div>
                     <div class="dd-route-sub-meta">
-                      <span>28% of deliveries</span>
-                      <span>980 carboys</span>
+                      <span id="ddRoute2Share">0% of deliveries</span>
+                      <span id="ddRoute2Carboys">0 carboys</span>
                     </div>
                   </div>
 
@@ -1552,14 +1547,14 @@
                   <div class="dd-route-row">
                     <div class="dd-route-top">
                       <span class="dd-route-badge-pin">📍 Purok 3 (Riverside Subd)</span>
-                      <strong class="dd-route-sum">₱48,200</strong>
+                      <strong class="dd-route-sum" id="ddRoute3Amt">₱0.00</strong>
                     </div>
                     <div class="dd-progress-track">
-                      <div class="dd-progress-bar" style="width: 18%;"></div>
+                      <div class="dd-progress-bar" id="ddRoute3Bar" style="width: 0%;"></div>
                     </div>
                     <div class="dd-route-sub-meta">
-                      <span>18% of deliveries</span>
-                      <span>560 carboys</span>
+                      <span id="ddRoute3Share">0% of deliveries</span>
+                      <span id="ddRoute3Carboys">0 carboys</span>
                     </div>
                   </div>
 
@@ -1567,14 +1562,14 @@
                   <div class="dd-route-row">
                     <div class="dd-route-top">
                       <span class="dd-route-badge-pin">📍 Highway &amp; Outskirts</span>
-                      <strong class="dd-route-sum">₱24,350</strong>
+                      <strong class="dd-route-sum" id="ddRoute4Amt">₱0.00</strong>
                     </div>
                     <div class="dd-progress-track">
-                      <div class="dd-progress-bar" style="width: 12%;"></div>
+                      <div class="dd-progress-bar" id="ddRoute4Bar" style="width: 0%;"></div>
                     </div>
                     <div class="dd-route-sub-meta">
-                      <span>12% of deliveries</span>
-                      <span>280 carboys</span>
+                      <span id="ddRoute4Share">0% of deliveries</span>
+                      <span id="ddRoute4Carboys">0 carboys</span>
                     </div>
                   </div>
                 </div>
@@ -1843,7 +1838,7 @@
                       <strong>Application Build</strong>
                       <p>Clean Pure Station POS Engine</p>
                     </div>
-                    <span class="meta-badge">v2.8.14 Stable</span>
+                    <span class="meta-badge">v2.8.15 Stable</span>
                   </div>
 
                   <div class="data-tool-action">
@@ -2087,11 +2082,11 @@
                   </span>
                   <span class="profile-meta-item">
                     <svg class="ui-icon-xs" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
-                    <span id="profileClockInTime">Shift Start: Today 07:30 AM</span>
+                    <span id="profileClockInTime">Shift Start: Active</span>
                   </span>
                   <span class="profile-meta-item highlight">
                     <svg class="ui-icon-xs" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg>
-                    <span id="profileShiftDuration">Shift Active: 4h 15m</span>
+                    <span id="profileShiftDuration">Shift Active: 0h 0m</span>
                   </span>
                 </div>
               </div>
@@ -2824,7 +2819,7 @@
             <svg class="ui-icon-xs" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
             <span class="summary-card-label">On Duty &amp; Field Drivers</span>
           </div>
-          <span class="summary-badge-subtle" id="drawerPersonnelBadge">3 Active</span>
+          <span class="summary-badge-subtle" id="drawerPersonnelBadge">1 Active</span>
         </div>
 
         <!-- Cashier Row -->
@@ -2835,7 +2830,7 @@
               <strong class="person-name" id="drawerCashierName">Neil</strong>
               <span class="person-badge cashier">Cashier / Lead</span>
             </div>
-            <span class="person-sub-status" id="drawerCashierStatus">● On Duty • Counter #1 (Active: 4h 15m)</span>
+            <span class="person-sub-status" id="drawerCashierStatus">● On Duty • Counter #1</span>
           </div>
         </div>
 
@@ -2850,7 +2845,7 @@
               <span class="person-badge driver">Lead Driver</span>
             </div>
             <div class="driver-vehicle-line">Multicab #1 • Plate: ABC-1234</div>
-            <span class="person-sub-status en-route" id="drawerDriver1Status">● En Route • 3 delivery drops pending (Purok 1)</span>
+            <span class="person-sub-status en-route" id="drawerDriver1Status">● Available at Station • Ready for dispatch</span>
           </div>
         </div>
 
@@ -2882,7 +2877,7 @@
         <div class="tank-reserve-box">
           <div class="tank-reserve-meta">
             <span>Purified Storage Tank</span>
-            <strong id="drawerTankLevel">88% (3,520 / 4,000 L)</strong>
+            <strong id="drawerTankLevel">Tank Online • Full Reserve</strong>
           </div>
           <div class="tank-progress-bar">
             <div class="tank-progress-fill" style="width: 88%;"></div>
@@ -2903,7 +2898,7 @@
           </div>
           <div class="health-check-pill">
             <span class="check-dot">●</span>
-            <span>Ready Empties: 42 Carboys</span>
+            <span>Ready Empties: Available</span>
           </div>
         </div>
       </div>
@@ -2998,6 +2993,6 @@
     </div>
   </aside>
 
-  <script src="pos.js?v=2.8.14"></script>
+  <script src="pos.js?v=2.8.15"></script>
 </body>
 </html>
