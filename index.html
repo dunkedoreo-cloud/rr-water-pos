@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>R&R Water - Station POS</title>
-  <link rel="stylesheet" href="pos.css?v=2.8.30">
+  <link rel="stylesheet" href="pos.css?v=2.8.31">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700;800&display=swap" rel="stylesheet">
@@ -506,11 +506,11 @@
               <span class="pay-method-lbl">Payment Mode:</span>
               <div class="pay-method-pill-group">
                 <button type="button" class="btn-pay-method active" id="btnMethodCash" data-method="cash" title="Cash in Hand payment">
-                  <span class="method-icon">💵</span>
+                  <span class="method-icon"><svg class="ui-icon-xs" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="2" y="6" width="20" height="12" rx="2"></rect><circle cx="12" cy="12" r="2"></circle><path d="M6 12h.01M18 12h.01"></path></svg></span>
                   <span>Cash Drawer</span>
                 </button>
                 <button type="button" class="btn-pay-method" id="btnMethodGcash" data-method="gcash" title="GCash E-Wallet payment (Customer scans station QR)">
-                  <span class="method-icon">📱</span>
+                  <span class="method-icon"><svg class="ui-icon-xs" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="5" y="2" width="14" height="20" rx="2" ry="2"></rect><line x1="12" y1="18" x2="12.01" y2="18"></line></svg></span>
                   <span>GCash QR</span>
                 </button>
               </div>
@@ -543,7 +543,7 @@
                     <span class="g-lbl">GCash Number:</span>
                     <div class="g-num-wrap">
                       <strong class="g-val font-num" id="registerGcashPhoneDisplay">0917-829-4102</strong>
-                      <button type="button" class="btn-copy-gcash-num" id="btnCopyGcashNumber" title="Copy Number">📋 Copy</button>
+                      <button type="button" class="btn-copy-gcash-num" id="btnCopyGcashNumber" title="Copy Number"><svg class="ui-icon-xs" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg> Copy</button>
                     </div>
                   </div>
                 </div>
@@ -1227,10 +1227,10 @@
           <div class="deep-dive-header">
             <div class="deep-dive-header-left">
               <div class="deep-dive-title-row">
-                <h2 id="deepDiveWelcomeTitle">Welcome, Neil 👋</h2>
-                <span class="deep-dive-live-badge">● Live Analytics</span>
+                <h2 id="deepDiveWelcomeTitle">Analytics Overview</h2>
+                <span class="deep-dive-live-badge">● Live</span>
               </div>
-              <p class="deep-dive-subtitle">An overview of customer insights, sales performance, and revenue analytics.</p>
+              <p class="deep-dive-subtitle">Sales performance, customer volume, and revenue analytics.</p>
             </div>
             <div class="deep-dive-header-actions">
               <button class="btn-dd-secondary" id="btnBackToStandardReport" title="Return to Table Report">
@@ -1620,7 +1620,7 @@
                   <!-- Route 1 -->
                   <div class="dd-route-row">
                     <div class="dd-route-top">
-                      <span class="dd-route-badge-pin">📍 Purok 1 (Centro)</span>
+                      <span class="dd-route-badge-pin"><svg class="ui-icon-xs" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg> Purok 1 (Centro)</span>
                       <strong class="dd-route-sum" id="ddRoute1Amt">₱0.00</strong>
                     </div>
                     <div class="dd-progress-track">
@@ -1635,7 +1635,7 @@
                   <!-- Route 2 -->
                   <div class="dd-route-row">
                     <div class="dd-route-top">
-                      <span class="dd-route-badge-pin">📍 Purok 2 (Poblacion East)</span>
+                      <span class="dd-route-badge-pin"><svg class="ui-icon-xs" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg> Purok 2 (Poblacion East)</span>
                       <strong class="dd-route-sum" id="ddRoute2Amt">₱0.00</strong>
                     </div>
                     <div class="dd-progress-track">
@@ -1650,7 +1650,7 @@
                   <!-- Route 3 -->
                   <div class="dd-route-row">
                     <div class="dd-route-top">
-                      <span class="dd-route-badge-pin">📍 Purok 3 (Riverside Subd)</span>
+                      <span class="dd-route-badge-pin"><svg class="ui-icon-xs" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg> Purok 3 (Riverside Subd)</span>
                       <strong class="dd-route-sum" id="ddRoute3Amt">₱0.00</strong>
                     </div>
                     <div class="dd-progress-track">
@@ -1665,7 +1665,7 @@
                   <!-- Route 4 -->
                   <div class="dd-route-row">
                     <div class="dd-route-top">
-                      <span class="dd-route-badge-pin">📍 Highway &amp; Outskirts</span>
+                      <span class="dd-route-badge-pin"><svg class="ui-icon-xs" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg> Highway &amp; Outskirts</span>
                       <strong class="dd-route-sum" id="ddRoute4Amt">₱0.00</strong>
                     </div>
                     <div class="dd-progress-track">
@@ -1998,7 +1998,7 @@
                       <strong>Application Build</strong>
                       <p>Clean Pure Station POS Engine</p>
                     </div>
-                    <span class="meta-badge">v2.8.30 Stable</span>
+                    <span class="meta-badge">v2.8.31 Stable</span>
                   </div>
 
                   <div class="data-tool-action">
@@ -3415,8 +3415,8 @@
   </aside>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="supabase_config.js?v=2.8.30"></script>
-  <script src="pos.js?v=2.8.30"></script>
+  <script src="supabase_config.js?v=2.8.31"></script>
+  <script src="pos.js?v=2.8.31"></script>
 
   <!-- ====================================================================
        MODAL 1: BAYAD UTANG (CUSTOMER DEBT COLLECTION & PARTIAL PAYMENT)
@@ -3506,11 +3506,11 @@
           <div class="bayad-method-radios">
             <label class="bayad-method-opt active" id="lblBayadCash">
               <input type="radio" name="bayadPayMethod" value="cash" checked>
-              <span>💵 Cash in Drawer</span>
+              <span>Cash in Drawer</span>
             </label>
             <label class="bayad-method-opt" id="lblBayadGcash">
               <input type="radio" name="bayadPayMethod" value="gcash">
-              <span>📱 GCash E-Wallet</span>
+              <span>GCash E-Wallet</span>
             </label>
           </div>
         </div>
@@ -3713,13 +3713,13 @@
         <div class="expense-category-section">
           <label class="debt-input-lbl">Category (Kategorya):</label>
           <div class="expense-chips-grid" id="expenseChipsGrid">
-            <button type="button" class="expense-chip active" data-cat="fuel">⛽ Fuel / Multicab Gas</button>
-            <button type="button" class="expense-chip" data-cat="seals">🧴 Cap Seals &amp; Bags</button>
-            <button type="button" class="expense-chip" data-cat="electric">⚡ Meralco / Electric</button>
-            <button type="button" class="expense-chip" data-cat="water">💧 Water Utility / Raw</button>
-            <button type="button" class="expense-chip" data-cat="filters">🔧 Filters &amp; Carbon</button>
-            <button type="button" class="expense-chip" data-cat="meals">🍚 Staff Meal / Wage</button>
-            <button type="button" class="expense-chip" data-cat="other">📦 Other Expense</button>
+            <button type="button" class="expense-chip active" data-cat="fuel">Fuel / Gas</button>
+            <button type="button" class="expense-chip" data-cat="seals">Cap Seals &amp; Bags</button>
+            <button type="button" class="expense-chip" data-cat="electric">Electric / Power</button>
+            <button type="button" class="expense-chip" data-cat="water">Water Utility / Raw</button>
+            <button type="button" class="expense-chip" data-cat="filters">Filters &amp; Carbon</button>
+            <button type="button" class="expense-chip" data-cat="meals">Staff Meal / Wage</button>
+            <button type="button" class="expense-chip" data-cat="other">Other Expense</button>
           </div>
         </div>
 
@@ -3735,11 +3735,11 @@
           <div class="bayad-method-radios">
             <label class="bayad-method-opt active" id="lblExpDrawer">
               <input type="radio" name="expenseSource" value="drawer" checked>
-              <span>💵 Cash Drawer (Bawas sa Kaha)</span>
+              <span>Cash Drawer (Bawas sa Kaha)</span>
             </label>
             <label class="bayad-method-opt" id="lblExpPetty">
               <input type="radio" name="expenseSource" value="petty">
-              <span>🪙 Separate Petty Cash</span>
+              <span>Separate Petty Cash</span>
             </label>
           </div>
         </div>

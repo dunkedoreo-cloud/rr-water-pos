@@ -1618,7 +1618,7 @@ function renderInventory() {
     elReadyBar.style.width = `${pct}%`;
   }
   if (elReadySub) {
-    elReadySub.textContent = inv.ready <= 20 ? '⚠️ Low stock! Refill rack soon' : 'Clean & sealed on rack';
+    elReadySub.textContent = inv.ready <= 20 ? 'Low stock! Refill rack soon' : 'Clean & sealed on rack';
   }
 
   if (elReturned) elReturned.textContent = inv.returned;
@@ -2186,7 +2186,7 @@ function renderStoredOrders() {
 
     const markPaidBtn = isPending
       ? `<button class="btn-mark-paid btn-table-collect" data-orderno="${escapeHtml(order.orderNo || '')}" title="Collect and mark paid">✓ Collect &amp; Remit</button>
-         <button type="button" class="btn-bayad-utang" data-orderno="${escapeHtml(order.orderNo || '')}" title="Record Partial or Full Debt Payment (Bayad Utang)">💰 Bayad Utang</button>`
+         <button type="button" class="btn-bayad-utang" data-orderno="${escapeHtml(order.orderNo || '')}" title="Record Partial or Full Debt Payment (Bayad Utang)">Bayad Utang</button>`
       : '';
 
     const reconcileBtn = isDeliv
@@ -2213,7 +2213,7 @@ function renderStoredOrders() {
         <td class="td-time font-num">${escapeHtml(order.time || '---')}</td>
         <td class="td-customer">
           <div class="customer-location-cell">
-            <span class="location-pin-icon">📍</span>
+            <svg class="ui-icon-xs" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color: var(--text-muted); flex-shrink: 0;"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
             <span class="customer-name-text">${customerDisplay}</span>
           </div>
         </td>
@@ -2995,8 +2995,7 @@ function toggleDeepDiveReport(showDeepDive) {
 function renderDeepDiveReport() {
   const welcomeTitle = document.getElementById('deepDiveWelcomeTitle');
   if (welcomeTitle) {
-    const operatorName = State.currentUser && State.currentUser.name ? State.currentUser.name : 'Neil';
-    welcomeTitle.textContent = `Welcome, ${operatorName} 👋`;
+    welcomeTitle.textContent = 'Analytics Overview';
   }
 
   // Calculate live metrics strictly from State.storedOrders
@@ -4599,7 +4598,7 @@ function renderMiniOrders(filter = currentMiniOrdersFilter) {
               </span>
             ` : ''}
             <button class="mini-btn-reconcile" data-orderno="${order.orderNo}" style="background: #f0fdf4; border: 1px solid #16a34a; color: #166534; font-size: 0.72rem; font-weight: 700; padding: 3px 8px; border-radius: 6px; cursor: pointer; display: inline-flex; align-items: center; gap: 4px;">
-              📦 Reconcile
+              Reconcile
             </button>
           </div>
         ` : ''}
@@ -6071,7 +6070,7 @@ function renderDispatchSlip(order) {
 
 function kickCashDrawer() {
   soundCtrl.playDrawerChime();
-  showToast('⚡ [ESC/POS] Cash drawer solenoid pulse fired (Drawer opened)');
+  showToast('[ESC/POS] Cash drawer solenoid pulse fired (Drawer opened)');
   logSecurityEvent(
     'CASH_DRAWER_KICK',
     'Triggered manual ESC/POS hardware cash drawer kick pulse',
@@ -6419,12 +6418,12 @@ function initOfflinePWA() {
   }
 
   window.addEventListener('online', () => {
-    showToast('🟢 Online: Connected to Station Backend Database');
+    showToast('Online: Connected to Station Backend Database');
     syncWithBackend();
   });
 
   window.addEventListener('offline', () => {
-    showToast('🟠 Offline: Operating in Offline-First Local Mode');
+    showToast('Offline: Operating in Offline-First Local Mode');
   });
 }
 
@@ -8024,7 +8023,7 @@ function initGcashCheckoutEvents() {
       const num = State.gcashConfig.accountNumber || '0917-829-4102';
       navigator.clipboard.writeText(num).then(() => {
         btnCopyNum.textContent = '✓ Copied!';
-        setTimeout(() => { btnCopyNum.textContent = '📋 Copy'; }, 2000);
+        setTimeout(() => { btnCopyNum.innerHTML = '<svg class="ui-icon-xs" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg> Copy'; }, 2000);
         showToast(`Copied GCash Number: ${num}`);
       }).catch(() => {});
     });
@@ -8322,7 +8321,7 @@ function updateBayadUtangCalculations() {
       cueEl.textContent = '✓ Will be marked FULLY PAID & settled';
       cueEl.style.color = '#059669';
     } else {
-      cueEl.textContent = `⚠ Partial Payment: ₱${formatPeso(remainingAfter)} balance remaining`;
+      cueEl.textContent = `Partial Payment: ₱${formatPeso(remainingAfter)} balance remaining`;
       cueEl.style.color = '#d97706';
     }
   }

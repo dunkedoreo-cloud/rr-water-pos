@@ -5604,6 +5604,9 @@ body:not(.light-mode) .dd-growth-stat {
   font-size: 0.76rem;
   font-weight: 700;
   color: var(--text-main);
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
 }
 
 .dd-route-sum {
