@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>R&R Water - Station POS</title>
-  <link rel="stylesheet" href="pos.css?v=2.8.24">
+  <link rel="stylesheet" href="pos.css?v=2.8.25">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700;800&display=swap" rel="stylesheet">
@@ -171,7 +171,7 @@
           </button>
 
           <!-- Empties Ledger / Carboy Tracking Button (F8) -->
-          <button class="header-icon-btn btn-header-empties" id="btnHeaderEmpties" title="5-Gal Carboy Empties Ledger (F8)" aria-label="Carboy Ledger">
+          <button class="header-icon-btn btn-header-empties" id="btnHeaderEmpties" title="Carboy Empties Ledger (F8)" aria-label="Carboy Ledger">
             <svg class="ui-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
               <path d="M7 2h10v3H7z"></path>
               <rect x="5" y="5" width="14" height="17" rx="3"></rect>
@@ -266,12 +266,12 @@
               <!-- HERO PRIMARY PRODUCT CARD: 5-GALLON PURIFIED WATER CARBOY -->
               <div class="product-card active" data-prod="purified" id="cardPurified">
                 <div class="card-img-container">
-                  <img src="assets/water_jug.png" alt="5-Gallon Blue Water Jug" class="product-gallon-img">
+                  <img src="assets/water_jug.png" alt="1 Gallon Water Jug" class="product-gallon-img">
                   <span class="card-floating-badge">Purified Refill Swap</span>
                 </div>
                 <div class="card-details">
-                  <h4 class="product-name">5-Gallon Blue Carboy Refill</h4>
-                  <div class="product-code">Code: #GAL-05-STD</div>
+                  <h4 class="product-name">1 Gallon Purified Refill</h4>
+                  <div class="product-code">Code: #GAL-STD-01</div>
                   <div class="product-stock">Available: 150 Full Gallons Ready</div>
                   <div class="card-footer-row">
                     <span class="product-price-tag">₱ 35.00</span>
@@ -287,7 +287,7 @@
                   <span class="card-floating-badge blue">With New Container</span>
                 </div>
                 <div class="card-details">
-                  <h4 class="product-name">New 5-Gal Jug + Water</h4>
+                  <h4 class="product-name">New Gallon Jug + Water</h4>
                   <div class="product-code">Code: #GAL-NEW-BOT</div>
                   <div class="product-stock">Available: 25 Units in Storage</div>
                   <div class="card-footer-row">
@@ -394,7 +394,7 @@
               <div class="selected-item-row">
                 <img src="assets/water_jug.png" alt="Carboy" class="selected-item-img">
                 <div class="selected-item-details">
-                  <h5 id="orderItemTitle">5-Gal Purified Refill</h5>
+                  <h5 id="orderItemTitle">1 Gallon Purified Refill</h5>
                   <span class="selected-item-rate" id="orderItemRate">₱35.00 / gallon</span>
                 </div>
               </div>
@@ -446,7 +446,7 @@
               </div>
             </div>
 
-            <!-- Carboy & Empties Tracking (Loaned & Returned 5-Gallon Blue Jugs) -->
+            <!-- Carboy & Empties Tracking (Loaned & Returned Gallon Jugs) -->
             <div class="carboy-loan-row" id="carboyLoanRow">
               <div class="carboy-loan-item">
                 <span class="carboy-loan-label">Loan Blue Jugs</span>
@@ -1363,7 +1363,7 @@
                     <svg class="dd-black-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"></path></svg>
                   </div>
                   <div class="dd-prod-info">
-                    <strong class="dd-prod-title">5-Gal Purified Refill</strong>
+                    <strong class="dd-prod-title">1 Gallon Purified Refill</strong>
                     <span class="dd-prod-sub">Round &amp; slim swap refills</span>
                   </div>
                   <div class="dd-prod-meta">
@@ -1642,7 +1642,7 @@
                 <div class="setting-inputs-list">
                   <div class="setting-row">
                     <div class="setting-meta">
-                      <label for="settingPricePurified">Purified Carboy Refill (5-Gal)</label>
+                      <label for="settingPricePurified">Purified Water Refill (1 Gallon)</label>
                       <span class="setting-desc">Standard walk-in &amp; delivery swap price</span>
                     </div>
                     <div class="input-currency-wrap">
@@ -1653,7 +1653,7 @@
 
                   <div class="setting-row">
                     <div class="setting-meta">
-                      <label for="settingPriceNewJug">New 5-Gal Jug + Water</label>
+                      <label for="settingPriceNewJug">New Gallon Jug + Water</label>
                       <span class="setting-desc">Includes brand-new bottle and initial fill</span>
                     </div>
                     <div class="input-currency-wrap">
@@ -1838,7 +1838,7 @@
                       <strong>Application Build</strong>
                       <p>Clean Pure Station POS Engine</p>
                     </div>
-                    <span class="meta-badge">v2.8.24 Stable</span>
+                    <span class="meta-badge">v2.8.25 Stable</span>
                   </div>
 
                   <div class="data-tool-action">
@@ -2219,10 +2219,10 @@
               </div>
             </div>
 
-            <!-- KPI 5: 5-Gal Carboy Empties Movement -->
+            <!-- KPI 5: Gallon Jugs Empties Movement -->
             <div class="profile-kpi-card">
               <div class="profile-kpi-top">
-                <span class="profile-kpi-title">5-Gal Carboy Flow</span>
+                <span class="profile-kpi-title">Gallon Jugs Flow</span>
                 <div class="profile-kpi-icon-badge">
                   <svg class="ui-icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 2h10v3H7z"></path><rect x="5" y="5" width="14" height="17" rx="3"></rect><line x1="9" y1="9" x2="15" y2="9"></line><line x1="9" y1="13" x2="15" y2="13"></line></svg>
                 </div>
@@ -2735,7 +2735,7 @@
             <line x1="9" y1="13" x2="15" y2="13"></line>
           </svg>
           <div>
-            <h3 style="margin: 0; font-size: 1.15rem; font-weight: 800;">5-Gal Carboy &amp; Empties Ledger</h3>
+            <h3 style="margin: 0; font-size: 1.15rem; font-weight: 800;">Carboy Empties &amp; Customer Ledger</h3>
             <span style="font-size: 0.76rem; color: var(--text-muted);">Track loaned blue carboys, deposits, and unreturned empties</span>
           </div>
         </div>
@@ -3131,7 +3131,7 @@
               <svg class="ui-icon-xs" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 2h10v3H7z"></path><rect x="5" y="5" width="14" height="17" rx="3"></rect><line x1="9" y1="9" x2="15" y2="9"></line><line x1="9" y1="13" x2="15" y2="13"></line></svg>
             </div>
             <div class="func-details">
-              <strong class="func-name">5-Gal Carboy Empties Ledger (F8)</strong>
+              <strong class="func-name">Carboy Empties Ledger (F8)</strong>
               <span class="func-desc">Customer container loans, returns &amp; deposits</span>
             </div>
             <svg class="func-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"></polyline></svg>
@@ -3164,7 +3164,7 @@
   </aside>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="supabase_config.js?v=2.8.24"></script>
-  <script src="pos.js?v=2.8.24"></script>
+  <script src="supabase_config.js?v=2.8.25"></script>
+  <script src="pos.js?v=2.8.25"></script>
 </body>
 </html>

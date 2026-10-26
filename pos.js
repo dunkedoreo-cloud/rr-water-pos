@@ -10,8 +10,8 @@
 const PRODUCTS = {
   purified: {
     key: 'purified',
-    name: '5-Gal Purified Refill',
-    code: '#GAL-05-STD',
+    name: '1 Gallon Purified Refill',
+    code: '#GAL-STD-01',
     price: 35,
     unit: 'gal',
     isRefill: true,
@@ -21,7 +21,7 @@ const PRODUCTS = {
   },
   new_container: {
     key: 'new_container',
-    name: 'New 5-Gal Jug + Water',
+    name: 'New Gallon Jug + Water',
     code: '#GAL-NEW-BOT',
     price: 250,
     unit: 'jug',
@@ -335,7 +335,7 @@ function loadSavedData() {
         timestamp: Date.now() - 600000,
         channel: 'delivery',
         prodKey: 'purified',
-        prodName: '5-Gal Purified Refill',
+        prodName: '1 Gallon Purified Refill',
         gallons: 15,
         unitPrice: 35,
         total: 525,
@@ -352,7 +352,7 @@ function loadSavedData() {
         timestamp: Date.now() - 1800000,
         channel: 'walkin',
         prodKey: 'purified',
-        prodName: '5-Gal Purified Refill',
+        prodName: '1 Gallon Purified Refill',
         gallons: 2,
         unitPrice: 35,
         total: 70,
@@ -1973,7 +1973,7 @@ function renderStoredOrders() {
       statusPillText = '● 100% Settled • All Paid';
     } else if (State.ordersFilter === 'walkin') {
       emptyTitle = 'No Walk-in Refills Recorded';
-      emptyDesc = 'Swapping 5-gallon blue carboys at the station counter will record immediate cash transactions here.';
+      emptyDesc = 'Swapping gallon jugs at the station counter will record immediate cash transactions here.';
       emptyAvatar = 'assets/droppy_happy.png';
       statusPillText = '● Counter Ready For Walk-Ins';
     }
@@ -2062,7 +2062,7 @@ function renderStoredOrders() {
 
     const prodSub = order.prodKey === 'new_container'
       ? 'Brand-new Sealed Bottle'
-      : (isDeliv ? `Driver: ${escapeHtml(order.driverName || 'Kuya Jun (Multicab #1)')}` : '5-Gal Carboy Swap');
+      : (isDeliv ? `Driver: ${escapeHtml(order.driverName || 'Kuya Jun (Multicab #1)')}` : 'Gallon Jug Swap');
 
     const channelTag = isDeliv
       ? `<span class="tag-channel delivery"><svg class="ui-icon-xs" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="3" width="15" height="13"></rect><polygon points="16 8 20 8 23 11 23 16 16 8"></polygon><circle cx="5.5" cy="18.5" r="2.5"></circle><circle cx="18.5" cy="18.5" r="2.5"></circle></svg> Multicab</span>`
@@ -2289,7 +2289,7 @@ function renderFleetDelivered() {
           <span class="empty-status-pill">● Fleet Multicab Standby • Ready For Dispatch</span>
         </div>
         <h3 class="empty-orders-title">No Fleet Deliveries Dispatched</h3>
-        <p class="empty-orders-desc">The multicab delivery queue is currently clear. Switch channel to "Multicab" on the POS register to dispatch 5-gallon carboys and record driver routes.</p>
+        <p class="empty-orders-desc">The multicab delivery queue is currently clear. Switch channel to "Multicab" on the POS register to dispatch gallons and record driver routes.</p>
         <div class="empty-orders-actions">
           <button type="button" class="btn-empty-action-primary" id="btnEmptyQueueNewDelivery">
             <svg class="ui-icon-xs" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
@@ -2443,7 +2443,7 @@ function generateRealisticReportOrders() {
       gallons: 7,
       channel: 'walkin',
       prodKey: 'purified',
-      prodName: '5-Gal Purified Refill',
+      prodName: '1 Gallon Purified Refill',
       unitPrice: 35,
       fare: 14500,
       tax: 1500,
@@ -2460,7 +2460,7 @@ function generateRealisticReportOrders() {
       gallons: 9,
       channel: 'delivery',
       prodKey: 'purified',
-      prodName: '5-Gal Purified Refill',
+      prodName: '1 Gallon Purified Refill',
       unitPrice: 35,
       fare: 19500,
       tax: 1500,
@@ -2477,7 +2477,7 @@ function generateRealisticReportOrders() {
       gallons: 7,
       channel: 'delivery',
       prodKey: 'purified',
-      prodName: '5-Gal Purified Refill',
+      prodName: '1 Gallon Purified Refill',
       unitPrice: 35,
       fare: 23500,
       tax: 1000,
@@ -2494,7 +2494,7 @@ function generateRealisticReportOrders() {
       gallons: 4,
       channel: 'walkin',
       prodKey: 'purified',
-      prodName: '5-Gal Purified Refill',
+      prodName: '1 Gallon Purified Refill',
       unitPrice: 35,
       fare: 14000,
       tax: 2000,
@@ -2511,7 +2511,7 @@ function generateRealisticReportOrders() {
       gallons: 5,
       channel: 'walkin',
       prodKey: 'purified',
-      prodName: '5-Gal Purified Refill',
+      prodName: '1 Gallon Purified Refill',
       unitPrice: 35,
       fare: 12500,
       tax: 1500,
@@ -2528,7 +2528,7 @@ function generateRealisticReportOrders() {
       gallons: 7,
       channel: 'delivery',
       prodKey: 'purified',
-      prodName: '5-Gal Purified Refill',
+      prodName: '1 Gallon Purified Refill',
       unitPrice: 35,
       fare: 13500,
       tax: 1500,
@@ -2545,7 +2545,7 @@ function generateRealisticReportOrders() {
       gallons: 9,
       channel: 'walkin',
       prodKey: 'purified',
-      prodName: '5-Gal Purified Refill',
+      prodName: '1 Gallon Purified Refill',
       unitPrice: 35,
       fare: 14500,
       tax: 1500,
@@ -2562,7 +2562,7 @@ function generateRealisticReportOrders() {
       gallons: 12,
       channel: 'delivery',
       prodKey: 'purified',
-      prodName: '5-Gal Purified Refill',
+      prodName: '1 Gallon Purified Refill',
       unitPrice: 35,
       fare: 16500,
       tax: 1500,
@@ -2579,7 +2579,7 @@ function generateRealisticReportOrders() {
       gallons: 20,
       channel: 'delivery',
       prodKey: 'purified',
-      prodName: '5-Gal Purified Refill',
+      prodName: '1 Gallon Purified Refill',
       unitPrice: 30,
       fare: 21000,
       tax: 2000,
@@ -2596,7 +2596,7 @@ function generateRealisticReportOrders() {
       gallons: 15,
       channel: 'delivery',
       prodKey: 'purified',
-      prodName: '5-Gal Purified Refill',
+      prodName: '1 Gallon Purified Refill',
       unitPrice: 35,
       fare: 18000,
       tax: 2500,
@@ -2613,7 +2613,7 @@ function generateRealisticReportOrders() {
       gallons: 6,
       channel: 'walkin',
       prodKey: 'purified',
-      prodName: '5-Gal Purified Refill',
+      prodName: '1 Gallon Purified Refill',
       unitPrice: 35,
       fare: 12500,
       tax: 1500,
@@ -2630,7 +2630,7 @@ function generateRealisticReportOrders() {
       gallons: 25,
       channel: 'delivery',
       prodKey: 'purified',
-      prodName: '5-Gal Purified Refill',
+      prodName: '1 Gallon Purified Refill',
       unitPrice: 30,
       fare: 28000,
       tax: 2000,
@@ -2647,7 +2647,7 @@ function generateRealisticReportOrders() {
       gallons: 10,
       channel: 'delivery',
       prodKey: 'purified',
-      prodName: '5-Gal Purified Refill',
+      prodName: '1 Gallon Purified Refill',
       unitPrice: 35,
       fare: 14000,
       tax: 1000,
@@ -2664,7 +2664,7 @@ function generateRealisticReportOrders() {
       gallons: 2,
       channel: 'walkin',
       prodKey: 'new_container',
-      prodName: 'New 5-Gal Jug + Water',
+      prodName: 'New Gallon Jug + Water',
       unitPrice: 250,
       fare: 18000,
       tax: 2000,
@@ -2681,7 +2681,7 @@ function generateRealisticReportOrders() {
       gallons: 30,
       channel: 'delivery',
       prodKey: 'purified',
-      prodName: '5-Gal Purified Refill',
+      prodName: '1 Gallon Purified Refill',
       unitPrice: 30,
       fare: 32000,
       tax: 3000,
@@ -3089,7 +3089,7 @@ function exportDeepDiveCSV() {
     ['Multicab Delivery Sales', document.getElementById('ddDeliverySalesCount')?.textContent || '0 Sales'],
     [],
     ['TOP PRODUCTS', 'UNIT PRICE', 'TOTAL REVENUE'],
-    ['5-Gal Purified Refill (Swap)', '₱35.00', document.getElementById('ddProdVol1')?.textContent || '₱0.00 total'],
+    ['1 Gallon Purified Refill (Swap)', '₱35.00', document.getElementById('ddProdVol1')?.textContent || '₱0.00 total'],
     ['New Blue Slim Jug + Water', '₱250.00', document.getElementById('ddProdVol2')?.textContent || '₱0.00 total'],
     ['New Round Dispenser Carboy', '₱250.00', document.getElementById('ddProdVol3')?.textContent || '₱0.00 total'],
     ['Carboy Loan & Deposit', '₱200.00', document.getElementById('ddProdVol4')?.textContent || '₱0.00 total'],
@@ -4082,7 +4082,7 @@ const DROPPY_CYCLE_STATES = [
   {
     avatar: 'assets/droppy_happy.png',
     badge: 'Ready On Rack',
-    text: '150 sealed 5-gallon blue carboys sanitized and ready for quick doorstep or counter swaps.'
+    text: '150 sealed gallon jugs sanitized and ready for quick doorstep or counter swaps.'
   },
   {
     avatar: 'assets/droppy_winking.png',
@@ -5677,7 +5677,7 @@ function renderThermalReceipt(order) {
       </thead>
       <tbody>
         <tr>
-          <td>${escapeHtml(o.prodName || '5-Gal Purified Refill')}<br><small>${Number(o.gallons || 1).toLocaleString()} gal @ ₱${formatPeso(o.unitPrice || 35)}</small></td>
+          <td>${escapeHtml(o.prodName || '1 Gallon Purified Refill')}<br><small>${Number(o.gallons || 1).toLocaleString()} gal @ ₱${formatPeso(o.unitPrice || 35)}</small></td>
           <td class="col-right">₱${formatPeso(o.unitPrice || 35)}</td>
           <td class="col-right">₱${formatPeso(o.total)}</td>
         </tr>
@@ -5752,7 +5752,7 @@ function renderDispatchSlip(order) {
     <div class="receipt-divider-dash"></div>
 
     <div style="margin: 8px 0; font-size: 13px; font-weight: 800;">
-      CARGO LOAD: ${Number(o.isBatchReconciled ? o.batchLoaded : (o.gallons || 1)).toLocaleString()} Sealed 5-Gal Blue Carboys
+      CARGO LOAD: ${Number(o.isBatchReconciled ? o.batchLoaded : (o.gallons || 1)).toLocaleString()} Sealed Gallon Jugs
     </div>
     ${o.isBatchReconciled ? `
       <div style="background: #f0f9ff; border: 1px dashed #0284c7; padding: 6px; border-radius: 4px; margin: 6px 0; font-size: 11px;">
@@ -7082,7 +7082,7 @@ const SupabaseSync = {
         date_str: order.dateStr || '',
         channel: order.channel || 'walkin',
         prod_key: order.items && order.items[0] && order.items[0].name ? order.items[0].name.toLowerCase() : 'refill',
-        prod_name: order.items && order.items[0] && order.items[0].name ? order.items[0].name : '5-Gallon Purified Refill',
+        prod_name: order.items && order.items[0] && order.items[0].name ? order.items[0].name : '1 Gallon Purified Refill',
         gallons: Number(order.gallons) || 1,
         unit_price: Number(order.items && order.items[0] && order.items[0].price) || 35.00,
         total: Number(order.total) || 0.00,
