@@ -2123,8 +2123,8 @@ function renderStoredOrders() {
           ${statusTag}
         </td>
         <td class="td-amount font-num">
-          <div class="table-amount-main">₱ ${formatPeso(orderTotal)}</div>
-          ${isPending ? `<div class="table-amount-sub-unpaid">Pending: ₱${formatPeso(unpaidVal)}</div>` : ''}
+          <div class="table-amount-main"><span class="peso-sign">₱</span>&nbsp;${formatPeso(orderTotal)}</div>
+          ${isPending ? `<div class="table-amount-sub-unpaid">Pending:&nbsp;₱&nbsp;${formatPeso(unpaidVal)}</div>` : ''}
         </td>
         <td class="td-actions">
           <div class="table-actions-cell">
@@ -2165,7 +2165,7 @@ function renderStoredOrders() {
             <td colspan="3" class="tf-count">Total Filtered: ${filtered.length.toLocaleString()} Orders</td>
             <td class="tf-gallons font-num">${filteredGallons.toLocaleString()} Gallons</td>
             <td colspan="2" class="tf-status-counts">${paidCount.toLocaleString()} Paid • ${pendingCount.toLocaleString()} Pending</td>
-            <td class="tf-total-amount font-num">₱ ${formatPeso(filteredTotal)}</td>
+            <td class="tf-total-amount font-num"><span class="peso-sign">₱</span>&nbsp;${formatPeso(filteredTotal)}</td>
             <td class="tf-actions"></td>
           </tr>
         </tfoot>

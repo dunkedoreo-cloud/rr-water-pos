@@ -2515,6 +2515,7 @@ body:not(.light-mode) .log-filter-btn.active {
 
 .orders-data-table {
   width: 100%;
+  min-width: 860px;
   border-collapse: collapse;
   font-family: var(--font-sans);
   font-size: 0.82rem;
@@ -2564,15 +2565,17 @@ body:not(.light-mode) .log-filter-btn.active {
 
 .orders-data-table th.th-amount,
 .orders-data-table td.td-amount {
-  width: 110px;
+  width: 135px;
+  min-width: 120px;
   text-align: right;
-  white-space: nowrap;
+  white-space: nowrap !important;
 }
 
 .orders-data-table th.th-actions,
 .orders-data-table td.td-actions {
-  width: 135px;
-  text-align: center;
+  width: 180px;
+  min-width: 165px;
+  text-align: right;
   white-space: nowrap;
 }
 
@@ -2656,19 +2659,38 @@ body:not(.light-mode) .log-filter-btn.active {
 }
 
 .table-amount-main {
-  font-size: 0.95rem;
+  font-size: clamp(0.80rem, 1.5vw, 0.95rem);
   font-weight: 800;
   color: var(--text-main);
   letter-spacing: -0.01em;
   font-feature-settings: "tnum" 1;
-  white-space: nowrap;
+  white-space: nowrap !important;
+  word-break: keep-all;
+  display: inline-flex;
+  align-items: baseline;
+  justify-content: flex-end;
+  gap: 2px;
+}
+
+.table-amount-main .peso-sign {
+  font-weight: 800;
+  opacity: 0.95;
 }
 
 .table-amount-sub-unpaid {
-  font-size: 0.7rem;
-  font-weight: 500;
-  color: var(--text-muted);
+  font-size: 0.70rem;
+  font-weight: 600;
+  color: #d97706;
   margin-top: 1px;
+  white-space: nowrap !important;
+  word-break: keep-all;
+  display: block;
+}
+
+.tf-total-amount {
+  white-space: nowrap !important;
+  word-break: keep-all;
+  text-align: right;
 }
 
 .table-actions-cell {
@@ -2939,6 +2961,8 @@ body:not(.light-mode) .orders-data-table tbody tr.row-pending:hover {
   color: var(--text-main);
   letter-spacing: -0.02em;
   text-align: right;
+  white-space: nowrap !important;
+  word-break: keep-all;
 }
 
 .order-paid-unpaid-tags {
@@ -6951,6 +6975,7 @@ body:not(.light-mode) .btn-sub-action.primary:hover {
   .orders-data-table {
     display: block;
     width: 100%;
+    min-width: 0 !important;
   }
   .orders-data-table thead {
     display: none;
@@ -7017,10 +7042,18 @@ body:not(.light-mode) .btn-sub-action.primary:hover {
   .orders-table-row td.td-amount {
     order: 7;
     display: flex;
-    align-items: baseline;
+    align-items: center;
     justify-content: space-between;
     padding-top: 6px;
     border-top: 1px dashed var(--border-subtle);
+    white-space: nowrap !important;
+  }
+  .orders-table-row td.td-amount::before {
+    content: 'Total Amount:';
+    font-size: 0.74rem;
+    font-weight: 700;
+    color: var(--text-muted);
+    text-transform: uppercase;
   }
   .orders-table-row td.td-actions {
     order: 8;
