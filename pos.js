@@ -1757,8 +1757,14 @@ function processPaymentAndStoreOrder() {
 
   const valLoan = document.getElementById('carboysLoanedVal');
   const valRet = document.getElementById('carboysReturnedVal');
-  if (valLoan) valLoan.textContent = '0';
-  if (valRet) valRet.textContent = '0';
+  if (valLoan) {
+    if ('value' in valLoan) valLoan.value = '0';
+    valLoan.textContent = '0';
+  }
+  if (valRet) {
+    if ('value' in valRet) valRet.value = '0';
+    valRet.textContent = '0';
+  }
   document.querySelectorAll('.btn-quick-cash').forEach(b => {
     b.classList.toggle('active', b.getAttribute('data-tender') === 'exact');
   });
@@ -5428,18 +5434,45 @@ function initCarboySteppers() {
   const valLoan = document.getElementById('carboysLoanedVal');
   const valReturn = document.getElementById('carboysReturnedVal');
 
+  function updateLoanDisplay() {
+    if (!valLoan) return;
+    if ('value' in valLoan) valLoan.value = State.carboysLoaned;
+    valLoan.textContent = State.carboysLoaned;
+  }
+
+  function updateReturnDisplay() {
+    if (!valReturn) return;
+    if ('value' in valReturn) valReturn.value = State.carboysReturned;
+    valReturn.textContent = State.carboysReturned;
+  }
+
   if (btnLoanMinus && btnLoanPlus && valLoan) {
     btnLoanMinus.addEventListener('click', () => {
       soundCtrl.playTap();
       if (State.carboysLoaned > 0) {
         State.carboysLoaned--;
-        valLoan.textContent = State.carboysLoaned;
+        updateLoanDisplay();
       }
     });
     btnLoanPlus.addEventListener('click', () => {
       soundCtrl.playTap();
       State.carboysLoaned++;
-      valLoan.textContent = State.carboysLoaned;
+      updateLoanDisplay();
+    });
+
+    // Direct numeric input (e.g. type 36, 4, 7 directly)
+    valLoan.addEventListener('input', () => {
+      const v = Math.max(0, parseInt(valLoan.value, 10) || 0);
+      State.carboysLoaned = v;
+    });
+    valLoan.addEventListener('focus', () => {
+      if (typeof valLoan.select === 'function') valLoan.select();
+    });
+    valLoan.addEventListener('blur', () => {
+      if (!valLoan.value || isNaN(valLoan.value)) {
+        State.carboysLoaned = 0;
+        updateLoanDisplay();
+      }
     });
   }
 
@@ -5448,13 +5481,28 @@ function initCarboySteppers() {
       soundCtrl.playTap();
       if (State.carboysReturned > 0) {
         State.carboysReturned--;
-        valReturn.textContent = State.carboysReturned;
+        updateReturnDisplay();
       }
     });
     btnReturnPlus.addEventListener('click', () => {
       soundCtrl.playTap();
       State.carboysReturned++;
-      valReturn.textContent = State.carboysReturned;
+      updateReturnDisplay();
+    });
+
+    // Direct numeric input (e.g. type 36, 4, 7 directly)
+    valReturn.addEventListener('input', () => {
+      const v = Math.max(0, parseInt(valReturn.value, 10) || 0);
+      State.carboysReturned = v;
+    });
+    valReturn.addEventListener('focus', () => {
+      if (typeof valReturn.select === 'function') valReturn.select();
+    });
+    valReturn.addEventListener('blur', () => {
+      if (!valReturn.value || isNaN(valReturn.value)) {
+        State.carboysReturned = 0;
+        updateReturnDisplay();
+      }
     });
   }
 }

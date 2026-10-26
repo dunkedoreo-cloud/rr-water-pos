@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>R&R Water - Station POS</title>
-  <link rel="stylesheet" href="pos.css?v=2.8.25">
+  <link rel="stylesheet" href="pos.css?v=2.8.26">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700;800&display=swap" rel="stylesheet">
@@ -452,7 +452,7 @@
                 <span class="carboy-loan-label">Loan Blue Jugs</span>
                 <div class="carboy-stepper">
                   <button type="button" class="btn-carboy-step" id="btnLoanMinus" title="Decrease loaned jugs">-</button>
-                  <span class="carboy-step-val" id="carboysLoanedVal">0</span>
+                  <input type="number" class="carboy-step-input" id="carboysLoanedVal" value="0" min="0" max="999" step="1" inputmode="numeric" aria-label="Loaned Blue Jugs Count" title="Type quantity directly or use +/-">
                   <button type="button" class="btn-carboy-step" id="btnLoanPlus" title="Increase loaned jugs">+</button>
                 </div>
               </div>
@@ -460,7 +460,7 @@
                 <span class="carboy-loan-label">Empty Jugs Returned</span>
                 <div class="carboy-stepper">
                   <button type="button" class="btn-carboy-step" id="btnReturnMinus" title="Decrease returned jugs">-</button>
-                  <span class="carboy-step-val" id="carboysReturnedVal">0</span>
+                  <input type="number" class="carboy-step-input" id="carboysReturnedVal" value="0" min="0" max="999" step="1" inputmode="numeric" aria-label="Returned Empty Jugs Count" title="Type quantity directly or use +/-">
                   <button type="button" class="btn-carboy-step" id="btnReturnPlus" title="Increase returned jugs">+</button>
                 </div>
               </div>
@@ -1838,7 +1838,7 @@
                       <strong>Application Build</strong>
                       <p>Clean Pure Station POS Engine</p>
                     </div>
-                    <span class="meta-badge">v2.8.25 Stable</span>
+                    <span class="meta-badge">v2.8.26 Stable</span>
                   </div>
 
                   <div class="data-tool-action">
@@ -3164,7 +3164,7 @@
   </aside>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="supabase_config.js?v=2.8.25"></script>
-  <script src="pos.js?v=2.8.25"></script>
+  <script src="supabase_config.js?v=2.8.26"></script>
+  <script src="pos.js?v=2.8.26"></script>
 </body>
 </html>
