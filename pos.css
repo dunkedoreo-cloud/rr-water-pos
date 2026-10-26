@@ -21,6 +21,8 @@
   --color-primary: #0284c7;
   --color-primary-hover: #0369a1;
   --color-accent: #38bdf8;
+  --brand-primary: #0284c7;
+  --brand-primary-hover: #0369a1;
   --color-sidebar-active: #dcfce7; /* Soft neon highlight */
   --color-sidebar-active-text: #15803d;
   --color-payment-btn: linear-gradient(135deg, #8b5cf6 0%, #6366f1 100%);
@@ -6895,6 +6897,20 @@ body:not(.light-mode) .btn-sub-action.primary:hover {
     gap: 4px !important;
     border-radius: var(--radius-md) !important;
   }
+  .cash-input-field-wrap {
+    padding: 3px 8px !important;
+    gap: 6px !important;
+  }
+  .cash-tender-numeric-input {
+    font-size: 1.02rem !important;
+  }
+  .cash-input-currency-tag {
+    font-size: 1.02rem !important;
+  }
+  .btn-tender-exact-reset {
+    font-size: 0.68rem !important;
+    padding: 2px 6px !important;
+  }
   .cash-tender-header {
     margin-bottom: 2px !important;
   }
@@ -9241,7 +9257,7 @@ body:not(.light-mode) .btn-sub-action.primary:hover {
 }
 
 .change-due-badge {
-  font-family: var(--font-mono);
+  font-family: var(--font-mono, 'JetBrains Mono', monospace);
   font-size: 0.88rem;
   font-weight: 800;
   color: #059669;
@@ -9258,12 +9274,91 @@ body:not(.light-mode) .btn-sub-action.primary:hover {
   border-color: var(--border-subtle);
 }
 
+.change-due-badge.success {
+  color: #059669;
+  background: rgba(16, 185, 129, 0.16);
+  border-color: rgba(16, 185, 129, 0.35);
+  box-shadow: 0 0 8px rgba(16, 185, 129, 0.18);
+}
+
 .change-due-badge.insufficient {
   color: #ef4444;
   background: rgba(239, 68, 68, 0.12);
   border-color: rgba(239, 68, 68, 0.3);
 }
 
+/* Direct Cash Given Input Row */
+.cash-input-field-wrap {
+  display: flex;
+  align-items: center;
+  background-color: var(--bg-surface, #f8fafc);
+  border: 1.5px solid var(--border-subtle, #cbd5e1);
+  border-radius: var(--radius-md, 8px);
+  padding: 4px 10px;
+  gap: 8px;
+  transition: border-color 0.18s ease, box-shadow 0.18s ease, background-color 0.18s ease;
+}
+
+.cash-input-field-wrap:focus-within {
+  border-color: #0284c7;
+  background-color: var(--bg-card, #ffffff);
+  box-shadow: 0 0 0 3px rgba(2, 132, 199, 0.15);
+}
+
+.cash-input-currency-tag {
+  font-family: var(--font-sans);
+  font-size: 1.15rem;
+  font-weight: 800;
+  color: #0284c7;
+  line-height: 1;
+  user-select: none;
+}
+
+.cash-tender-numeric-input {
+  flex: 1;
+  min-width: 0;
+  border: none;
+  background: transparent;
+  outline: none;
+  font-family: var(--font-mono, 'JetBrains Mono', monospace);
+  font-size: 1.12rem;
+  font-weight: 800;
+  color: var(--text-main, #0f172a);
+  padding: 2px 0;
+}
+
+.cash-tender-numeric-input::placeholder {
+  font-family: var(--font-sans);
+  font-size: 0.8rem;
+  font-weight: 500;
+  color: var(--text-dim, #94a3b8);
+}
+
+.cash-tender-numeric-input:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.btn-tender-exact-reset {
+  padding: 3px 9px;
+  background: rgba(2, 132, 199, 0.1);
+  border: 1px solid rgba(2, 132, 199, 0.25);
+  border-radius: var(--radius-sm, 5px);
+  font-family: var(--font-sans);
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: #0284c7;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.15s ease;
+}
+
+.btn-tender-exact-reset:hover {
+  background: #0284c7;
+  color: #ffffff;
+}
+
+/* Quick Cash Preset Chips */
 .quick-cash-btn-row {
   display: grid;
   grid-template-columns: repeat(6, 1fr);
@@ -9285,16 +9380,31 @@ body:not(.light-mode) .btn-sub-action.primary:hover {
 
 .btn-quick-cash:hover {
   background-color: var(--bg-card-hover);
-  border-color: var(--brand-primary);
-  color: var(--brand-primary);
+  border-color: #0284c7;
+  color: #0284c7;
   transform: translateY(-1px);
 }
 
 .btn-quick-cash.active {
-  background-color: var(--brand-primary);
-  border-color: var(--brand-primary);
-  color: #ffffff;
-  box-shadow: 0 2px 6px rgba(2, 132, 199, 0.3);
+  background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%) !important;
+  border-color: #0284c7 !important;
+  color: #ffffff !important;
+  box-shadow: 0 2px 6px rgba(2, 132, 199, 0.3) !important;
+}
+
+body.dark-mode .cash-input-field-wrap {
+  background-color: rgba(15, 23, 42, 0.6);
+  border-color: rgba(255, 255, 255, 0.12);
+}
+
+body.dark-mode .cash-input-field-wrap:focus-within {
+  background-color: rgba(15, 23, 42, 0.9);
+  border-color: #38bdf8;
+  box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.2);
+}
+
+body.dark-mode .cash-tender-numeric-input {
+  color: #f1f5f9;
 }
 
 /* ==========================================================================

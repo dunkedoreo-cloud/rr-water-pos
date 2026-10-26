@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>R&R Water - Station POS</title>
-  <link rel="stylesheet" href="pos.css?v=2.8.28">
+  <link rel="stylesheet" href="pos.css?v=2.8.29">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700;800&display=swap" rel="stylesheet">
@@ -495,6 +495,25 @@
                 <span class="cash-tender-title">Cash Tender &amp; Change</span>
                 <span class="change-due-badge exact" id="changeDueBadge">Change: ₱0.00</span>
               </div>
+
+              <!-- Direct Cash Given Input (Calculate Change for Any Amount) -->
+              <div class="cash-input-field-wrap" id="cashInputFieldWrap">
+                <span class="cash-input-currency-tag">₱</span>
+                <input 
+                  type="number" 
+                  inputmode="decimal" 
+                  step="any" 
+                  min="0"
+                  id="cashTenderInput" 
+                  class="cash-tender-numeric-input" 
+                  placeholder="Enter cash given (e.g. 150, 200...)" 
+                  aria-label="Cash Tendered Amount"
+                  autocomplete="off"
+                />
+                <button type="button" class="btn-tender-exact-reset" id="btnTenderExactReset" title="Set cash given to exact total">Exact Total</button>
+              </div>
+
+              <!-- Quick Tender Presets -->
               <div class="quick-cash-btn-row" id="quickCashBtnRow">
                 <button type="button" class="btn-quick-cash active" data-tender="exact">Exact</button>
                 <button type="button" class="btn-quick-cash" data-tender="50">₱50</button>
@@ -1843,7 +1862,7 @@
                       <strong>Application Build</strong>
                       <p>Clean Pure Station POS Engine</p>
                     </div>
-                    <span class="meta-badge">v2.8.28 Stable</span>
+                    <span class="meta-badge">v2.8.29 Stable</span>
                   </div>
 
                   <div class="data-tool-action">
@@ -3260,7 +3279,7 @@
   </aside>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="supabase_config.js?v=2.8.28"></script>
-  <script src="pos.js?v=2.8.28"></script>
+  <script src="supabase_config.js?v=2.8.29"></script>
+  <script src="pos.js?v=2.8.29"></script>
 </body>
 </html>

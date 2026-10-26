@@ -963,6 +963,9 @@ function bindEvents() {
         State.note = '';
         State.deliveryAddress = '';
         State.orderPayMode = (State.channel === 'delivery' ? (State.deliveryPayMode === 'advance' ? 'paid' : 'unpaid') : 'paid');
+        State.selectedTender = 'exact';
+        const inCash = document.getElementById('cashTenderInput');
+        if (inCash) inCash.value = '';
         if (noteInput) noteInput.value = '';
         if (deliveryAddressInput) deliveryAddressInput.value = '';
         renderPresets();
@@ -1698,12 +1701,17 @@ function processPaymentAndStoreOrder() {
     : (State.note.trim() || (isPending ? 'Walk-in (Unpaid / Utang)' : ''));
 
   // Compute Tender & Change
-  const tenderVal = isPending
-    ? 0
-    : (State.selectedTender === 'exact' ? total : Number(State.selectedTender) || total);
-  const changeVal = isPending
-    ? 0
-    : (State.selectedTender === 'exact' ? 0 : Math.max(0, tenderVal - total));
+  let tenderVal = 0;
+  let changeVal = 0;
+  if (!isPending) {
+    if (State.selectedTender === 'exact' || State.selectedTender === '' || isNaN(Number(State.selectedTender))) {
+      tenderVal = total;
+      changeVal = 0;
+    } else {
+      tenderVal = Number(State.selectedTender);
+      changeVal = Math.max(0, tenderVal - total);
+    }
+  }
 
   // Stored order record
   const newOrder = {
@@ -1777,6 +1785,8 @@ function processPaymentAndStoreOrder() {
   State.carboysReturned = 0;
   State.selectedTender = 'exact';
   State.orderPayMode = (State.channel === 'delivery' ? (State.deliveryPayMode === 'advance' ? 'paid' : 'unpaid') : 'paid');
+  const inCash = document.getElementById('cashTenderInput');
+  if (inCash) inCash.value = '';
 
   const valLoan = document.getElementById('carboysLoanedVal');
   const valRet = document.getElementById('carboysReturnedVal');
@@ -5416,27 +5426,96 @@ function initSecuritySystem() {
 
 // ==========================================================================
 // 13. QUICK CASH TENDER & CHANGE DUE CALCULATOR
+// User: "add a function where we can put the money they gave and calculate change"
 // ==========================================================================
 function initQuickCashTender() {
+  const cashInput = document.getElementById('cashTenderInput');
+  const btnExactReset = document.getElementById('btnTenderExactReset');
+
+  if (cashInput) {
+    // Select all on focus for effortless overwrite
+    cashInput.addEventListener('focus', () => {
+      cashInput.select();
+    });
+
+    // Real-time calculation as operator types
+    cashInput.addEventListener('input', () => {
+      const val = cashInput.value.trim();
+      if (val === '') {
+        State.selectedTender = 'exact';
+      } else {
+        const num = parseFloat(val);
+        State.selectedTender = (isNaN(num) || num < 0) ? 'exact' : num;
+      }
+      updateTenderAndChange();
+    });
+
+    // Pressing Enter triggers sale completion
+    cashInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        const btnSubmit = document.getElementById('btnSubmitPayment');
+        if (btnSubmit) btnSubmit.click();
+      }
+    });
+  }
+
+  if (btnExactReset) {
+    btnExactReset.addEventListener('click', () => {
+      soundCtrl.playTap();
+      State.selectedTender = 'exact';
+      if (cashInput) {
+        cashInput.value = '';
+        cashInput.focus();
+      }
+      updateTenderAndChange();
+    });
+  }
+
   document.querySelectorAll('.btn-quick-cash').forEach(btn => {
     btn.addEventListener('click', () => {
       soundCtrl.playTap();
-      document.querySelectorAll('.btn-quick-cash').forEach(b => b.classList.remove('active'));
-      btn.classList.add('active');
       const tender = btn.getAttribute('data-tender');
       State.selectedTender = tender;
+      if (cashInput) {
+        if (tender === 'exact') {
+          cashInput.value = '';
+        } else {
+          cashInput.value = tender;
+        }
+      }
       updateTenderAndChange();
     });
   });
+
   updateTenderAndChange();
 }
 
 function updateTenderAndChange() {
   const badge = document.getElementById('changeDueBadge');
-  if (!badge) return;
-
+  const cashInput = document.getElementById('cashTenderInput');
   const total = calculateTotal();
   const isPending = State.orderPayMode === 'unpaid';
+
+  if (cashInput) {
+    if (isPending) {
+      cashInput.disabled = true;
+      cashInput.placeholder = 'Order marked Unpaid / Pending';
+      cashInput.value = '';
+    } else {
+      cashInput.disabled = false;
+      cashInput.placeholder = `Exact: ₱${formatPeso(total)} (or enter cash given)`;
+      if (State.selectedTender !== 'exact' && State.selectedTender !== '' && !isNaN(Number(State.selectedTender))) {
+        if (document.activeElement !== cashInput) {
+          cashInput.value = State.selectedTender;
+        }
+      } else if (State.selectedTender === 'exact' && document.activeElement !== cashInput) {
+        // Keep input clear so placeholder shows exact total clearly
+      }
+    }
+  }
+
+  if (!badge) return;
 
   if (isPending) {
     badge.textContent = State.channel === 'delivery' ? 'Pay on Delivery' : 'Unpaid / Suki';
@@ -5444,19 +5523,45 @@ function updateTenderAndChange() {
     return;
   }
 
-  if (State.selectedTender === 'exact') {
+  let tenderVal = total;
+  let isExact = false;
+
+  if (State.selectedTender === 'exact' || State.selectedTender === '' || State.selectedTender === null) {
+    tenderVal = total;
+    isExact = true;
+  } else {
+    const parsed = Number(State.selectedTender);
+    if (isNaN(parsed) || parsed <= 0) {
+      tenderVal = total;
+      isExact = true;
+    } else {
+      tenderVal = parsed;
+      isExact = (tenderVal === total);
+    }
+  }
+
+  // Sync quick cash preset chips active state
+  document.querySelectorAll('.btn-quick-cash').forEach(b => {
+    const t = b.getAttribute('data-tender');
+    if (isExact && t === 'exact') {
+      b.classList.add('active');
+    } else if (!isExact && Number(t) === tenderVal) {
+      b.classList.add('active');
+    } else {
+      b.classList.remove('active');
+    }
+  });
+
+  const diff = tenderVal - total;
+  if (isExact || diff === 0) {
     badge.textContent = 'Change: ₱0.00';
     badge.className = 'change-due-badge exact';
+  } else if (diff > 0) {
+    badge.textContent = `Change: ₱${formatPeso(diff)}`;
+    badge.className = 'change-due-badge success';
   } else {
-    const tender = Number(State.selectedTender) || 0;
-    const diff = tender - total;
-    if (diff >= 0) {
-      badge.textContent = `Change: ₱${formatPeso(diff)}`;
-      badge.className = 'change-due-badge';
-    } else {
-      badge.textContent = `Short: ₱${formatPeso(Math.abs(diff))}`;
-      badge.className = 'change-due-badge insufficient';
-    }
+    badge.textContent = `Short: ₱${formatPeso(Math.abs(diff))}`;
+    badge.className = 'change-due-badge insufficient';
   }
 }
 
