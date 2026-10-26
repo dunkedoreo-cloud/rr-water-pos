@@ -53,6 +53,7 @@ const State = {
   currentOrderNo: generateRandomOrderNo(), // User: "just randomize the order number"
   channel: 'walkin',               // 'walkin' | 'delivery'
   deliveryPayMode: 'pending',      // 'pending' (Pay on Delivery) | 'advance' (Pre-paid)
+  orderPayMode: 'paid',            // 'paid' | 'unpaid' (interactive toggle on checkout)
   deliveryAddress: '',             // Delivery destination / customer
   prodKey: 'purified',             // 'purified' | 'new_container'
   qty: 1,                          // number >= 1
@@ -254,6 +255,7 @@ document.addEventListener('DOMContentLoaded', () => {
   initOfflinePWA();
   initBatchReconcileEvents();
   initEditProfileEvents();
+  initPayToggleEvents();
   SupabaseSync.init();
   renderPresets();
   renderAll();
@@ -880,6 +882,7 @@ function bindEvents() {
     btnWalkin.addEventListener('click', () => {
       soundCtrl.playTap();
       State.channel = 'walkin';
+      State.orderPayMode = 'paid';
       btnWalkin.classList.add('active');
       btnDelivery.classList.remove('active');
       if (delivOptions) delivOptions.style.display = 'none';
@@ -893,6 +896,7 @@ function bindEvents() {
     btnDelivery.addEventListener('click', () => {
       soundCtrl.playTap();
       State.channel = 'delivery';
+      State.orderPayMode = (State.deliveryPayMode === 'advance' ? 'paid' : 'unpaid');
       btnDelivery.classList.add('active');
       btnWalkin.classList.remove('active');
       if (delivOptions) delivOptions.style.display = 'flex';
@@ -912,6 +916,7 @@ function bindEvents() {
     btnPayPending.addEventListener('click', () => {
       soundCtrl.playTap();
       State.deliveryPayMode = 'pending';
+      State.orderPayMode = 'unpaid';
       btnPayPending.classList.add('active');
       btnPayAdvance.classList.remove('active');
       renderOrderSummary();
@@ -920,6 +925,7 @@ function bindEvents() {
     btnPayAdvance.addEventListener('click', () => {
       soundCtrl.playTap();
       State.deliveryPayMode = 'advance';
+      State.orderPayMode = 'paid';
       btnPayAdvance.classList.add('active');
       btnPayPending.classList.remove('active');
       renderOrderSummary();
@@ -956,6 +962,7 @@ function bindEvents() {
         State.keypadBuffer = '';
         State.note = '';
         State.deliveryAddress = '';
+        State.orderPayMode = (State.channel === 'delivery' ? (State.deliveryPayMode === 'advance' ? 'paid' : 'unpaid') : 'paid');
         if (noteInput) noteInput.value = '';
         if (deliveryAddressInput) deliveryAddressInput.value = '';
         renderPresets();
@@ -1611,12 +1618,14 @@ function renderOrderSummary() {
   if (itemRate) itemRate.textContent = `₱${formatPeso(prod.price)} / ${prod.unit}`;
   if (itemQty) itemQty.textContent = State.qty.toLocaleString();
 
-  // 3. Amount & Paid / Unpaid Breakdown
+  // 3. Amount & Paid / Unpaid Breakdown & Toggle
   const totalAmountEl = document.getElementById('summaryTotalAmount');
   const paidTextEl = document.getElementById('breakdownPaidText');
   const unpaidTextEl = document.getElementById('breakdownUnpaidText');
+  const btnTogglePaid = document.getElementById('btnTogglePaid');
+  const btnToggleUnpaid = document.getElementById('btnToggleUnpaid');
 
-  const isPending = State.channel === 'delivery' && State.deliveryPayMode === 'pending';
+  const isPending = State.orderPayMode === 'unpaid';
   const paidAmount = isPending ? 0 : total;
   const unpaidAmount = isPending ? total : 0;
 
@@ -1624,14 +1633,26 @@ function renderOrderSummary() {
   if (paidTextEl) paidTextEl.textContent = `Paid: ₱${formatPeso(paidAmount)}`;
   if (unpaidTextEl) unpaidTextEl.textContent = `Unpaid: ₱${formatPeso(unpaidAmount)}`;
 
+  if (btnTogglePaid && btnToggleUnpaid) {
+    btnTogglePaid.classList.toggle('active-paid', !isPending);
+    btnToggleUnpaid.classList.toggle('active-unpaid', isPending);
+    btnTogglePaid.setAttribute('aria-pressed', !isPending ? 'true' : 'false');
+    btnToggleUnpaid.setAttribute('aria-pressed', isPending ? 'true' : 'false');
+  }
+
   // 4. Primary Action Button Text & Theme
   const btnActionText = document.getElementById('btnSubmitActionText');
   const btnSubmit = document.getElementById('btnSubmitPayment');
 
   if (btnActionText && btnSubmit) {
     if (State.channel === 'walkin') {
-      btnActionText.textContent = `Complete Sale • ₱${formatPeso(total)} (Paid)`;
-      btnSubmit.classList.remove('pending-action');
+      if (isPending) {
+        btnActionText.textContent = `Record Sale • ₱${formatPeso(total)} (Unpaid / Pending)`;
+        btnSubmit.classList.add('pending-action');
+      } else {
+        btnActionText.textContent = `Complete Sale • ₱${formatPeso(total)} (Paid)`;
+        btnSubmit.classList.remove('pending-action');
+      }
     } else {
       if (isPending) {
         btnActionText.textContent = `Dispatch Multicab • ₱${formatPeso(total)} (Pending Payment)`;
@@ -1668,13 +1689,13 @@ function processPaymentAndStoreOrder() {
     hour12: true
   });
 
-  const isPending = State.channel === 'delivery' && State.deliveryPayMode === 'pending';
+  const isPending = State.orderPayMode === 'unpaid';
   const paid = isPending ? 0 : total;
   const unpaid = isPending ? total : 0;
 
   const noteText = State.channel === 'delivery'
     ? (State.deliveryAddress.trim() || 'Multicab Delivery')
-    : State.note.trim();
+    : (State.note.trim() || (isPending ? 'Walk-in (Unpaid / Utang)' : ''));
 
   // Compute Tender & Change
   const tenderVal = isPending
@@ -1755,6 +1776,7 @@ function processPaymentAndStoreOrder() {
   State.carboysLoaned = 0;
   State.carboysReturned = 0;
   State.selectedTender = 'exact';
+  State.orderPayMode = (State.channel === 'delivery' ? (State.deliveryPayMode === 'advance' ? 'paid' : 'unpaid') : 'paid');
 
   const valLoan = document.getElementById('carboysLoanedVal');
   const valRet = document.getElementById('carboysReturnedVal');
@@ -5414,10 +5436,10 @@ function updateTenderAndChange() {
   if (!badge) return;
 
   const total = calculateTotal();
-  const isPending = State.channel === 'delivery' && State.deliveryPayMode === 'pending';
+  const isPending = State.orderPayMode === 'unpaid';
 
   if (isPending) {
-    badge.textContent = 'Pay on Delivery';
+    badge.textContent = State.channel === 'delivery' ? 'Pay on Delivery' : 'Unpaid / Suki';
     badge.className = 'change-due-badge exact';
     return;
   }
@@ -5671,7 +5693,7 @@ function renderThermalReceipt(order) {
     gallons: State.qty,
     unitPrice: PRODUCTS[State.prodKey].price,
     total: calculateTotal(),
-    status: State.channel === 'delivery' && State.deliveryPayMode === 'pending' ? 'pending' : 'paid',
+    status: State.orderPayMode === 'unpaid' ? 'pending' : 'paid',
     channel: State.channel,
     note: State.channel === 'delivery' ? State.deliveryAddress : State.note,
     tendered: State.selectedTender === 'exact' ? calculateTotal() : Number(State.selectedTender) || calculateTotal(),
@@ -7678,4 +7700,43 @@ function initEditProfileEvents() {
       soundCtrl.playTap();
     };
   });
+}
+
+// ==========================================================================
+// PAID / UNPAID INTERACTIVE TOGGLE BUTTON
+// User: "allow for paid and upaid for this but make it a toggle button"
+// ==========================================================================
+function initPayToggleEvents() {
+  const btnTogglePaid = document.getElementById('btnTogglePaid');
+  const btnToggleUnpaid = document.getElementById('btnToggleUnpaid');
+
+  if (btnTogglePaid) {
+    btnTogglePaid.addEventListener('click', () => {
+      soundCtrl.playTap();
+      State.orderPayMode = 'paid';
+      if (State.channel === 'delivery') {
+        State.deliveryPayMode = 'advance';
+        const pAdv = document.getElementById('btnPayAdvance');
+        const pPend = document.getElementById('btnPayPending');
+        if (pAdv) pAdv.classList.add('active');
+        if (pPend) pPend.classList.remove('active');
+      }
+      renderOrderSummary();
+    });
+  }
+
+  if (btnToggleUnpaid) {
+    btnToggleUnpaid.addEventListener('click', () => {
+      soundCtrl.playTap();
+      State.orderPayMode = 'unpaid';
+      if (State.channel === 'delivery') {
+        State.deliveryPayMode = 'pending';
+        const pAdv = document.getElementById('btnPayAdvance');
+        const pPend = document.getElementById('btnPayPending');
+        if (pPend) pPend.classList.add('active');
+        if (pAdv) pAdv.classList.remove('active');
+      }
+      renderOrderSummary();
+    });
+  }
 }

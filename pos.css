@@ -2248,6 +2248,103 @@ body:not(.light-mode) .selected-item-img {
 .breakdown-sep {
   color: var(--text-dim);
 }
+/* Interactive Paid / Unpaid Toggle Switch */
+.pay-toggle-wrapper {
+  display: inline-flex;
+  align-items: center;
+  padding: 3px;
+  background: var(--bg-card, #ffffff);
+  border: 1px solid var(--border-subtle, #e2e8f0);
+  border-radius: 9999px;
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.04);
+  gap: 3px;
+  user-select: none;
+}
+
+.pay-toggle-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 11px;
+  border: 1px solid transparent;
+  border-radius: 9999px;
+  background: transparent;
+  font-family: var(--font-sans);
+  font-size: 0.76rem;
+  font-weight: 700;
+  color: var(--text-muted, #64748b);
+  cursor: pointer;
+  transition: all 0.18s cubic-bezier(0.16, 1, 0.3, 1);
+  white-space: nowrap;
+  outline: none;
+  line-height: 1.2;
+}
+
+.pay-toggle-btn:focus-visible {
+  outline: 2px solid #0284c7;
+  outline-offset: 1px;
+}
+
+.toggle-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--text-dim, #94a3b8);
+  transition: all 0.18s ease;
+  flex-shrink: 0;
+}
+
+/* Inactive button subtle styling */
+.pay-toggle-btn:not(.active-paid):not(.active-unpaid) {
+  opacity: 0.62;
+}
+
+.pay-toggle-btn:not(.active-paid):not(.active-unpaid):hover {
+  opacity: 0.95;
+  background: rgba(0, 0, 0, 0.05);
+  color: var(--text-main, #0f172a);
+}
+
+/* Active Paid State (Station Blue / Ocean) */
+.pay-toggle-btn.active-paid {
+  background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);
+  color: #ffffff !important;
+  border-color: #0284c7;
+  box-shadow: 0 2px 6px rgba(2, 132, 199, 0.32);
+  opacity: 1;
+}
+
+.pay-toggle-btn.active-paid .toggle-dot {
+  background: #38bdf8;
+  box-shadow: 0 0 6px #38bdf8;
+}
+
+/* Active Unpaid State (Warm Amber / Pending Alert) */
+.pay-toggle-btn.active-unpaid {
+  background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+  color: #ffffff !important;
+  border-color: #d97706;
+  box-shadow: 0 2px 6px rgba(217, 119, 6, 0.32);
+  opacity: 1;
+}
+
+.pay-toggle-btn.active-unpaid .toggle-dot {
+  background: #fef08a;
+  box-shadow: 0 0 6px #fde047;
+}
+
+/* Dark mode overrides */
+body.dark-mode .pay-toggle-wrapper {
+  background: rgba(15, 23, 42, 0.7);
+  border-color: rgba(255, 255, 255, 0.1);
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.3);
+}
+
+body.dark-mode .pay-toggle-btn:not(.active-paid):not(.active-unpaid):hover {
+  background: rgba(255, 255, 255, 0.08);
+  color: #f1f5f9;
+}
+
 
 .btn-primary-action {
   width: 100%;
@@ -6835,6 +6932,15 @@ body:not(.light-mode) .btn-sub-action.primary:hover {
   .paid-unpaid-breakdown {
     font-size: 0.68rem !important;
   }
+  .pay-toggle-btn {
+    padding: 3px 8px !important;
+    font-size: 0.70rem !important;
+  }
+  .toggle-dot {
+    width: 6px !important;
+    height: 6px !important;
+  }
+
   .btn-primary-action {
     height: 44px !important;
     min-height: 44px !important;
