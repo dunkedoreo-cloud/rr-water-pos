@@ -9258,24 +9258,108 @@ body:not(.light-mode) .btn-sub-action.primary:hover {
 }
 
 .thermal-modal-header {
+  width: 100%;
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: space-between;
   border-bottom: 1px solid var(--border-subtle);
-  padding-bottom: 12px;
+  padding-bottom: 14px;
+  gap: 14px;
+  box-sizing: border-box;
 }
 
 .thermal-modal-title {
   display: flex;
-  align-items: center;
-  gap: 10px;
+  align-items: flex-start;
+  gap: 12px;
+  flex: 1;
+  min-width: 0;
+}
+
+.thermal-modal-title-text,
+.thermal-modal-title > div:not(.thermal-icon-circle) {
+  flex: 1;
+  min-width: 0;
 }
 
 .thermal-modal-title h3 {
-  font-size: 1.1rem;
+  font-size: clamp(0.96rem, 3.5vw, 1.15rem);
   font-weight: 800;
   margin: 0;
   color: var(--text-main);
+  line-height: 1.25;
+  word-break: break-word;
+}
+
+.thermal-modal-title p,
+.thermal-modal-title span {
+  font-size: 0.74rem;
+  color: var(--text-muted);
+  margin: 3px 0 0 0;
+  line-height: 1.35;
+  word-break: break-word;
+  display: block;
+}
+
+.thermal-icon-circle {
+  width: 38px;
+  height: 38px;
+  border-radius: var(--radius-md);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+.modal-close-icon {
+  flex-shrink: 0;
+  width: 32px;
+  height: 32px;
+  border-radius: var(--radius-md);
+  background: var(--bg-card-subtle);
+  border: 1px solid var(--border-subtle);
+  color: var(--text-muted);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  padding: 0;
+  margin: 0;
+  outline: none;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.modal-close-icon svg {
+  width: 15px;
+  height: 15px;
+  stroke: currentColor;
+  stroke-width: 2.5;
+  display: block;
+  pointer-events: none;
+}
+
+.modal-close-icon:hover {
+  background: var(--bg-card-hover);
+  color: var(--text-main);
+  border-color: var(--border-active);
+  transform: rotate(90deg) scale(1.08);
+}
+
+.modal-close-icon:active {
+  transform: rotate(90deg) scale(0.95);
+}
+
+body:not(.light-mode) .modal-close-icon {
+  background: rgba(255, 255, 255, 0.06);
+  border-color: rgba(255, 255, 255, 0.12);
+  color: #94a3b8;
+}
+
+body:not(.light-mode) .modal-close-icon:hover {
+  background: rgba(255, 255, 255, 0.14);
+  border-color: rgba(255, 255, 255, 0.25);
+  color: #ffffff;
 }
 
 .thermal-format-toggle {
@@ -11165,7 +11249,14 @@ body:not(.light-mode) .person-sub-status.ready {
    ========================================================================== */
 .batch-reconcile-card {
   max-width: 580px;
-  width: 100%;
+  width: 92%;
+  padding: 22px 24px;
+  align-items: stretch;
+  text-align: left;
+  gap: 14px;
+  max-height: 92vh;
+  overflow-y: auto;
+  box-sizing: border-box;
 }
 
 .batch-modal-body {
@@ -11453,6 +11544,11 @@ body:not(.light-mode) .batch-pill-left {
 }
 
 @media (max-width: 640px) {
+  .batch-reconcile-card {
+    width: 96%;
+    padding: 16px 16px;
+    gap: 12px;
+  }
   .batch-metrics-summary-grid {
     grid-template-columns: 1fr;
     gap: 8px;
