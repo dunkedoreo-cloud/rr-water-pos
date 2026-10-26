@@ -11629,3 +11629,199 @@ body:not(.light-mode) .batch-pill-left {
     justify-content: center;
   }
 }
+
+
+/* ==========================================================================
+   EDIT PROFILE MODAL & PHOTO UPLOAD CONTROLS
+   ========================================================================== */
+.edit-profile-card {
+  max-width: 520px;
+  width: 92%;
+  padding: 22px 24px;
+  align-items: stretch;
+  text-align: left;
+  gap: 14px;
+  max-height: 92vh;
+  overflow-y: auto;
+  box-sizing: border-box;
+}
+
+.edit-profile-modal-body {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 8px 0;
+}
+
+.edit-avatar-section {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  padding: 16px;
+  background: var(--bg-card-subtle);
+  border: 1px dashed var(--border-subtle);
+  border-radius: var(--radius-lg);
+  text-align: center;
+}
+
+.edit-avatar-preview-wrap {
+  position: relative;
+  width: 86px;
+  height: 86px;
+}
+
+.edit-avatar-preview {
+  width: 86px;
+  height: 86px;
+  border-radius: var(--radius-full);
+  background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2.2rem;
+  font-weight: 800;
+  box-shadow: 0 4px 16px rgba(2, 132, 199, 0.35);
+  border: 3px solid var(--bg-surface);
+  overflow: hidden;
+  background-size: cover;
+  background-position: center;
+}
+
+.edit-avatar-upload-trigger {
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  width: 28px;
+  height: 28px;
+  border-radius: var(--radius-full);
+  background: var(--color-primary);
+  color: #ffffff;
+  border: 2px solid var(--bg-surface);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);
+  transition: transform 0.15s ease;
+}
+
+.edit-avatar-upload-trigger:hover {
+  transform: scale(1.12);
+}
+
+.edit-avatar-upload-trigger svg {
+  width: 14px;
+  height: 14px;
+}
+
+.edit-avatar-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.btn-avatar-action {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border-radius: var(--radius-md);
+  font-size: 0.78rem;
+  font-weight: 700;
+  cursor: pointer;
+  border: 1px solid var(--border-subtle);
+  background: var(--bg-surface);
+  color: var(--text-main);
+  transition: all 0.15s ease;
+}
+
+.btn-avatar-action:hover {
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+}
+
+.btn-avatar-action.remove:hover {
+  border-color: #ef4444;
+  color: #ef4444;
+}
+
+.edit-avatar-hint {
+  font-size: 0.72rem;
+  color: var(--text-muted);
+  margin: 0;
+}
+
+.color-swatches-row {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-top: 6px;
+}
+
+.avatar-color-swatch {
+  width: 30px;
+  height: 30px;
+  border-radius: var(--radius-full);
+  border: 2px solid transparent;
+  cursor: pointer;
+  transition: transform 0.15s ease, border-color 0.15s ease;
+  padding: 0;
+}
+
+.avatar-color-swatch:hover {
+  transform: scale(1.12);
+}
+
+.avatar-color-swatch.active {
+  border-color: #ffffff;
+  box-shadow: 0 0 0 2px var(--color-primary);
+  transform: scale(1.08);
+}
+
+/* Avatar camera pill on Profile Hero */
+.profile-avatar-camera-pill {
+  position: absolute;
+  top: -2px;
+  right: -2px;
+  width: 26px;
+  height: 26px;
+  border-radius: var(--radius-full);
+  background: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  color: var(--text-muted);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: var(--shadow-sm);
+  cursor: pointer;
+  transition: all 0.15s ease;
+  z-index: 2;
+}
+
+.profile-avatar-camera-pill:hover {
+  color: var(--color-primary);
+  border-color: var(--color-primary);
+  transform: scale(1.15);
+}
+
+.profile-avatar-camera-pill svg {
+  width: 13px;
+  height: 13px;
+}
+
+.profile-hero-avatar-wrap {
+  cursor: pointer;
+}
+
+.profile-hero-avatar {
+  background-size: cover !important;
+  background-position: center !important;
+}
+
+.cashier-avatar {
+  background-size: cover !important;
+  background-position: center !important;
+}

@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>R&R Water - Station POS</title>
-  <link rel="stylesheet" href="pos.css?v=2.8.26">
+  <link rel="stylesheet" href="pos.css?v=2.8.27">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700;800&display=swap" rel="stylesheet">
@@ -1838,7 +1838,7 @@
                       <strong>Application Build</strong>
                       <p>Clean Pure Station POS Engine</p>
                     </div>
-                    <span class="meta-badge">v2.8.26 Stable</span>
+                    <span class="meta-badge">v2.8.27 Stable</span>
                   </div>
 
                   <div class="data-tool-action">
@@ -2099,6 +2099,10 @@
             </div>
 
             <div class="profile-header-actions">
+              <button class="btn-profile-top-action" id="btnProfileEditModal" title="Edit Profile &amp; Photo">
+                <svg class="ui-icon-xs" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+                <span>Edit Profile</span>
+              </button>
               <button class="btn-profile-top-action" id="btnProfilePrintXReport" title="Print Cashier Shift X-Report Receipt (Thermal)">
                 <svg class="ui-icon-xs" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 6 2 18 2 18 9"></polyline><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path><rect x="6" y="14" width="12" height="8"></rect></svg>
                 <span>Print Shift X-Report</span>
@@ -2117,8 +2121,11 @@
           <!-- Hero Operator Profile Banner -->
           <div class="profile-hero-card">
             <div class="profile-hero-left">
-              <div class="profile-hero-avatar-wrap">
+              <div class="profile-hero-avatar-wrap" id="profileAvatarWrap" title="Click to Change Photo / Edit Profile">
                 <div class="profile-hero-avatar" id="profileHeroAvatar">N</div>
+                <div class="profile-avatar-camera-pill" id="btnHeroAvatarCamera" title="Change Profile Picture">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path><circle cx="12" cy="13" r="4"></circle></svg>
+                </div>
                 <span class="profile-live-pulse-dot" title="Operator Shift is Active"></span>
               </div>
               <div class="profile-hero-details">
@@ -2907,6 +2914,90 @@
     </div>
   </div>
 
+  <!-- Edit Operator Profile & Photo Modal -->
+  <div class="modal-backdrop" id="editProfileModal" style="display: none;">
+    <div class="modal-card edit-profile-card">
+      <div class="thermal-modal-header">
+        <div class="thermal-modal-title">
+          <div class="thermal-icon-circle" style="background: rgba(2, 132, 199, 0.12); color: var(--color-primary);">
+            <svg class="ui-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+              <circle cx="12" cy="7" r="4"></circle>
+            </svg>
+          </div>
+          <div class="thermal-modal-title-text">
+            <h3>Edit Operator Profile</h3>
+            <p>Set custom profile photo, display name, and avatar styling</p>
+          </div>
+        </div>
+        <button type="button" class="modal-close-icon" id="btnCloseEditProfileModal" aria-label="Close" title="Close (Esc)">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+        </button>
+      </div>
+
+      <div class="edit-profile-modal-body">
+        <!-- Avatar Preview & Upload Controls -->
+        <div class="edit-avatar-section">
+          <div class="edit-avatar-preview-wrap">
+            <div class="edit-avatar-preview" id="editAvatarPreview">N</div>
+            <label for="inputAvatarPhotoFile" class="edit-avatar-upload-trigger" title="Upload Photo">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path><circle cx="12" cy="13" r="4"></circle></svg>
+            </label>
+          </div>
+          <input type="file" id="inputAvatarPhotoFile" accept="image/*" style="display: none;">
+          
+          <div class="edit-avatar-actions">
+            <button type="button" class="btn-avatar-action upload" id="btnTriggerPhotoUpload">
+              <svg class="ui-icon-xs" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
+              <span>Upload Photo</span>
+            </button>
+            <button type="button" class="btn-avatar-action remove" id="btnRemoveAvatarPhoto" title="Revert to Letter Avatar">
+              <svg class="ui-icon-xs" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+              <span>Use Letter Avatar</span>
+            </button>
+          </div>
+          <p class="edit-avatar-hint">When no photo is set, your initials will be displayed on the colored badge.</p>
+        </div>
+
+        <!-- Form fields: Name, Title, Color -->
+        <div class="edit-profile-form">
+          <div class="setting-input-group" style="margin-bottom: 12px;">
+            <label for="inputEditProfileName">Operator Display Name</label>
+            <input type="text" id="inputEditProfileName" placeholder="e.g. Neil" style="width: 100%; padding: 8px 10px; font-size: 0.85rem; border-radius: var(--radius-sm); border: 1px solid var(--border-subtle); background: var(--bg-card); color: var(--text-main);">
+          </div>
+
+          <div class="setting-input-group" style="margin-bottom: 12px;">
+            <label for="inputEditProfileTitle">Job Title / Position</label>
+            <input type="text" id="inputEditProfileTitle" placeholder="e.g. Station Manager" style="width: 100%; padding: 8px 10px; font-size: 0.85rem; border-radius: var(--radius-sm); border: 1px solid var(--border-subtle); background: var(--bg-card); color: var(--text-main);">
+          </div>
+
+          <div class="setting-input-group">
+            <label style="font-size: 0.76rem; font-weight: 700; color: var(--text-muted); display: block; margin-bottom: 6px;">Avatar Background Color (When using Letter Avatar)</label>
+            <div class="color-swatches-row" id="editAvatarColorSwatches">
+              <button type="button" class="avatar-color-swatch active" data-color="linear-gradient(135deg, #0284c7 0%, #0369a1 100%)" style="background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);"></button>
+              <button type="button" class="avatar-color-swatch" data-color="#0284c7" style="background: #0284c7;"></button>
+              <button type="button" class="avatar-color-swatch" data-color="#059669" style="background: #059669;"></button>
+              <button type="button" class="avatar-color-swatch" data-color="#7c3aed" style="background: #7c3aed;"></button>
+              <button type="button" class="avatar-color-swatch" data-color="#d97706" style="background: #d97706;"></button>
+              <button type="button" class="avatar-color-swatch" data-color="#e11d48" style="background: #e11d48;"></button>
+              <button type="button" class="avatar-color-swatch" data-color="#0f172a" style="background: #0f172a;"></button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="modal-button-row" style="margin-top: 14px; display: flex; justify-content: flex-end; gap: 10px;">
+        <button type="button" class="btn-modal-cancel" id="btnCancelEditProfile">Cancel</button>
+        <button type="button" class="btn-modal-confirm" id="btnSaveEditProfile" style="background: #0284c7; color: #ffffff; min-width: 140px;">
+          <span>Save Profile</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
   <!-- Floating Side Minitab on Screen Edge (Press to open Station Summary) -->
   <button type="button" class="floating-side-minitab" id="floatingSideMinitab" title="Station Live Summary (Press for all functions &amp; live sales)" aria-label="Open Station Summary">
     <div class="side-tab-pill">
@@ -3164,7 +3255,7 @@
   </aside>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="supabase_config.js?v=2.8.26"></script>
-  <script src="pos.js?v=2.8.26"></script>
+  <script src="supabase_config.js?v=2.8.27"></script>
+  <script src="pos.js?v=2.8.27"></script>
 </body>
 </html>

@@ -253,6 +253,7 @@ document.addEventListener('DOMContentLoaded', () => {
   initKeyboardShortcuts();
   initOfflinePWA();
   initBatchReconcileEvents();
+  initEditProfileEvents();
   SupabaseSync.init();
   renderPresets();
   renderAll();
@@ -4540,6 +4541,23 @@ let staffLoginPinBuffer = '';
 let staffLoginSelectedId = null;
 let lockPinBuffer = '';
 
+
+function applyUserAvatar(element, user) {
+  if (!element || !user) return;
+  if (user.photo) {
+    element.textContent = '';
+    element.style.backgroundImage = 'url(' + JSON.stringify(user.photo) + ')';
+    element.style.backgroundSize = 'cover';
+    element.style.backgroundPosition = 'center';
+    element.classList.add('has-photo');
+  } else {
+    element.style.backgroundImage = '';
+    element.textContent = (user.name || '?').charAt(0).toUpperCase();
+    element.style.background = user.avatarColor || '#0284c7';
+    element.classList.remove('has-photo');
+  }
+}
+
 function getCurrentUser() {
   const staff = State.staff || DEFAULT_STAFF;
   return staff.find(s => s.id === State.currentUserId) || staff[0];
@@ -4554,15 +4572,14 @@ function renderHeaderUser() {
 
   const headerAvatar = document.getElementById('headerCashierAvatar');
   if (headerAvatar) {
-    headerAvatar.textContent = user.name.charAt(0).toUpperCase();
-    headerAvatar.style.background = user.avatarColor || '#0284c7';
+    applyUserAvatar(headerAvatar, user);
     headerAvatar.title = `Cashier: ${user.name} (${user.title || user.role})`;
   }
 
   const headerName = document.getElementById('headerCashierName');
   if (headerName) headerName.textContent = user.name;
 
-  const headerRole = document.getElementById('headerCashierRole');
+  const headerRole = document.getElementById('headerRole') || document.getElementById('headerCashierRole');
   if (headerRole) {
     headerRole.textContent = user.role.toUpperCase();
     headerRole.className = `cashier-role-badge role-${user.role}`;
@@ -4570,8 +4587,7 @@ function renderHeaderUser() {
 
   const dropdownAvatar = document.getElementById('dropdownCashierAvatar');
   if (dropdownAvatar) {
-    dropdownAvatar.textContent = user.name.charAt(0).toUpperCase();
-    dropdownAvatar.style.background = user.avatarColor || '#0284c7';
+    applyUserAvatar(dropdownAvatar, user);
   }
 
   const dropdownFull = document.getElementById('dropdownCashierFull');
@@ -4844,7 +4860,7 @@ function renderStaffPickerCards() {
     html += `
       <div class="staff-picker-card ${isCurrent ? 'active' : ''}" data-staffid="${s.id}">
         <div class="staff-picker-left">
-          <div class="cashier-avatar sm" style="background: ${s.avatarColor || '#0284c7'};">${s.name.charAt(0).toUpperCase()}</div>
+          <div class="cashier-avatar sm" style="${s.photo ? `background-image: url('${s.photo}'); background-size: cover; background-position: center;` : `background: ${s.avatarColor || '#0284c7'};`} ">${s.photo ? '' : s.name.charAt(0).toUpperCase()}</div>
           <div class="staff-picker-info">
             <strong class="staff-picker-name">${escapeHtml(s.name)} ${isCurrent ? '(Active)' : ''}</strong>
             <span class="staff-picker-title">${escapeHtml(s.title || s.role)}</span>
@@ -5028,7 +5044,7 @@ function renderStaffSettingsList() {
     html += `
       <div class="staff-setting-row" data-staffid="${s.id}">
         <div class="staff-row-left">
-          <div class="cashier-avatar sm" style="background: ${s.avatarColor || '#0284c7'};">${s.name.charAt(0).toUpperCase()}</div>
+          <div class="cashier-avatar sm" style="${s.photo ? `background-image: url('${s.photo}'); background-size: cover; background-position: center;` : `background: ${s.avatarColor || '#0284c7'};`} ">${s.photo ? '' : s.name.charAt(0).toUpperCase()}</div>
           <div class="staff-row-details">
             <strong>${escapeHtml(s.name)}</strong>
             <span>${escapeHtml(s.title || s.role)} • PIN: ••••</span>
@@ -6221,8 +6237,7 @@ function renderProfileView() {
   // 1. Hero Operator Elements
   const heroAvatar = document.getElementById('profileHeroAvatar');
   if (heroAvatar) {
-    heroAvatar.textContent = user.name.charAt(0).toUpperCase();
-    heroAvatar.style.background = user.avatarColor || 'linear-gradient(135deg, #0284c7 0%, #0369a1 100%)';
+    applyUserAvatar(heroAvatar, user);
   }
 
   const opName = document.getElementById('profileOperatorName');
@@ -7496,6 +7511,171 @@ function initBatchReconcileEvents() {
         inSold.value = Math.max(0, Math.min(loaded, cur + step));
         updateBatchModalCalculations();
       }
+    };
+  });
+}
+
+
+// ==========================================================================
+// OPERATOR PROFILE & PHOTO MODAL CONTROLLER
+// ==========================================================================
+let tempEditPhoto = null;
+let tempEditColor = null;
+
+function openEditProfileModal() {
+  const user = getCurrentUser();
+  if (!user) return;
+
+  const modal = document.getElementById('editProfileModal');
+  if (!modal) return;
+
+  tempEditPhoto = user.photo || null;
+  tempEditColor = user.avatarColor || 'linear-gradient(135deg, #0284c7 0%, #0369a1 100%)';
+
+  const inName = document.getElementById('inputEditProfileName');
+  const inTitle = document.getElementById('inputEditProfileTitle');
+  if (inName) inName.value = user.name || '';
+  if (inTitle) inTitle.value = user.title || (user.role === 'manager' ? 'Station Manager' : 'Cashier');
+
+  // Update color swatches active state
+  document.querySelectorAll('.avatar-color-swatch').forEach(btn => {
+    btn.classList.toggle('active', btn.getAttribute('data-color') === tempEditColor);
+  });
+
+  renderEditProfileAvatarPreview();
+
+  modal.style.display = 'flex';
+  modal.classList.add('show');
+  soundCtrl.playTap();
+}
+
+function closeEditProfileModal() {
+  const modal = document.getElementById('editProfileModal');
+  if (modal) {
+    modal.style.display = 'none';
+    modal.classList.remove('show');
+  }
+  tempEditPhoto = null;
+  tempEditColor = null;
+}
+
+function renderEditProfileAvatarPreview() {
+  const preview = document.getElementById('editAvatarPreview');
+  const inName = document.getElementById('inputEditProfileName');
+  const currentName = (inName && inName.value.trim()) || (getCurrentUser() ? getCurrentUser().name : 'N');
+
+  if (preview) {
+    applyUserAvatar(preview, {
+      name: currentName,
+      photo: tempEditPhoto,
+      avatarColor: tempEditColor
+    });
+  }
+}
+
+function handleProfilePhotoUpload(e) {
+  const file = e.target.files && e.target.files[0];
+  if (!file) return;
+
+  const reader = new FileReader();
+  reader.onload = function(evt) {
+    const img = new Image();
+    img.onload = function() {
+      // Resize & compress to square 256x256
+      const canvas = document.createElement('canvas');
+      const size = 256;
+      canvas.width = size;
+      canvas.height = size;
+      const ctx = canvas.getContext('2d');
+      const minDim = Math.min(img.width, img.height);
+      const sx = (img.width - minDim) / 2;
+      const sy = (img.height - minDim) / 2;
+      ctx.drawImage(img, sx, sy, minDim, minDim, 0, 0, size, size);
+
+      tempEditPhoto = canvas.toDataURL('image/jpeg', 0.85);
+      renderEditProfileAvatarPreview();
+      showToast('Photo uploaded! Tap "Save Profile" to apply.');
+    };
+    img.src = evt.target.result;
+  };
+  reader.readAsDataURL(file);
+}
+
+function saveEditProfile() {
+  const user = getCurrentUser();
+  if (!user) return;
+
+  const inName = document.getElementById('inputEditProfileName');
+  const inTitle = document.getElementById('inputEditProfileTitle');
+
+  const newName = (inName && inName.value.trim()) || user.name;
+  const newTitle = (inTitle && inTitle.value.trim()) || user.title;
+
+  user.name = newName;
+  user.title = newTitle;
+  user.photo = tempEditPhoto;
+  user.avatarColor = tempEditColor;
+
+  saveStaff();
+  renderHeaderUser();
+  renderProfileView();
+  closeEditProfileModal();
+
+  soundCtrl.playSuccessChime();
+  showToast(`Profile updated for ${user.name}`);
+  logSecurityEvent('PROFILE_UPDATE', `Updated operator profile for ${user.name}`, user.name);
+}
+
+function initEditProfileEvents() {
+  const btnOpenModal = document.getElementById('btnProfileEditModal');
+  const btnHeroCamera = document.getElementById('btnHeroAvatarCamera');
+  const avatarWrap = document.getElementById('profileAvatarWrap');
+  const btnClose = document.getElementById('btnCloseEditProfileModal');
+  const btnCancel = document.getElementById('btnCancelEditProfile');
+  const btnSave = document.getElementById('btnSaveEditProfile');
+  const btnUpload = document.getElementById('btnTriggerPhotoUpload');
+  const fileInput = document.getElementById('inputAvatarPhotoFile');
+  const btnRemovePhoto = document.getElementById('btnRemoveAvatarPhoto');
+  const inName = document.getElementById('inputEditProfileName');
+
+  if (btnOpenModal) btnOpenModal.onclick = openEditProfileModal;
+  if (btnHeroCamera) {
+    btnHeroCamera.onclick = (e) => {
+      e.stopPropagation();
+      openEditProfileModal();
+    };
+  }
+  if (avatarWrap) avatarWrap.onclick = openEditProfileModal;
+
+  if (btnClose) btnClose.onclick = closeEditProfileModal;
+  if (btnCancel) btnCancel.onclick = closeEditProfileModal;
+  if (btnSave) btnSave.onclick = saveEditProfile;
+
+  if (btnUpload && fileInput) {
+    btnUpload.onclick = () => fileInput.click();
+    fileInput.onchange = handleProfilePhotoUpload;
+  }
+
+  if (btnRemovePhoto) {
+    btnRemovePhoto.onclick = () => {
+      tempEditPhoto = null;
+      renderEditProfileAvatarPreview();
+      soundCtrl.playTap();
+      showToast('Switched to letter avatar mode.');
+    };
+  }
+
+  if (inName) {
+    inName.oninput = renderEditProfileAvatarPreview;
+  }
+
+  document.querySelectorAll('.avatar-color-swatch').forEach(btn => {
+    btn.onclick = () => {
+      tempEditColor = btn.getAttribute('data-color');
+      document.querySelectorAll('.avatar-color-swatch').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      renderEditProfileAvatarPreview();
+      soundCtrl.playTap();
     };
   });
 }
