@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>R&R Water - Station POS</title>
-  <link rel="stylesheet" href="pos.css?v=2.8.31">
+  <link rel="stylesheet" href="pos.css?v=2.8.32">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700;800&display=swap" rel="stylesheet">
@@ -1995,10 +1995,16 @@
                 <div class="setting-inputs-list">
                   <div class="data-tool-action">
                     <div>
-                      <strong>Application Build</strong>
-                      <p>Clean Pure Station POS Engine</p>
+                      <strong>Application Build &amp; Cache</strong>
+                      <p>Clean Pure Station POS Engine • Tap to force refresh</p>
                     </div>
-                    <span class="meta-badge">v2.8.31 Stable</span>
+                    <div style="display: flex; gap: 8px; align-items: center;">
+                      <span class="meta-badge" id="appBuildVersionBadge">v2.8.32 Stable</span>
+                      <button type="button" class="btn-sub-action" id="btnForceCheckUpdate" title="Clear Cache &amp; Reload Latest Build">
+                        <svg class="ui-icon-xs" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><polyline points="23 4 23 10 17 10"></polyline><polyline points="1 20 1 14 7 14"></polyline><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path></svg>
+                        <span>Force Reload</span>
+                      </button>
+                    </div>
                   </div>
 
                   <div class="data-tool-action">
@@ -3415,8 +3421,8 @@
   </aside>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="supabase_config.js?v=2.8.31"></script>
-  <script src="pos.js?v=2.8.31"></script>
+  <script src="supabase_config.js?v=2.8.32"></script>
+  <script src="pos.js?v=2.8.32"></script>
 
   <!-- ====================================================================
        MODAL 1: BAYAD UTANG (CUSTOMER DEBT COLLECTION & PARTIAL PAYMENT)

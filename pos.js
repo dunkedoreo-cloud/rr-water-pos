@@ -6406,14 +6406,73 @@ function initKeyboardShortcuts() {
 // ==========================================================================
 function initOfflinePWA() {
   if ('serviceWorker' in navigator) {
+    let refreshing = false;
+    navigator.serviceWorker.addEventListener('controllerchange', () => {
+      if (!refreshing) {
+        refreshing = true;
+        console.log('[PWA] Service Worker controller changed. Reloading page...');
+        window.location.reload();
+      }
+    });
+
     window.addEventListener('load', () => {
       navigator.serviceWorker.register('./sw.js')
         .then(reg => {
-          // PWA service worker registered
+          // Check for service worker updates immediately
+          reg.update().catch(() => {});
+
+          reg.addEventListener('updatefound', () => {
+            const newWorker = reg.installing;
+            if (newWorker) {
+              newWorker.addEventListener('statechange', () => {
+                if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                  showToast('Station update downloaded! Reloading...');
+                  setTimeout(() => {
+                    window.location.reload();
+                  }, 1200);
+                }
+              });
+            }
+          });
         })
         .catch(err => {
           console.warn('ServiceWorker registration error:', err);
         });
+    });
+
+    // Check for updates when user refocuses the app/tab
+    window.addEventListener('focus', () => {
+      navigator.serviceWorker.getRegistration().then(reg => {
+        if (reg) reg.update().catch(() => {});
+      }).catch(() => {});
+    });
+  }
+
+  // Force Update & Clear Cache Button in Settings
+  const btnForceUpdate = document.getElementById('btnForceCheckUpdate');
+  if (btnForceUpdate) {
+    btnForceUpdate.addEventListener('click', async () => {
+      soundCtrl.playTap();
+      showToast('Purging cache & loading latest station build...');
+      try {
+        if ('serviceWorker' in navigator) {
+          const regs = await navigator.serviceWorker.getRegistrations();
+          for (const reg of regs) {
+            await reg.unregister();
+          }
+        }
+        if ('caches' in window) {
+          const keys = await caches.keys();
+          for (const key of keys) {
+            await caches.delete(key);
+          }
+        }
+      } catch (e) {
+        console.warn('Cache purge notice:', e);
+      }
+      setTimeout(() => {
+        window.location.href = window.location.origin + window.location.pathname + '?v=' + Date.now();
+      }, 500);
     });
   }
 
