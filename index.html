@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>R&R Water - Station POS</title>
-  <link rel="stylesheet" href="pos.css?v=2.8.29">
+  <link rel="stylesheet" href="pos.css?v=2.8.30">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700;800&display=swap" rel="stylesheet">
@@ -168,6 +168,18 @@
           <button type="button" class="header-summary-pill-btn" id="btnHeaderSummaryPill" title="Station Live Summary &amp; All Functions (Sales, Drivers, Shift, Shortcuts)" aria-label="Open Station Summary">
             <span class="header-summary-pulse-dot">●</span>
             <span class="header-summary-pill-label">Summary</span>
+          </button>
+
+          <!-- Quick Expense Button -->
+          <button type="button" class="btn-header-quick-action expense" id="btnHeaderExpense" title="Record Station Operating Expense (Fuel, Seals, Supplies)">
+            <svg class="ui-icon-xs" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="2" y="5" width="20" height="14" rx="2"></rect><line x1="2" y1="10" x2="22" y2="10"></line></svg>
+            <span>+ Expense</span>
+          </button>
+
+          <!-- Driver Settlement Button -->
+          <button type="button" class="btn-header-quick-action settlement" id="btnHeaderSettlement" title="Driver Multicab Trip Remittance Settlement">
+            <svg class="ui-icon-xs" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="1" y="3" width="15" height="13"></rect><polygon points="16 8 20 8 23 11 23 16 16 8"></polygon><circle cx="5.5" cy="18.5" r="2.5"></circle><circle cx="18.5" cy="18.5" r="2.5"></circle></svg>
+            <span>Driver Settle</span>
           </button>
 
           <!-- Empties Ledger / Carboy Tracking Button (F8) -->
@@ -489,6 +501,60 @@
               <button class="keypad-key key-clear" id="btnKeypadBackspace">⌫</button>
             </div>
 
+            <!-- Payment Method Selector: Cash vs GCash QR -->
+            <div class="pay-method-selector-strip" id="payMethodSelectorStrip">
+              <span class="pay-method-lbl">Payment Mode:</span>
+              <div class="pay-method-pill-group">
+                <button type="button" class="btn-pay-method active" id="btnMethodCash" data-method="cash" title="Cash in Hand payment">
+                  <span class="method-icon">💵</span>
+                  <span>Cash Drawer</span>
+                </button>
+                <button type="button" class="btn-pay-method" id="btnMethodGcash" data-method="gcash" title="GCash E-Wallet payment (Customer scans station QR)">
+                  <span class="method-icon">📱</span>
+                  <span>GCash QR</span>
+                </button>
+              </div>
+            </div>
+
+            <!-- GCash Scan & Pay Checkout Box (Hidden by default, shown when GCash active) -->
+            <div class="gcash-checkout-card" id="gcashCheckoutCard" style="display: none;">
+              <div class="gcash-card-header">
+                <div class="gcash-logo-tag">
+                  <span class="gcash-badge">GCash Official Station QR</span>
+                </div>
+                <span class="gcash-amount-callout" id="gcashAmountCallout">Send: ₱35.00</span>
+              </div>
+
+              <div class="gcash-card-body">
+                <div class="gcash-qr-frame" id="gcashQrFrame" title="Click to view full screen QR Code">
+                  <img src="" alt="Station GCash QR" id="registerGcashQrImg" class="register-gcash-qr-img" style="display: none;">
+                  <div class="gcash-qr-empty-notice" id="registerGcashQrEmpty">
+                    <svg class="ui-icon-md" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
+                    <span>No Custom QR Uploaded<br><small>Click to set up Station QR</small></span>
+                  </div>
+                </div>
+
+                <div class="gcash-meta-details">
+                  <div class="gcash-meta-row">
+                    <span class="g-lbl">Account Name:</span>
+                    <strong class="g-val" id="registerGcashNameDisplay">R&amp;R Water Station</strong>
+                  </div>
+                  <div class="gcash-meta-row">
+                    <span class="g-lbl">GCash Number:</span>
+                    <div class="g-num-wrap">
+                      <strong class="g-val font-num" id="registerGcashPhoneDisplay">0917-829-4102</strong>
+                      <button type="button" class="btn-copy-gcash-num" id="btnCopyGcashNumber" title="Copy Number">📋 Copy</button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="gcash-ref-input-row">
+                <label for="registerGcashRefInput">GCash Reference No. (Proof of Remittance):</label>
+                <input type="text" id="registerGcashRefInput" class="gcash-ref-input" placeholder="e.g. 100293849201 (Optional)" autocomplete="off">
+              </div>
+            </div>
+
             <!-- Quick Cash Tender & Live Change Due Calculator -->
             <div class="quick-cash-tender-card" id="quickCashTenderCard">
               <div class="cash-tender-header">
@@ -759,6 +825,20 @@
               </div>
               <div class="metric-card-footer">
                 <span class="m-sub" id="statDeliveryGallonsTotal">0 Gals Dispatched</span>
+              </div>
+            </div>
+
+            <!-- 5th KPI Card: Real Daily Net Profit (P&L) -->
+            <div class="metric-card profit-card" id="cardDailyNetProfit">
+              <div class="metric-card-header">
+                <span class="m-lbl">Real Daily Profit</span>
+                <span class="m-badge-profit" id="statProfitMarginBadge">+100% Margin</span>
+              </div>
+              <div class="metric-card-body">
+                <strong class="m-val font-num" id="statDailyNetProfit">₱0.00</strong>
+              </div>
+              <div class="metric-card-footer">
+                <span class="m-sub" id="statProfitSub">Revenue ₱0 • Expenses ₱0</span>
               </div>
             </div>
           </div>
@@ -1757,6 +1837,62 @@
                 </div>
               </div>
 
+              <!-- Station GCash QR & Digital Wallet Setup Card -->
+              <div class="setting-card" id="settingGcashCard">
+                <div class="setting-card-header">
+                  <div class="card-icon-tag" style="background: rgba(0, 122, 255, 0.12); color: #007aff;">
+                    <svg class="ui-icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                      <rect x="5" y="2" width="14" height="20" rx="2" ry="2"></rect>
+                      <line x1="12" y1="18" x2="12.01" y2="18"></line>
+                    </svg>
+                  </div>
+                  <div>
+                    <h4>GCash QR &amp; Digital Payment Setup</h4>
+                    <p>Configure Station GCash QR Standee and Account info</p>
+                  </div>
+                </div>
+
+                <div class="setting-inputs-list">
+                  <div class="setting-row-2col">
+                    <div class="setting-field">
+                      <label for="settingGcashName">GCash Account Name</label>
+                      <input type="text" id="settingGcashName" class="setting-input" placeholder="e.g. R&amp;R Water Station / Neil O." value="R&amp;R Water Station">
+                    </div>
+                    <div class="setting-field">
+                      <label for="settingGcashPhone">GCash Mobile Number</label>
+                      <input type="text" id="settingGcashPhone" class="setting-input" placeholder="e.g. 0917-829-4102" value="0917-829-4102">
+                    </div>
+                  </div>
+
+                  <div class="setting-field">
+                    <label>Station GCash QR Code Image (Standee)</label>
+                    <div class="gcash-qr-upload-box">
+                      <div class="gcash-qr-preview-wrapper" id="gcashQrPreviewWrapper">
+                        <img src="" alt="GCash QR Code" id="imgGcashQrPreview" class="gcash-qr-img" style="display: none;">
+                        <div class="gcash-qr-placeholder" id="gcashQrPlaceholder">
+                          <svg class="ui-icon-lg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                            <rect x="3" y="3" width="7" height="7"></rect>
+                            <rect x="14" y="3" width="7" height="7"></rect>
+                            <rect x="14" y="14" width="7" height="7"></rect>
+                            <rect x="3" y="14" width="7" height="7"></rect>
+                          </svg>
+                          <span>Upload Station GCash QR Photo</span>
+                        </div>
+                      </div>
+                      <div class="gcash-qr-upload-actions">
+                        <input type="file" id="inputGcashQrFile" accept="image/*" style="display: none;">
+                        <button type="button" class="btn-sub-action primary" id="btnUploadGcashQr">
+                          <svg class="ui-icon-xs" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
+                          <span>Upload QR Photo</span>
+                        </button>
+                        <button type="button" class="btn-sub-action" id="btnResetGcashQr">Remove QR</button>
+                        <p class="gcash-qr-hint">Accepts screenshot or photo of your printed GCash QR standee. Stored locally for fast, offline checkout display.</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
             </div>
           </div>
 
@@ -1862,7 +1998,7 @@
                       <strong>Application Build</strong>
                       <p>Clean Pure Station POS Engine</p>
                     </div>
-                    <span class="meta-badge">v2.8.29 Stable</span>
+                    <span class="meta-badge">v2.8.30 Stable</span>
                   </div>
 
                   <div class="data-tool-action">
@@ -3279,7 +3415,378 @@
   </aside>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="supabase_config.js?v=2.8.29"></script>
-  <script src="pos.js?v=2.8.29"></script>
+  <script src="supabase_config.js?v=2.8.30"></script>
+  <script src="pos.js?v=2.8.30"></script>
+
+  <!-- ====================================================================
+       MODAL 1: BAYAD UTANG (CUSTOMER DEBT COLLECTION & PARTIAL PAYMENT)
+       User: "1. Bayad Utang"
+       ==================================================================== -->
+  <div class="modal-backdrop" id="bayadUtangModal" style="display: none;">
+    <div class="modal-card bayad-utang-card">
+      <div class="thermal-modal-header">
+        <div class="thermal-modal-title">
+          <div class="thermal-icon-circle" style="background: rgba(16, 185, 129, 0.15); color: #059669;">
+            <svg class="ui-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+              <line x1="12" y1="1" x2="12" y2="23"></line>
+              <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
+            </svg>
+          </div>
+          <div class="thermal-modal-title-text">
+            <h3>Bayad Utang / Collect Debt</h3>
+            <p id="bayadUtangSubtitle">Record full or partial customer credit payment</p>
+          </div>
+        </div>
+        <button type="button" class="modal-close-icon" id="btnCloseBayadUtangModal" aria-label="Close" title="Close (Esc)">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+        </button>
+      </div>
+
+      <div class="modal-body-scrollable">
+        <!-- Customer & Order Summary -->
+        <div class="debt-customer-info-box">
+          <div class="debt-info-row">
+            <span class="debt-info-lbl">Customer / Account:</span>
+            <strong class="debt-info-val" id="debtCustomerName">Customer Account</strong>
+          </div>
+          <div class="debt-info-row">
+            <span class="debt-info-lbl">Order Reference:</span>
+            <span class="debt-info-val font-num" id="debtOrderNo">#000000</span>
+          </div>
+        </div>
+
+        <!-- Debt Balances Grid: Total, Already Paid, Remaining Utang -->
+        <div class="debt-balances-grid">
+          <div class="debt-card-pill">
+            <span class="debt-pill-title">Original Total</span>
+            <strong class="debt-pill-amt font-num" id="debtOriginalTotal">₱ 0.00</strong>
+          </div>
+          <div class="debt-card-pill paid">
+            <span class="debt-pill-title">Already Paid</span>
+            <strong class="debt-pill-amt font-num" id="debtAlreadyPaid">₱ 0.00</strong>
+          </div>
+          <div class="debt-card-pill balance">
+            <span class="debt-pill-title">Remaining Utang</span>
+            <strong class="debt-pill-amt font-num" id="debtCurrentBalance">₱ 0.00</strong>
+          </div>
+        </div>
+
+        <!-- Payment Amount Input & Quick Chips -->
+        <div class="debt-input-section">
+          <label for="inputBayadAmount" class="debt-input-lbl">Payment Amount (Halaga ng ibabayad):</label>
+          <div class="cash-input-field-wrap">
+            <span class="cash-input-currency-tag">₱</span>
+            <input 
+              type="number" 
+              inputmode="decimal" 
+              step="any" 
+              min="1" 
+              id="inputBayadAmount" 
+              class="cash-tender-numeric-input" 
+              placeholder="Enter amount..."
+            />
+            <button type="button" class="btn-tender-exact-reset" id="btnPayFullDebt">Pay Full</button>
+          </div>
+
+          <div class="debt-quick-chips">
+            <button type="button" class="debt-chip" data-pay="35">₱35 (1 Gal)</button>
+            <button type="button" class="debt-chip" data-pay="70">₱70 (2 Gals)</button>
+            <button type="button" class="debt-chip" data-pay="100">₱100</button>
+            <button type="button" class="debt-chip" data-pay="200">₱200</button>
+            <button type="button" class="debt-chip" data-pay="500">₱500</button>
+          </div>
+        </div>
+
+        <!-- Payment Method: Cash vs GCash -->
+        <div class="debt-payment-method-row">
+          <span class="debt-input-lbl">Payment Mode:</span>
+          <div class="bayad-method-radios">
+            <label class="bayad-method-opt active" id="lblBayadCash">
+              <input type="radio" name="bayadPayMethod" value="cash" checked>
+              <span>💵 Cash in Drawer</span>
+            </label>
+            <label class="bayad-method-opt" id="lblBayadGcash">
+              <input type="radio" name="bayadPayMethod" value="gcash">
+              <span>📱 GCash E-Wallet</span>
+            </label>
+          </div>
+        </div>
+
+        <div class="debt-gcash-ref-row" id="debtGcashRefRow" style="display: none;">
+          <label for="debtGcashRefInput" class="debt-input-lbl">GCash Reference No. (Optional):</label>
+          <input type="text" id="debtGcashRefInput" class="setting-input" placeholder="e.g. 100293849201">
+        </div>
+
+        <!-- Live Remaining Utang After Payment -->
+        <div class="debt-after-calc-box">
+          <div class="debt-after-row">
+            <span>Remaining Utang After This Payment:</span>
+            <strong id="debtRemainingAfterDisplay" class="font-num">₱ 0.00</strong>
+          </div>
+          <span class="debt-status-cue" id="debtStatusCue">✓ Will be marked FULLY PAID</span>
+        </div>
+      </div>
+
+      <div class="modal-card-footer">
+        <button type="button" class="btn-modal-secondary" id="btnCancelBayadUtang">Cancel</button>
+        <button type="button" class="btn-modal-primary" id="btnConfirmBayadUtang" style="background: linear-gradient(135deg, #059669 0%, #047857 100%);">
+          <svg class="ui-icon-xs" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><polyline points="20 6 9 17 4 12"></polyline></svg>
+          <span id="btnConfirmBayadText">Confirm Payment • ₱0.00</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ====================================================================
+       MODAL 2: MULTICAB DRIVER SETTLEMENT SHEET
+       User: "3. Driver Settlement Sheet"
+       ==================================================================== -->
+  <div class="modal-backdrop" id="driverSettlementModal" style="display: none;">
+    <div class="modal-card driver-settlement-card">
+      <div class="thermal-modal-header">
+        <div class="thermal-modal-title">
+          <div class="thermal-icon-circle" style="background: rgba(2, 132, 199, 0.15); color: #0284c7;">
+            <svg class="ui-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="1" y="3" width="15" height="13"></rect>
+              <polygon points="16 8 20 8 23 11 23 16 16 8"></polygon>
+              <circle cx="5.5" cy="18.5" r="2.5"></circle>
+              <circle cx="18.5" cy="18.5" r="2.5"></circle>
+            </svg>
+          </div>
+          <div class="thermal-modal-title-text">
+            <h3>Multicab Driver Settlement Sheet</h3>
+            <p>Reconcile trip cash collections, fuel expenses, and carboy empties</p>
+          </div>
+        </div>
+        <button type="button" class="modal-close-icon" id="btnCloseDriverSettlementModal" aria-label="Close" title="Close (Esc)">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+        </button>
+      </div>
+
+      <div class="modal-body-scrollable">
+        <!-- Driver & Active Batch Selector -->
+        <div class="settle-top-selectors-grid">
+          <div class="setting-field">
+            <label for="settleDriverSelect">Assigned Driver / Multicab:</label>
+            <select id="settleDriverSelect" class="setting-input">
+              <option value="Kuya Jun">Kuya Jun • Multicab #1</option>
+              <option value="Kuya Bert">Kuya Bert • Multicab #2</option>
+            </select>
+          </div>
+          <div class="setting-field">
+            <label for="settleBatchSelect">Select Delivery Batch / Dispatch Slip:</label>
+            <select id="settleBatchSelect" class="setting-input">
+              <option value="">-- Active Multicab Dispatches --</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Gallon Inventory Reconciliation 4-Card Grid -->
+        <div class="settle-inventory-grid">
+          <div class="settle-inv-card">
+            <span class="settle-inv-lbl">Loaded Jugs</span>
+            <input type="number" id="settleLoadedJugs" class="settle-inv-input" value="100" min="1">
+            <span class="settle-inv-sub">Departed Station</span>
+          </div>
+          <div class="settle-inv-card sold">
+            <span class="settle-inv-lbl">Delivered / Sold</span>
+            <input type="number" id="settleSoldJugs" class="settle-inv-input primary" value="56" min="0">
+            <span class="settle-inv-sub" id="settleSoldSalesSub">₱1,960.00 Sales</span>
+          </div>
+          <div class="settle-inv-card empties">
+            <span class="settle-inv-lbl">Empties Returned</span>
+            <input type="number" id="settleReturnedEmpties" class="settle-inv-input" value="56" min="0">
+            <span class="settle-inv-sub">To Sanitizing Rack</span>
+          </div>
+          <div class="settle-inv-card unsold">
+            <span class="settle-inv-lbl">Unsold Full Jugs</span>
+            <strong class="settle-inv-display" id="settleUnsoldJugsDisplay">44</strong>
+            <span class="settle-inv-sub">Back to Station Rack</span>
+          </div>
+        </div>
+
+        <!-- Financial Calculations Table -->
+        <div class="settle-financial-table">
+          <div class="settle-calc-row">
+            <span>Total Gross Delivery Sales (Sold × ₱35):</span>
+            <strong id="settleGrossSalesDisplay" class="font-num">₱ 1,960.00</strong>
+          </div>
+          <div class="settle-calc-row">
+            <span>Less: Driver Fuel / Gasoline Expense Deduction:</span>
+            <div class="settle-expense-input-wrap">
+              <span style="font-weight: 700; color: #ef4444;">- ₱</span>
+              <input type="number" id="settleGasDeductionInput" class="settle-mini-input" value="0" min="0" placeholder="0.00">
+            </div>
+          </div>
+          <div class="settle-calc-row highlight">
+            <span>Net Cash Remittance Expected From Driver:</span>
+            <strong id="settleExpectedNetDisplay" class="font-num" style="color: #0284c7; font-size: 1.15rem;">₱ 1,960.00</strong>
+          </div>
+        </div>
+
+        <!-- Actual Cash Remitted by Driver & Over/Short Indicator -->
+        <div class="settle-cash-received-box">
+          <div class="settle-cash-row">
+            <label for="settleActualCashInput" class="settle-cash-lbl">Actual Cash Handed Over by Driver:</label>
+            <div class="cash-input-field-wrap">
+              <span class="cash-input-currency-tag">₱</span>
+              <input type="number" id="settleActualCashInput" class="cash-tender-numeric-input" placeholder="Enter cash remitted by driver...">
+              <button type="button" class="btn-tender-exact-reset" id="btnSettleMatchExpected">Exact Remittance</button>
+            </div>
+          </div>
+
+          <div class="settle-over-short-row">
+            <span class="settle-discrepancy-label">Cashier Drawer Verification:</span>
+            <span class="settle-discrepancy-badge balanced" id="settleDiscrepancyBadge">Balanced: ₱0.00</span>
+          </div>
+        </div>
+
+        <!-- Notes input -->
+        <div class="setting-field" style="margin-top: 10px;">
+          <label for="settleNotesInput">Trip Notes / Customer Remarks:</label>
+          <input type="text" id="settleNotesInput" class="setting-input" placeholder="e.g. Route A, all 56 dropped smoothly.">
+        </div>
+      </div>
+
+      <div class="modal-card-footer">
+        <button type="button" class="btn-modal-secondary" id="btnCancelDriverSettlement">Cancel</button>
+        <button type="button" class="btn-modal-primary" id="btnConfirmDriverSettlement">
+          <svg class="ui-icon-xs" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><polyline points="20 6 9 17 4 12"></polyline></svg>
+          <span id="btnConfirmSettlementText">Confirm Remittance • Remit ₱1,960.00</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ====================================================================
+       MODAL 3: QUICK OPERATIONAL EXPENSE ENTRY
+       User: "4. Quic Operational Expense Entry"
+       ==================================================================== -->
+  <div class="modal-backdrop" id="quickExpenseModal" style="display: none;">
+    <div class="modal-card quick-expense-card">
+      <div class="thermal-modal-header">
+        <div class="thermal-modal-title">
+          <div class="thermal-icon-circle" style="background: rgba(239, 68, 68, 0.12); color: #ef4444;">
+            <svg class="ui-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="2" y="5" width="20" height="14" rx="2"></rect>
+              <line x1="2" y1="10" x2="22" y2="10"></line>
+            </svg>
+          </div>
+          <div class="thermal-modal-title-text">
+            <h3>Record Station Expense</h3>
+            <p>Quick operational cost entry deducted from daily profit</p>
+          </div>
+        </div>
+        <button type="button" class="modal-close-icon" id="btnCloseQuickExpenseModal" aria-label="Close" title="Close (Esc)">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+        </button>
+      </div>
+
+      <div class="modal-body-scrollable">
+        <!-- Amount Input -->
+        <div class="setting-field">
+          <label for="inputExpenseAmount" class="debt-input-lbl">Expense Amount (Halaga):</label>
+          <div class="cash-input-field-wrap">
+            <span class="cash-input-currency-tag" style="color: #ef4444;">₱</span>
+            <input 
+              type="number" 
+              inputmode="decimal" 
+              step="any" 
+              min="1" 
+              id="inputExpenseAmount" 
+              class="cash-tender-numeric-input" 
+              placeholder="Enter expense amount (e.g. 150, 300...)"
+            />
+          </div>
+        </div>
+
+        <!-- Quick Category Chips -->
+        <div class="expense-category-section">
+          <label class="debt-input-lbl">Category (Kategorya):</label>
+          <div class="expense-chips-grid" id="expenseChipsGrid">
+            <button type="button" class="expense-chip active" data-cat="fuel">⛽ Fuel / Multicab Gas</button>
+            <button type="button" class="expense-chip" data-cat="seals">🧴 Cap Seals &amp; Bags</button>
+            <button type="button" class="expense-chip" data-cat="electric">⚡ Meralco / Electric</button>
+            <button type="button" class="expense-chip" data-cat="water">💧 Water Utility / Raw</button>
+            <button type="button" class="expense-chip" data-cat="filters">🔧 Filters &amp; Carbon</button>
+            <button type="button" class="expense-chip" data-cat="meals">🍚 Staff Meal / Wage</button>
+            <button type="button" class="expense-chip" data-cat="other">📦 Other Expense</button>
+          </div>
+        </div>
+
+        <!-- Description / Note -->
+        <div class="setting-field" style="margin-top: 10px;">
+          <label for="inputExpenseNote" class="debt-input-lbl">Description / Note (Para saan?):</label>
+          <input type="text" id="inputExpenseNote" class="setting-input" placeholder="e.g. Petron Gas 2 Liters for Multicab Delivery">
+        </div>
+
+        <!-- Paid Out Of: Drawer vs Petty Cash -->
+        <div class="debt-payment-method-row" style="margin-top: 10px;">
+          <span class="debt-input-lbl">Paid Out Of:</span>
+          <div class="bayad-method-radios">
+            <label class="bayad-method-opt active" id="lblExpDrawer">
+              <input type="radio" name="expenseSource" value="drawer" checked>
+              <span>💵 Cash Drawer (Bawas sa Kaha)</span>
+            </label>
+            <label class="bayad-method-opt" id="lblExpPetty">
+              <input type="radio" name="expenseSource" value="petty">
+              <span>🪙 Separate Petty Cash</span>
+            </label>
+          </div>
+        </div>
+      </div>
+
+      <div class="modal-card-footer">
+        <button type="button" class="btn-modal-secondary" id="btnCancelQuickExpense">Cancel</button>
+        <button type="button" class="btn-modal-primary" id="btnConfirmQuickExpense" style="background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);">
+          <svg class="ui-icon-xs" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path><polyline points="17 21 17 13 7 13 7 21"></polyline></svg>
+          <span id="btnConfirmExpenseText">Record Expense • ₱0.00</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ====================================================================
+       MODAL 4: GCASH QR ENLARGE MODAL (FULL SCREEN SCAN)
+       ==================================================================== -->
+  <div class="modal-backdrop" id="gcashQrEnlargeModal" style="display: none;">
+    <div class="modal-card gcash-enlarge-card">
+      <div class="thermal-modal-header">
+        <div class="thermal-modal-title">
+          <div class="thermal-icon-circle" style="background: rgba(0, 122, 255, 0.15); color: #007aff;">
+            <svg class="ui-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="5" y="2" width="14" height="20" rx="2"></rect><line x1="12" y1="18" x2="12.01" y2="18"></line></svg>
+          </div>
+          <div class="thermal-modal-title-text">
+            <h3>GCash Official QR Standee</h3>
+            <p>Customer can scan directly with GCash App</p>
+          </div>
+        </div>
+        <button type="button" class="modal-close-icon" id="btnCloseGcashEnlargeModal" aria-label="Close" title="Close (Esc)">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+        </button>
+      </div>
+      <div class="gcash-enlarge-body">
+        <img src="" alt="GCash Full Standee QR" id="enlargedGcashQrImg" class="enlarged-gcash-qr-img">
+        <div class="gcash-enlarge-meta">
+          <strong id="enlargedGcashName">R&amp;R Water Station</strong>
+          <span id="enlargedGcashPhone" class="font-num">0917-829-4102</span>
+          <div class="enlarged-amount-badge" id="enlargedGcashAmount">Amount: ₱35.00</div>
+        </div>
+      </div>
+      <div class="modal-card-footer">
+        <button type="button" class="btn-modal-primary" id="btnCloseGcashEnlargeBtn">Done / Back to Register</button>
+      </div>
+    </div>
+  </div>
+
 </body>
 </html>

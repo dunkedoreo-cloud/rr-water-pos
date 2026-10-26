@@ -54,6 +54,14 @@ const State = {
   channel: 'walkin',               // 'walkin' | 'delivery'
   deliveryPayMode: 'pending',      // 'pending' (Pay on Delivery) | 'advance' (Pre-paid)
   orderPayMode: 'paid',            // 'paid' | 'unpaid' (interactive toggle on checkout)
+  paymentMethod: 'cash',           // 'cash' | 'gcash'
+  gcashConfig: {
+    accountName: 'R&R Water Refilling Station',
+    accountNumber: '0917-829-4102',
+    qrImage: ''
+  },
+  expenses: [],                    // Recorded station operational expenses
+  driverSettlements: [],           // Multicab remittance settlements
   deliveryAddress: '',             // Delivery destination / customer
   prodKey: 'purified',             // 'purified' | 'new_container'
   qty: 1,                          // number >= 1
@@ -256,6 +264,11 @@ document.addEventListener('DOMContentLoaded', () => {
   initBatchReconcileEvents();
   initEditProfileEvents();
   initPayToggleEvents();
+  initGcashCheckoutEvents();
+  initBayadUtangEvents();
+  initDriverSettlementEvents();
+  initQuickExpenseEvents();
+  initGcashSettingsUI();
   SupabaseSync.init();
   renderPresets();
   renderAll();
@@ -301,6 +314,26 @@ function loadSavedData() {
   if (savedTheme) {
     State.theme = savedTheme;
   }
+
+  // Load Operational Expenses
+  try {
+    const savedExp = localStorage.getItem('rr_pos_expenses');
+    if (savedExp) State.expenses = JSON.parse(savedExp) || [];
+  } catch (e) { State.expenses = []; }
+
+  // Load GCash Config
+  try {
+    const savedGcash = localStorage.getItem('rr_pos_gcash');
+    if (savedGcash) State.gcashConfig = Object.assign(State.gcashConfig, JSON.parse(savedGcash));
+    const customGcashQr = localStorage.getItem('rr_pos_gcash_qr');
+    if (customGcashQr) State.gcashConfig.qrImage = customGcashQr;
+  } catch (e) {}
+
+  // Load Driver Settlements
+  try {
+    const savedSettle = localStorage.getItem('rr_pos_driver_settlements');
+    if (savedSettle) State.driverSettlements = JSON.parse(savedSettle) || [];
+  } catch (e) { State.driverSettlements = []; }
 
 
   const urlParams = new URLSearchParams(window.location.search);
@@ -1673,6 +1706,15 @@ function renderOrderSummary() {
 
   // 6. Quick Cash Tender & Change Due Badge
   updateTenderAndChange();
+
+  // 7. Update GCash Checkout Card Amount Callout
+  const gcashCallout = document.getElementById('gcashAmountCallout');
+  if (gcashCallout) {
+    gcashCallout.textContent = `Send: ₱${formatPeso(total)}`;
+  }
+  if (btnActionText && State.paymentMethod === 'gcash' && State.orderPayMode !== 'unpaid') {
+    btnActionText.textContent = `Confirm GCash Sale • ₱${formatPeso(total)}`;
+  }
 }
 
 // ==========================================================================
@@ -1731,6 +1773,8 @@ function processPaymentAndStoreOrder() {
     change: changeVal,
     carboysLoaned: State.carboysLoaned || 0,
     carboysReturned: State.carboysReturned || 0,
+    paymentMethod: State.paymentMethod || 'cash',
+    gcashRef: (document.getElementById('registerGcashRefInput') ? document.getElementById('registerGcashRefInput').value.trim() : '') || '',
     note: noteText,
     cashierName: (typeof getCurrentUser === 'function' ? getCurrentUser().name : 'Neil'),
     cashierRole: (typeof getCurrentUser === 'function' ? getCurrentUser().role : 'manager')
@@ -1896,6 +1940,28 @@ function renderTopStats() {
   }
   if (elPendingCount) elPendingCount.textContent = `${pendingCount.toLocaleString()} Pending`;
   if (elDelivTotal) elDelivTotal.textContent = `${deliveryGallons.toLocaleString()} Gals Dispatched`;
+
+  // Compute Real Daily Profit (P&L: Cash In Hand - Operating Expenses)
+  const totalExpenses = (State.expenses || []).reduce((sum, e) => sum + (Number(e.amount) || 0), 0);
+  const realDailyProfit = cashCollected - totalExpenses;
+  const profitMargin = cashCollected > 0 ? Math.round((realDailyProfit / cashCollected) * 100) : (realDailyProfit < 0 ? -100 : 0);
+
+  const elProfitVal = document.getElementById('statDailyNetProfit');
+  const elProfitSub = document.getElementById('statProfitSub');
+  const elProfitBadge = document.getElementById('statProfitMarginBadge');
+
+  if (elProfitVal) {
+    elProfitVal.textContent = (realDailyProfit >= 0 ? '₱' : '-₱') + formatPeso(Math.abs(realDailyProfit));
+    elProfitVal.style.color = realDailyProfit >= 0 ? '#059669' : '#ef4444';
+  }
+  if (elProfitSub) {
+    elProfitSub.textContent = `Gross ₱${formatPeso(cashCollected)} • Expenses ₱${formatPeso(totalExpenses)}`;
+  }
+  if (elProfitBadge) {
+    elProfitBadge.textContent = `${realDailyProfit >= 0 ? '+' : ''}${profitMargin}% Margin`;
+    elProfitBadge.style.background = realDailyProfit >= 0 ? 'rgba(16, 185, 129, 0.14)' : 'rgba(239, 68, 68, 0.14)';
+    elProfitBadge.style.color = realDailyProfit >= 0 ? '#059669' : '#ef4444';
+  }
 
   // Sidebar badges
   const sidebarOrdersBadge = document.getElementById('sidebarOrdersBadge');
@@ -2119,7 +2185,8 @@ function renderStoredOrders() {
     const unpaidVal = typeof order.unpaidAmount === 'number' ? order.unpaidAmount : (isPending ? orderTotal : 0);
 
     const markPaidBtn = isPending
-      ? `<button class="btn-mark-paid btn-table-collect" data-orderno="${escapeHtml(order.orderNo || '')}" title="Collect and mark paid">✓ Collect &amp; Remit</button>`
+      ? `<button class="btn-mark-paid btn-table-collect" data-orderno="${escapeHtml(order.orderNo || '')}" title="Collect and mark paid">✓ Collect &amp; Remit</button>
+         <button type="button" class="btn-bayad-utang" data-orderno="${escapeHtml(order.orderNo || '')}" title="Record Partial or Full Debt Payment (Bayad Utang)">💰 Bayad Utang</button>`
       : '';
 
     const reconcileBtn = isDeliv
@@ -5813,7 +5880,8 @@ function renderThermalReceipt(order) {
   const dateStr = now.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
 
   const headingText = isPending ? 'DELIVERY RECEIPT / INVOICE' : 'OFFICIAL SALES RECEIPT';
-  const statusStamp = isPending ? 'PENDING PAYMENT' : 'PAID IN CASH';
+  const isGcash = o.paymentMethod === 'gcash';
+  const statusStamp = isPending ? 'PENDING PAYMENT' : (isGcash ? 'PAID VIA GCASH' : 'PAID IN CASH');
 
   let carboyLine = '';
   if (o.carboysLoaned || o.carboysReturned) {
@@ -5882,14 +5950,22 @@ function renderThermalReceipt(order) {
         <span>TOTAL DUE:</span>
         <span>₱ ${formatPeso(o.total)}</span>
       </div>
-      <div class="receipt-meta-row" style="margin-top: 4px;">
-        <span>Cash Tendered:</span>
-        <span>₱ ${formatPeso(tendered)}</span>
-      </div>
-      <div class="receipt-meta-row">
-        <span>Change Due:</span>
-        <span>₱ ${formatPeso(change)}</span>
-      </div>
+      ${isGcash ? `
+        <div class="receipt-meta-row" style="margin-top: 4px;">
+          <span>Payment Method:</span>
+          <span>GCASH E-WALLET</span>
+        </div>
+        ${o.gcashRef ? `<div class="receipt-meta-row"><span>GCash Ref No:</span><span class="font-num">${escapeHtml(o.gcashRef)}</span></div>` : ''}
+      ` : `
+        <div class="receipt-meta-row" style="margin-top: 4px;">
+          <span>Cash Tendered:</span>
+          <span>₱ ${formatPeso(tendered)}</span>
+        </div>
+        <div class="receipt-meta-row">
+          <span>Change Due:</span>
+          <span>₱ ${formatPeso(change)}</span>
+        </div>
+      `}
     </div>
 
     ${carboyLine}
@@ -6717,6 +6793,10 @@ function renderShiftSummaryReceipt(currentUser) {
   const pendingOrders = userOrders.filter(o => o.status === 'pending');
 
   const totalSales = paidOrders.reduce((sum, o) => sum + (o.total || 0), 0);
+  const cashSales = paidOrders.filter(o => o.paymentMethod !== 'gcash').reduce((sum, o) => sum + (o.total || 0), 0);
+  const gcashSales = paidOrders.filter(o => o.paymentMethod === 'gcash').reduce((sum, o) => sum + (o.total || 0), 0);
+  const totalExpenses = (State.expenses || []).reduce((sum, e) => sum + (Number(e.amount) || 0), 0);
+  const netShiftProfit = totalSales - totalExpenses;
   const totalGallons = userOrders.reduce((sum, o) => sum + (o.qty || 0), 0);
   const cashHandled = paidOrders.reduce((sum, o) => sum + (o.tendered ? Math.min(o.tendered, o.total) : o.total), 0);
   const changeGiven = paidOrders.reduce((sum, o) => sum + (o.change || 0), 0);
@@ -6798,22 +6878,30 @@ function renderShiftSummaryReceipt(currentUser) {
     <div class="receipt-divider-dash"></div>
 
     <div style="font-size: 11px; font-weight: 800; margin-bottom: 4px; text-transform: uppercase;">
-      CASH &amp; FINANCIAL TOTALS
+      CASH &amp; FINANCIAL TOTALS (P&amp;L)
     </div>
     <div class="receipt-meta-grid" style="font-size: 11px;">
       <div class="receipt-meta-row">
-        <span>Paid Sales Revenue:</span>
+        <span>Gross Revenue:</span>
         <span>₱ ${formatPeso(totalSales)}</span>
       </div>
       <div class="receipt-meta-row">
-        <span>Cash Tender Received:</span>
-        <span>₱ ${formatPeso(cashHandled)}</span>
+        <span>• Cash Drawer Sales:</span>
+        <span>₱ ${formatPeso(cashSales)}</span>
       </div>
       <div class="receipt-meta-row">
-        <span>Total Change Disbursed:</span>
-        <span>-₱ ${formatPeso(changeGiven)}</span>
+        <span>• GCash E-Wallet:</span>
+        <span>₱ ${formatPeso(gcashSales)}</span>
       </div>
-      <div class="receipt-meta-row" style="font-weight: 800; border-top: 1px dashed #000; padding-top: 3px;">
+      <div class="receipt-meta-row" style="color: #b91c1c;">
+        <span>Less Operating Expenses:</span>
+        <span>-₱ ${formatPeso(totalExpenses)}</span>
+      </div>
+      <div class="receipt-meta-row" style="font-weight: 900; border-top: 1px dashed #000; padding-top: 3px;">
+        <span>REAL NET PROFIT:</span>
+        <span>₱ ${formatPeso(netShiftProfit)}</span>
+      </div>
+      <div class="receipt-meta-row">
         <span>NET CASH IN DRAWER:</span>
         <span>₱ ${formatPeso(Math.max(0, cashHandled - changeGiven))}</span>
       </div>
@@ -7844,4 +7932,828 @@ function initPayToggleEvents() {
       renderOrderSummary();
     });
   }
+}
+
+// ==========================================================================
+// 15. EXPENSES PERSISTENCE & HELPERS
+// ==========================================================================
+function saveExpenses() {
+  try {
+    localStorage.setItem('rr_pos_expenses', JSON.stringify(State.expenses));
+  } catch (e) {}
+}
+
+function saveGcashConfig() {
+  try {
+    localStorage.setItem('rr_pos_gcash', JSON.stringify({
+      accountName: State.gcashConfig.accountName,
+      accountNumber: State.gcashConfig.accountNumber
+    }));
+    if (State.gcashConfig.qrImage) {
+      localStorage.setItem('rr_pos_gcash_qr', State.gcashConfig.qrImage);
+    }
+  } catch (e) {}
+}
+
+function saveDriverSettlements() {
+  try {
+    localStorage.setItem('rr_pos_driver_settlements', JSON.stringify(State.driverSettlements));
+  } catch (e) {}
+}
+
+// ==========================================================================
+// 16. GCASH CHECKOUT INTEGRATION & SETTINGS
+// User: "2. Gcash integration - but allow the admin to input the qr from gcash"
+// ==========================================================================
+function initGcashCheckoutEvents() {
+  const btnCash = document.getElementById('btnMethodCash');
+  const btnGcash = document.getElementById('btnMethodGcash');
+  const cashCard = document.getElementById('quickCashTenderCard');
+  const gcashCard = document.getElementById('gcashCheckoutCard');
+  const qrFrame = document.getElementById('gcashQrFrame');
+  const btnCopyNum = document.getElementById('btnCopyGcashNumber');
+
+  const updateGcashCardUI = () => {
+    const cfg = State.gcashConfig;
+    const nameEl = document.getElementById('registerGcashNameDisplay');
+    const phoneEl = document.getElementById('registerGcashPhoneDisplay');
+    const qrImg = document.getElementById('registerGcashQrImg');
+    const qrEmpty = document.getElementById('registerGcashQrEmpty');
+
+    if (nameEl) nameEl.textContent = cfg.accountName || 'R&R Water Station';
+    if (phoneEl) phoneEl.textContent = cfg.accountNumber || '0917-829-4102';
+
+    if (cfg.qrImage) {
+      if (qrImg) {
+        qrImg.src = cfg.qrImage;
+        qrImg.style.display = 'block';
+      }
+      if (qrEmpty) qrEmpty.style.display = 'none';
+    } else {
+      if (qrImg) qrImg.style.display = 'none';
+      if (qrEmpty) qrEmpty.style.display = 'flex';
+    }
+  };
+
+  if (btnCash && btnGcash) {
+    btnCash.addEventListener('click', () => {
+      soundCtrl.playTap();
+      State.paymentMethod = 'cash';
+      btnCash.classList.add('active');
+      btnGcash.classList.remove('active');
+      if (cashCard) cashCard.style.display = 'flex';
+      if (gcashCard) gcashCard.style.display = 'none';
+      renderOrderSummary();
+    });
+
+    btnGcash.addEventListener('click', () => {
+      soundCtrl.playTap();
+      State.paymentMethod = 'gcash';
+      btnGcash.classList.add('active');
+      btnCash.classList.remove('active');
+      if (cashCard) cashCard.style.display = 'none';
+      if (gcashCard) gcashCard.style.display = 'flex';
+      updateGcashCardUI();
+      renderOrderSummary();
+    });
+  }
+
+  if (btnCopyNum) {
+    btnCopyNum.addEventListener('click', () => {
+      soundCtrl.playTap();
+      const num = State.gcashConfig.accountNumber || '0917-829-4102';
+      navigator.clipboard.writeText(num).then(() => {
+        btnCopyNum.textContent = '✓ Copied!';
+        setTimeout(() => { btnCopyNum.textContent = '📋 Copy'; }, 2000);
+        showToast(`Copied GCash Number: ${num}`);
+      }).catch(() => {});
+    });
+  }
+
+  if (qrFrame) {
+    qrFrame.addEventListener('click', () => {
+      soundCtrl.playTap();
+      openGcashEnlargeModal();
+    });
+  }
+
+  // Enlarge modal close
+  const btnCloseEnlarge = document.getElementById('btnCloseGcashEnlargeModal');
+  const btnCloseEnlarge2 = document.getElementById('btnCloseGcashEnlargeBtn');
+  const modalEnlarge = document.getElementById('gcashQrEnlargeModal');
+  [btnCloseEnlarge, btnCloseEnlarge2].forEach(b => {
+    if (b) {
+      b.addEventListener('click', () => {
+        soundCtrl.playTap();
+        if (modalEnlarge) modalEnlarge.style.display = 'none';
+      });
+    }
+  });
+
+  updateGcashCardUI();
+}
+
+function openGcashEnlargeModal() {
+  const modal = document.getElementById('gcashQrEnlargeModal');
+  if (!modal) return;
+  const cfg = State.gcashConfig;
+  const img = document.getElementById('enlargedGcashQrImg');
+  const nameEl = document.getElementById('enlargedGcashName');
+  const phoneEl = document.getElementById('enlargedGcashPhone');
+  const amtEl = document.getElementById('enlargedGcashAmount');
+
+  if (nameEl) nameEl.textContent = cfg.accountName || 'R&R Water Station';
+  if (phoneEl) phoneEl.textContent = cfg.accountNumber || '0917-829-4102';
+  if (amtEl) amtEl.textContent = `Amount: ₱${formatPeso(calculateTotal())}`;
+
+  if (img) {
+    if (cfg.qrImage) {
+      img.src = cfg.qrImage;
+      img.style.display = 'block';
+    } else {
+      // Generate authentic high-res QR SVG standee
+      img.src = 'https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=' + encodeURIComponent(`https://getgcash.page.link/pay?amount=${calculateTotal()}&phone=${cfg.accountNumber || '09178294102'}`);
+      img.style.display = 'block';
+    }
+  }
+
+  modal.style.display = 'flex';
+}
+
+function initGcashSettingsUI() {
+  const inName = document.getElementById('settingGcashName');
+  const inPhone = document.getElementById('settingGcashPhone');
+  const btnUpload = document.getElementById('btnUploadGcashQr');
+  const fileInput = document.getElementById('inputGcashQrFile');
+  const btnReset = document.getElementById('btnResetGcashQr');
+  const imgPreview = document.getElementById('imgGcashQrPreview');
+  const placeholder = document.getElementById('gcashQrPlaceholder');
+
+  const updatePreview = () => {
+    if (State.gcashConfig.qrImage) {
+      if (imgPreview) {
+        imgPreview.src = State.gcashConfig.qrImage;
+        imgPreview.style.display = 'block';
+      }
+      if (placeholder) placeholder.style.display = 'none';
+    } else {
+      if (imgPreview) imgPreview.style.display = 'none';
+      if (placeholder) placeholder.style.display = 'flex';
+    }
+  };
+
+  if (inName) {
+    inName.value = State.gcashConfig.accountName;
+    inName.addEventListener('input', (e) => {
+      State.gcashConfig.accountName = e.target.value.trim();
+      saveGcashConfig();
+      const disp = document.getElementById('registerGcashNameDisplay');
+      if (disp) disp.textContent = State.gcashConfig.accountName;
+    });
+  }
+
+  if (inPhone) {
+    inPhone.value = State.gcashConfig.accountNumber;
+    inPhone.addEventListener('input', (e) => {
+      State.gcashConfig.accountNumber = e.target.value.trim();
+      saveGcashConfig();
+      const disp = document.getElementById('registerGcashPhoneDisplay');
+      if (disp) disp.textContent = State.gcashConfig.accountNumber;
+    });
+  }
+
+  if (btnUpload && fileInput) {
+    btnUpload.addEventListener('click', () => {
+      fileInput.click();
+    });
+
+    fileInput.addEventListener('change', (e) => {
+      const file = e.target.files && e.target.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = (ev) => {
+        const rawData = ev.target.result;
+        // Compress image to 512x512
+        const img = new Image();
+        img.onload = () => {
+          const canvas = document.createElement('canvas');
+          const maxDim = 512;
+          let w = img.width;
+          let h = img.height;
+          if (w > maxDim || h > maxDim) {
+            if (w > h) { h = Math.round((h * maxDim) / w); w = maxDim; }
+            else { w = Math.round((w * maxDim) / h); h = maxDim; }
+          }
+          canvas.width = w;
+          canvas.height = h;
+          const ctx = canvas.getContext('2d');
+          ctx.drawImage(img, 0, 0, w, h);
+          const compressed = canvas.toDataURL('image/jpeg', 0.85);
+
+          State.gcashConfig.qrImage = compressed;
+          saveGcashConfig();
+          updatePreview();
+          showToast('Station GCash QR code successfully saved!');
+          updateDroppyMessage('GCash QR uploaded! Customers can now scan and pay with GCash at Counter #1.', 'assets/droppy_happy.png', 'GCash Configured');
+        };
+        img.src = rawData;
+      };
+      reader.readAsDataURL(file);
+    });
+  }
+
+  if (btnReset) {
+    btnReset.addEventListener('click', () => {
+      soundCtrl.playTap();
+      State.gcashConfig.qrImage = '';
+      localStorage.removeItem('rr_pos_gcash_qr');
+      saveGcashConfig();
+      updatePreview();
+      showToast('GCash custom QR removed.');
+    });
+  }
+
+  updatePreview();
+}
+
+// ==========================================================================
+// 17. BAYAD UTANG (CUSTOMER DEBT COLLECTION & PARTIAL PAYMENT)
+// User: "1. Bayad Utang"
+// ==========================================================================
+let activeBayadOrderNo = null;
+
+function initBayadUtangEvents() {
+  const modal = document.getElementById('bayadUtangModal');
+  const btnClose = document.getElementById('btnCloseBayadUtangModal');
+  const btnCancel = document.getElementById('btnCancelBayadUtang');
+  const btnConfirm = document.getElementById('btnConfirmBayadUtang');
+  const inputAmt = document.getElementById('inputBayadAmount');
+  const btnPayFull = document.getElementById('btnPayFullDebt');
+
+  // Close actions
+  [btnClose, btnCancel].forEach(b => {
+    if (b) {
+      b.addEventListener('click', () => {
+        soundCtrl.playTap();
+        if (modal) modal.style.display = 'none';
+        activeBayadOrderNo = null;
+      });
+    }
+  });
+
+  // Real-time calculation on typing payment amount
+  if (inputAmt) {
+    inputAmt.addEventListener('input', () => {
+      updateBayadUtangCalculations();
+    });
+  }
+
+  // Quick Chips
+  document.querySelectorAll('.debt-chip[data-pay]').forEach(chip => {
+    chip.addEventListener('click', () => {
+      soundCtrl.playTap();
+      const val = chip.getAttribute('data-pay');
+      if (inputAmt) {
+        inputAmt.value = val;
+        updateBayadUtangCalculations();
+      }
+    });
+  });
+
+  if (btnPayFull) {
+    btnPayFull.addEventListener('click', () => {
+      soundCtrl.playTap();
+      const order = State.storedOrders.find(o => o.orderNo === activeBayadOrderNo);
+      if (!order || !inputAmt) return;
+      const currentDebt = typeof order.unpaidAmount === 'number' ? order.unpaidAmount : (order.status === 'pending' ? order.total : 0);
+      inputAmt.value = currentDebt;
+      updateBayadUtangCalculations();
+    });
+  }
+
+  // Payment method radio toggle
+  document.querySelectorAll('input[name="bayadPayMethod"]').forEach(r => {
+    r.addEventListener('change', () => {
+      soundCtrl.playTap();
+      const lblCash = document.getElementById('lblBayadCash');
+      const lblGcash = document.getElementById('lblBayadGcash');
+      const refRow = document.getElementById('debtGcashRefRow');
+      if (lblCash) lblCash.classList.toggle('active', r.value === 'cash');
+      if (lblGcash) lblGcash.classList.toggle('active', r.value === 'gcash');
+      if (refRow) refRow.style.display = r.value === 'gcash' ? 'flex' : 'none';
+    });
+  });
+
+  // Confirm Bayad Utang
+  if (btnConfirm) {
+    btnConfirm.addEventListener('click', () => {
+      soundCtrl.playTap();
+      processBayadUtangSubmit();
+    });
+  }
+
+  // Delegate click for .btn-bayad-utang anywhere in orders table
+  document.addEventListener('click', (e) => {
+    const btn = e.target.closest('.btn-bayad-utang');
+    if (btn) {
+      e.preventDefault();
+      soundCtrl.playTap();
+      const orderNo = btn.getAttribute('data-orderno');
+      openBayadUtangModal(orderNo);
+    }
+  });
+}
+
+function openBayadUtangModal(orderNo) {
+  const modal = document.getElementById('bayadUtangModal');
+  if (!modal) return;
+
+  const order = State.storedOrders.find(o => o.orderNo === orderNo);
+  if (!order) return;
+
+  activeBayadOrderNo = orderNo;
+
+  const customerNameEl = document.getElementById('debtCustomerName');
+  const orderNoEl = document.getElementById('debtOrderNo');
+  const origTotalEl = document.getElementById('debtOriginalTotal');
+  const paidEl = document.getElementById('debtAlreadyPaid');
+  const currentBalEl = document.getElementById('debtCurrentBalance');
+  const inputAmt = document.getElementById('inputBayadAmount');
+  const btnPayFull = document.getElementById('btnPayFullDebt');
+
+  const currentDebt = typeof order.unpaidAmount === 'number' ? order.unpaidAmount : (order.status === 'pending' ? order.total : 0);
+  const alreadyPaid = typeof order.paidAmount === 'number' ? order.paidAmount : (order.status === 'paid' ? order.total : 0);
+
+  if (customerNameEl) customerNameEl.textContent = order.note || 'Walk-in / Customer';
+  if (orderNoEl) orderNoEl.textContent = order.orderNo;
+  if (origTotalEl) origTotalEl.textContent = `₱ ${formatPeso(order.total)}`;
+  if (paidEl) paidEl.textContent = `₱ ${formatPeso(alreadyPaid)}`;
+  if (currentBalEl) currentBalEl.textContent = `₱ ${formatPeso(currentDebt)}`;
+
+  if (btnPayFull) btnPayFull.textContent = `Pay Full (₱${formatPeso(currentDebt)})`;
+  if (inputAmt) {
+    inputAmt.value = currentDebt;
+    inputAmt.max = currentDebt;
+  }
+
+  updateBayadUtangCalculations();
+  modal.style.display = 'flex';
+}
+
+function updateBayadUtangCalculations() {
+  const order = State.storedOrders.find(o => o.orderNo === activeBayadOrderNo);
+  if (!order) return;
+
+  const currentDebt = typeof order.unpaidAmount === 'number' ? order.unpaidAmount : (order.status === 'pending' ? order.total : 0);
+  const inputAmt = document.getElementById('inputBayadAmount');
+  const remainingEl = document.getElementById('debtRemainingAfterDisplay');
+  const cueEl = document.getElementById('debtStatusCue');
+  const btnConfirmText = document.getElementById('btnConfirmBayadText');
+
+  const payment = Math.max(0, Number(inputAmt ? inputAmt.value : 0) || 0);
+  const remainingAfter = Math.max(0, currentDebt - payment);
+
+  if (remainingEl) remainingEl.textContent = `₱ ${formatPeso(remainingAfter)}`;
+  if (btnConfirmText) btnConfirmText.textContent = `Confirm Payment • ₱${formatPeso(payment)}`;
+
+  if (cueEl) {
+    if (remainingAfter === 0) {
+      cueEl.textContent = '✓ Will be marked FULLY PAID & settled';
+      cueEl.style.color = '#059669';
+    } else {
+      cueEl.textContent = `⚠ Partial Payment: ₱${formatPeso(remainingAfter)} balance remaining`;
+      cueEl.style.color = '#d97706';
+    }
+  }
+}
+
+function processBayadUtangSubmit() {
+  const order = State.storedOrders.find(o => o.orderNo === activeBayadOrderNo);
+  if (!order) return;
+
+  const inputAmt = document.getElementById('inputBayadAmount');
+  const payment = Math.max(0, Number(inputAmt ? inputAmt.value : 0) || 0);
+  if (payment <= 0) {
+    showToast('Please enter an amount to collect.');
+    return;
+  }
+
+  const currentDebt = typeof order.unpaidAmount === 'number' ? order.unpaidAmount : (order.status === 'pending' ? order.total : 0);
+  const alreadyPaid = typeof order.paidAmount === 'number' ? order.paidAmount : (order.status === 'paid' ? order.total : 0);
+
+  const newPaid = alreadyPaid + payment;
+  const newDebt = Math.max(0, currentDebt - payment);
+
+  order.paidAmount = newPaid;
+  order.unpaidAmount = newDebt;
+  if (newDebt === 0) {
+    order.status = 'paid';
+  }
+
+  const checkedRadio = document.querySelector('input[name="bayadPayMethod"]:checked');
+  const payMethod = checkedRadio ? checkedRadio.value : 'cash';
+  const gcashRef = (document.getElementById('debtGcashRefInput') ? document.getElementById('debtGcashRefInput').value.trim() : '') || '';
+
+  // Append payment history
+  if (!order.paymentHistory) order.paymentHistory = [];
+  const now = new Date();
+  order.paymentHistory.push({
+    time: now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true }),
+    timestamp: Date.now(),
+    amount: payment,
+    method: payMethod,
+    ref: gcashRef,
+    remainingDebt: newDebt,
+    cashier: typeof getCurrentUser === 'function' ? getCurrentUser().name : 'Neil'
+  });
+
+  saveOrders();
+  soundCtrl.playPaymentChime();
+
+  showToast(`Bayad Utang: Collected ₱${formatPeso(payment)} for order ${order.orderNo}!`);
+  updateDroppyMessage(`Bayad Utang received! Collected ₱${formatPeso(payment)} (${newDebt === 0 ? 'Fully Paid' : '₱' + formatPeso(newDebt) + ' left'})`, 'assets/droppy_love.png', 'Payment Collected');
+
+  const modal = document.getElementById('bayadUtangModal');
+  if (modal) modal.style.display = 'none';
+  activeBayadOrderNo = null;
+
+  renderAll();
+}
+
+// ==========================================================================
+// 18. DRIVER SETTLEMENT SHEET
+// User: "3. Driver Settlement Sheet"
+// ==========================================================================
+function initDriverSettlementEvents() {
+  const btnHeader = document.getElementById('btnHeaderSettlement');
+  const modal = document.getElementById('driverSettlementModal');
+  const btnClose = document.getElementById('btnCloseDriverSettlementModal');
+  const btnCancel = document.getElementById('btnCancelDriverSettlement');
+  const btnConfirm = document.getElementById('btnConfirmDriverSettlement');
+
+  const inLoaded = document.getElementById('settleLoadedJugs');
+  const inSold = document.getElementById('settleSoldJugs');
+  const inEmpties = document.getElementById('settleReturnedEmpties');
+  const inFuel = document.getElementById('settleGasDeductionInput');
+  const inActualCash = document.getElementById('settleActualCashInput');
+  const btnMatchExpected = document.getElementById('btnSettleMatchExpected');
+  const batchSelect = document.getElementById('settleBatchSelect');
+
+  if (btnHeader) {
+    btnHeader.addEventListener('click', () => {
+      soundCtrl.playTap();
+      openDriverSettlementModal();
+    });
+  }
+
+  [btnClose, btnCancel].forEach(b => {
+    if (b) {
+      b.addEventListener('click', () => {
+        soundCtrl.playTap();
+        if (modal) modal.style.display = 'none';
+      });
+    }
+  });
+
+  [inLoaded, inSold, inEmpties, inFuel, inActualCash].forEach(input => {
+    if (input) {
+      input.addEventListener('input', () => {
+        updateDriverSettlementCalculations();
+      });
+    }
+  });
+
+  if (batchSelect) {
+    batchSelect.addEventListener('change', () => {
+      soundCtrl.playTap();
+      const orderNo = batchSelect.value;
+      const order = State.storedOrders.find(o => o.orderNo === orderNo);
+      if (order && inSold) {
+        inSold.value = order.gallons || 56;
+        if (inEmpties) inEmpties.value = order.gallons || 56;
+      }
+      updateDriverSettlementCalculations();
+    });
+  }
+
+  if (btnMatchExpected) {
+    btnMatchExpected.addEventListener('click', () => {
+      soundCtrl.playTap();
+      const sold = Math.max(0, Number(inSold ? inSold.value : 0) || 0);
+      const fuel = Math.max(0, Number(inFuel ? inFuel.value : 0) || 0);
+      const expected = Math.max(0, (sold * 35) - fuel);
+      if (inActualCash) {
+        inActualCash.value = expected;
+        updateDriverSettlementCalculations();
+      }
+    });
+  }
+
+  if (btnConfirm) {
+    btnConfirm.addEventListener('click', () => {
+      soundCtrl.playTap();
+      processDriverSettlementConfirm();
+    });
+  }
+}
+
+function openDriverSettlementModal(preselectedOrderNo = null) {
+  const modal = document.getElementById('driverSettlementModal');
+  if (!modal) return;
+
+  const batchSelect = document.getElementById('settleBatchSelect');
+  if (batchSelect) {
+    batchSelect.innerHTML = '';
+    const pendingDeliveries = State.storedOrders.filter(o => o.channel === 'delivery');
+    if (pendingDeliveries.length === 0) {
+      const opt = document.createElement('option');
+      opt.value = '';
+      opt.textContent = 'General Multicab Route Settlement (No active order)';
+      batchSelect.appendChild(opt);
+    } else {
+      pendingDeliveries.forEach(o => {
+        const opt = document.createElement('option');
+        opt.value = o.orderNo;
+        opt.textContent = `Batch ${o.orderNo} • ${o.gallons} Gals • ${o.status === 'paid' ? 'Paid' : 'Pending ₱' + formatPeso(o.total)}`;
+        if (preselectedOrderNo && o.orderNo === preselectedOrderNo) opt.selected = true;
+        batchSelect.appendChild(opt);
+      });
+    }
+  }
+
+  updateDriverSettlementCalculations();
+  modal.style.display = 'flex';
+}
+
+function updateDriverSettlementCalculations() {
+  const inLoaded = document.getElementById('settleLoadedJugs');
+  const inSold = document.getElementById('settleSoldJugs');
+  const inFuel = document.getElementById('settleGasDeductionInput');
+  const inActualCash = document.getElementById('settleActualCashInput');
+  const displayUnsold = document.getElementById('settleUnsoldJugsDisplay');
+  const displayGross = document.getElementById('settleGrossSalesDisplay');
+  const displayExpected = document.getElementById('settleExpectedNetDisplay');
+  const discrepancyBadge = document.getElementById('settleDiscrepancyBadge');
+  const btnConfirmText = document.getElementById('btnConfirmSettlementText');
+  const soldSub = document.getElementById('settleSoldSalesSub');
+
+  const loaded = Math.max(1, Number(inLoaded ? inLoaded.value : 100) || 1);
+  const sold = Math.max(0, Number(inSold ? inSold.value : 0) || 0);
+  const unsold = Math.max(0, loaded - sold);
+  const fuel = Math.max(0, Number(inFuel ? inFuel.value : 0) || 0);
+  const gross = sold * 35;
+  const expectedNet = Math.max(0, gross - fuel);
+
+  if (displayUnsold) displayUnsold.textContent = unsold;
+  if (displayGross) displayGross.textContent = `₱ ${formatPeso(gross)}`;
+  if (soldSub) soldSub.textContent = `₱${formatPeso(gross)} Sales`;
+  if (displayExpected) displayExpected.textContent = `₱ ${formatPeso(expectedNet)}`;
+
+  const actual = Number(inActualCash && inActualCash.value !== '' ? inActualCash.value : expectedNet) || 0;
+  const diff = actual - expectedNet;
+
+  if (discrepancyBadge) {
+    if (diff === 0) {
+      discrepancyBadge.className = 'settle-discrepancy-badge balanced';
+      discrepancyBadge.textContent = 'Balanced: ₱0.00';
+    } else if (diff < 0) {
+      discrepancyBadge.className = 'settle-discrepancy-badge short';
+      discrepancyBadge.textContent = `Short: -₱${formatPeso(Math.abs(diff))}`;
+    } else {
+      discrepancyBadge.className = 'settle-discrepancy-badge over';
+      discrepancyBadge.textContent = `Over: +₱${formatPeso(diff)}`;
+    }
+  }
+
+  if (btnConfirmText) {
+    btnConfirmText.textContent = `Confirm Remittance • Remit ₱${formatPeso(actual)}`;
+  }
+}
+
+function processDriverSettlementConfirm() {
+  const inLoaded = document.getElementById('settleLoadedJugs');
+  const inSold = document.getElementById('settleSoldJugs');
+  const inEmpties = document.getElementById('settleReturnedEmpties');
+  const inFuel = document.getElementById('settleGasDeductionInput');
+  const inActualCash = document.getElementById('settleActualCashInput');
+  const batchSelect = document.getElementById('settleBatchSelect');
+  const driverSelect = document.getElementById('settleDriverSelect');
+  const notesInput = document.getElementById('settleNotesInput');
+
+  const loaded = Math.max(1, Number(inLoaded ? inLoaded.value : 100) || 1);
+  const sold = Math.max(0, Number(inSold ? inSold.value : 0) || 0);
+  const empties = Math.max(0, Number(inEmpties ? inEmpties.value : 0) || 0);
+  const unsold = Math.max(0, loaded - sold);
+  const fuel = Math.max(0, Number(inFuel ? inFuel.value : 0) || 0);
+  const gross = sold * 35;
+  const expectedNet = Math.max(0, gross - fuel);
+  const actual = Number(inActualCash && inActualCash.value !== '' ? inActualCash.value : expectedNet) || 0;
+  const driver = driverSelect ? driverSelect.value : 'Kuya Jun';
+  const notes = (notesInput ? notesInput.value : '').trim();
+  const selectedOrderNo = batchSelect ? batchSelect.value : '';
+
+  // 1. Mark target delivery order as paid
+  if (selectedOrderNo) {
+    const order = State.storedOrders.find(o => o.orderNo === selectedOrderNo);
+    if (order) {
+      order.status = 'paid';
+      order.paidAmount = gross;
+      order.unpaidAmount = 0;
+      order.batchLoaded = loaded;
+      order.gallons = sold;
+      order.gallonsReturned = unsold;
+      order.isBatchReconciled = true;
+      order.note = `Driver Settled: ${driver} remitted ₱${formatPeso(actual)} (${sold} Sold • ${unsold} Left)` + (notes ? ` - ${notes}` : '');
+    }
+  }
+
+  // 2. If fuel was deducted, log an operational fuel expense automatically
+  if (fuel > 0) {
+    const fuelExpense = {
+      id: 'exp_' + Date.now(),
+      timestamp: Date.now(),
+      time: new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true }),
+      amount: fuel,
+      category: 'fuel',
+      note: `Multicab Fuel for ${driver} (Trip Batch ${selectedOrderNo || 'Route'})`,
+      source: 'drawer',
+      cashierName: typeof getCurrentUser === 'function' ? getCurrentUser().name : 'Neil'
+    };
+    State.expenses.unshift(fuelExpense);
+    saveExpenses();
+  }
+
+  // 3. Update inventory: rack receives unsold jugs, sanitizing receives empties
+  if (State.inventory) {
+    State.inventory.ready = Math.min(State.inventory.ready + unsold, 300);
+    State.inventory.returned += empties;
+    saveInventory();
+  }
+
+  // 4. Save driver settlement record
+  const settlementRecord = {
+    id: 'stl_' + Date.now(),
+    timestamp: Date.now(),
+    time: new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true }),
+    driver,
+    orderNo: selectedOrderNo,
+    loaded,
+    sold,
+    empties,
+    unsold,
+    gross,
+    fuel,
+    expectedNet,
+    remitted: actual,
+    discrepancy: actual - expectedNet,
+    note: notes,
+    cashierName: typeof getCurrentUser === 'function' ? getCurrentUser().name : 'Neil'
+  };
+  State.driverSettlements.unshift(settlementRecord);
+  saveDriverSettlements();
+  saveOrders();
+
+  soundCtrl.playPaymentChime();
+  showToast(`Driver Remittance Confirmed: ₱${formatPeso(actual)} remitted by ${driver}!`);
+  updateDroppyMessage(`${driver} settled batch! Remitted ₱${formatPeso(actual)} to cashier drawer. ${unsold} unsold carboys returned to inventory.`, 'assets/droppy_happy.png', 'Trip Settled');
+
+  const modal = document.getElementById('driverSettlementModal');
+  if (modal) modal.style.display = 'none';
+
+  renderAll();
+}
+
+// ==========================================================================
+// 19. QUICK OPERATIONAL EXPENSE ENTRY
+// User: "4. Quic Operational Expense Entry" & "5. Real Daily Profit"
+// ==========================================================================
+let activeExpenseCategory = 'fuel';
+
+function initQuickExpenseEvents() {
+  const btnHeader = document.getElementById('btnHeaderExpense');
+  const modal = document.getElementById('quickExpenseModal');
+  const btnClose = document.getElementById('btnCloseQuickExpenseModal');
+  const btnCancel = document.getElementById('btnCancelQuickExpense');
+  const btnConfirm = document.getElementById('btnConfirmQuickExpense');
+  const inputAmt = document.getElementById('inputExpenseAmount');
+  const btnConfirmText = document.getElementById('btnConfirmExpenseText');
+
+  if (btnHeader) {
+    btnHeader.addEventListener('click', () => {
+      soundCtrl.playTap();
+      openQuickExpenseModal();
+    });
+  }
+
+  [btnClose, btnCancel].forEach(b => {
+    if (b) {
+      b.addEventListener('click', () => {
+        soundCtrl.playTap();
+        if (modal) modal.style.display = 'none';
+      });
+    }
+  });
+
+  // Category chip selection
+  document.querySelectorAll('.expense-chip[data-cat]').forEach(chip => {
+    chip.addEventListener('click', () => {
+      soundCtrl.playTap();
+      document.querySelectorAll('.expense-chip').forEach(c => c.classList.remove('active'));
+      chip.classList.add('active');
+      activeExpenseCategory = chip.getAttribute('data-cat');
+    });
+  });
+
+  if (inputAmt) {
+    inputAmt.addEventListener('input', () => {
+      const val = Number(inputAmt.value) || 0;
+      if (btnConfirmText) {
+        btnConfirmText.textContent = `Record Expense • ₱${formatPeso(val)}`;
+      }
+    });
+  }
+
+  // Source radio toggle
+  document.querySelectorAll('input[name="expenseSource"]').forEach(r => {
+    r.addEventListener('change', () => {
+      soundCtrl.playTap();
+      const lblDrawer = document.getElementById('lblExpDrawer');
+      const lblPetty = document.getElementById('lblExpPetty');
+      if (lblDrawer) lblDrawer.classList.toggle('active', r.value === 'drawer');
+      if (lblPetty) lblPetty.classList.toggle('active', r.value === 'petty');
+    });
+  });
+
+  if (btnConfirm) {
+    btnConfirm.addEventListener('click', () => {
+      soundCtrl.playTap();
+      processQuickExpenseSubmit();
+    });
+  }
+}
+
+function openQuickExpenseModal() {
+  const modal = document.getElementById('quickExpenseModal');
+  if (!modal) return;
+  const inputAmt = document.getElementById('inputExpenseAmount');
+  const inputNote = document.getElementById('inputExpenseNote');
+  const btnConfirmText = document.getElementById('btnConfirmExpenseText');
+
+  if (inputAmt) inputAmt.value = '';
+  if (inputNote) inputNote.value = '';
+  if (btnConfirmText) btnConfirmText.textContent = 'Record Expense • ₱0.00';
+
+  modal.style.display = 'flex';
+  if (inputAmt) setTimeout(() => inputAmt.focus(), 100);
+}
+
+function processQuickExpenseSubmit() {
+  const inputAmt = document.getElementById('inputExpenseAmount');
+  const inputNote = document.getElementById('inputExpenseNote');
+  const amt = Number(inputAmt ? inputAmt.value : 0) || 0;
+
+  if (amt <= 0) {
+    showToast('Please enter an expense amount.');
+    return;
+  }
+
+  const category = activeExpenseCategory || 'fuel';
+  const customNote = (inputNote ? inputNote.value : '').trim();
+  const checkedRadio = document.querySelector('input[name="expenseSource"]:checked');
+  const source = checkedRadio ? checkedRadio.value : 'drawer';
+
+  const catLabels = {
+    fuel: 'Multicab Fuel',
+    seals: 'Cap Seals & Bags',
+    electric: 'Meralco / Electricity',
+    water: 'Raw Water Utility',
+    filters: 'Filter Replacement',
+    meals: 'Staff Meal / Wage',
+    other: 'General Expense'
+  };
+
+  const newExpense = {
+    id: 'exp_' + Date.now(),
+    timestamp: Date.now(),
+    time: new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true }),
+    amount: amt,
+    category,
+    categoryLabel: catLabels[category] || category,
+    note: customNote || (catLabels[category] || 'Station Operational Cost'),
+    source,
+    cashierName: typeof getCurrentUser === 'function' ? getCurrentUser().name : 'Neil'
+  };
+
+  State.expenses.unshift(newExpense);
+  saveExpenses();
+
+  soundCtrl.playTap();
+  showToast(`Expense Logged: ₱${formatPeso(amt)} for ${catLabels[category]}!`);
+  updateDroppyMessage(`Recorded expense of ₱${formatPeso(amt)} for ${catLabels[category]}. Daily net profit updated!`, 'assets/droppy_winking.png', 'Expense Recorded');
+
+  const modal = document.getElementById('quickExpenseModal');
+  if (modal) modal.style.display = 'none';
+
+  renderAll();
 }
