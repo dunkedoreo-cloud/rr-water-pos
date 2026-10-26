@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>R&R Water - Station POS</title>
-  <link rel="stylesheet" href="pos.css?v=2.8.32">
+  <link rel="stylesheet" href="pos.css?v=2.8.33">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700;800&display=swap" rel="stylesheet">
@@ -1999,7 +1999,7 @@
                       <p>Clean Pure Station POS Engine • Tap to force refresh</p>
                     </div>
                     <div style="display: flex; gap: 8px; align-items: center;">
-                      <span class="meta-badge" id="appBuildVersionBadge">v2.8.32 Stable</span>
+                      <span class="meta-badge" id="appBuildVersionBadge">v2.8.33 Stable</span>
                       <button type="button" class="btn-sub-action" id="btnForceCheckUpdate" title="Clear Cache &amp; Reload Latest Build">
                         <svg class="ui-icon-xs" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><polyline points="23 4 23 10 17 10"></polyline><polyline points="1 20 1 14 7 14"></polyline><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path></svg>
                         <span>Force Reload</span>
@@ -3421,8 +3421,8 @@
   </aside>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="supabase_config.js?v=2.8.32"></script>
-  <script src="pos.js?v=2.8.32"></script>
+  <script src="supabase_config.js?v=2.8.33"></script>
+  <script src="pos.js?v=2.8.33"></script>
 
   <!-- ====================================================================
        MODAL 1: BAYAD UTANG (CUSTOMER DEBT COLLECTION & PARTIAL PAYMENT)
@@ -3538,7 +3538,7 @@
 
       <div class="modal-card-footer">
         <button type="button" class="btn-modal-secondary" id="btnCancelBayadUtang">Cancel</button>
-        <button type="button" class="btn-modal-primary" id="btnConfirmBayadUtang" style="background: linear-gradient(135deg, #059669 0%, #047857 100%);">
+        <button type="button" class="btn-modal-primary btn-bayad-confirm" id="btnConfirmBayadUtang">
           <svg class="ui-icon-xs" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><polyline points="20 6 9 17 4 12"></polyline></svg>
           <span id="btnConfirmBayadText">Confirm Payment • ₱0.00</span>
         </button>
@@ -3662,7 +3662,7 @@
 
       <div class="modal-card-footer">
         <button type="button" class="btn-modal-secondary" id="btnCancelDriverSettlement">Cancel</button>
-        <button type="button" class="btn-modal-primary" id="btnConfirmDriverSettlement">
+        <button type="button" class="btn-modal-primary btn-settle-confirm" id="btnConfirmDriverSettlement">
           <svg class="ui-icon-xs" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><polyline points="20 6 9 17 4 12"></polyline></svg>
           <span id="btnConfirmSettlementText">Confirm Remittance • Remit ₱1,960.00</span>
         </button>
@@ -3753,7 +3753,7 @@
 
       <div class="modal-card-footer">
         <button type="button" class="btn-modal-secondary" id="btnCancelQuickExpense">Cancel</button>
-        <button type="button" class="btn-modal-primary" id="btnConfirmQuickExpense" style="background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);">
+        <button type="button" class="btn-modal-primary btn-expense-confirm" id="btnConfirmQuickExpense">
           <svg class="ui-icon-xs" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path><polyline points="17 21 17 13 7 13 7 21"></polyline></svg>
           <span id="btnConfirmExpenseText">Record Expense • ₱0.00</span>
         </button>
