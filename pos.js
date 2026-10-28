@@ -329,6 +329,14 @@ const Telemetry = {
         this.channel.postMessage({ type: 'REGISTER_INPUT_UPDATE', state: inputSnapshot });
       } catch (e) {}
     }
+
+    if (window.location.protocol.startsWith('http')) {
+      fetch('/api/telemetry/active', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(inputSnapshot)
+      }).catch(() => {});
+    }
   }
 };
 

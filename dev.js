@@ -100,6 +100,7 @@
 
   // --- INITIALIZATION ---
   document.addEventListener('DOMContentLoaded', () => {
+    initPinGate();
     initTheme();
     initTabNavigation();
     initTelemetryListener();
@@ -122,6 +123,60 @@
     refreshKpis();
     refreshRegisterMirror();
   });
+
+  // --- 0. DEVELOPER PIN GATE ---
+  function initPinGate() {
+    const overlay = document.getElementById('devPinOverlay');
+    const input = document.getElementById('devPinInput');
+    const btnSubmit = document.getElementById('btnDevPinSubmit');
+    const btnReturn = document.getElementById('btnDevPinReturn');
+    const err = document.getElementById('devPinError');
+
+    if (!overlay) return;
+
+    if (sessionStorage.getItem('rr_dev_unlocked') === 'true') {
+      overlay.style.display = 'none';
+      return;
+    }
+
+    const tryUnlock = () => {
+      const val = (input ? input.value : '').trim();
+      let adminPin = '9999';
+      try {
+        const s = JSON.parse(localStorage.getItem('rr_pos_settings') || '{}');
+        if (s.adminPin) adminPin = String(s.adminPin);
+      } catch (e) {}
+
+      if (val === '9999' || val === adminPin) {
+        sessionStorage.setItem('rr_dev_unlocked', 'true');
+        overlay.style.display = 'none';
+        AudioSynthesizer.playChime();
+      } else {
+        AudioSynthesizer.playDrawerPulse();
+        if (err) {
+          err.style.display = 'block';
+          err.textContent = 'Invalid Master PIN. Access Denied.';
+        }
+        if (input) {
+          input.value = '';
+          input.focus();
+        }
+      }
+    };
+
+    if (btnSubmit) btnSubmit.addEventListener('click', tryUnlock);
+    if (input) {
+      input.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') tryUnlock();
+      });
+      setTimeout(() => input.focus(), 200);
+    }
+    if (btnReturn) {
+      btnReturn.addEventListener('click', () => {
+        window.location.href = 'index.html';
+      });
+    }
+  }
 
   // --- 1. THEME CONTROLLER ---
   function initTheme() {

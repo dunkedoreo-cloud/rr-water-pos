@@ -102,6 +102,31 @@ const server = http.createServer(async (req, res) => {
         });
       }
 
+      // 0.1 Telemetry Streaming Bus
+      if (pathname === '/api/telemetry') {
+        if (!global._telemetryHistory) global._telemetryHistory = [];
+        if (req.method === 'GET') {
+          return sendJson(res, 200, { success: true, count: global._telemetryHistory.length, events: global._telemetryHistory });
+        }
+        if (req.method === 'POST') {
+          const body = await readJsonBody(req);
+          global._telemetryHistory.unshift(body);
+          if (global._telemetryHistory.length > 100) global._telemetryHistory.pop();
+          return sendJson(res, 201, { success: true, received: true });
+        }
+      }
+
+      if (pathname === '/api/telemetry/active') {
+        if (!global._activeRegisterState) global._activeRegisterState = null;
+        if (req.method === 'GET') {
+          return sendJson(res, 200, { success: true, state: global._activeRegisterState });
+        }
+        if (req.method === 'POST') {
+          global._activeRegisterState = await readJsonBody(req);
+          return sendJson(res, 200, { success: true, updated: true });
+        }
+      }
+
       // 1. Station Summary & Health
       if (pathname === '/api/status' && req.method === 'GET') {
         const summary = db.getStationSummary();

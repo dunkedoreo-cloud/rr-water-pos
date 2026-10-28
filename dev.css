@@ -1030,3 +1030,109 @@ body {
   justify-content: flex-end;
   gap: 10px;
 }
+
+/* Developer PIN Gate */
+.dev-pin-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(11, 15, 25, 0.94);
+  backdrop-filter: blur(12px);
+  z-index: 999999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+
+.dev-pin-box {
+  background: var(--dev-bg-card);
+  border: 1px solid var(--dev-border);
+  border-radius: var(--radius-lg);
+  padding: 32px;
+  max-width: 420px;
+  width: 100%;
+  text-align: center;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6);
+}
+
+.dev-pin-icon {
+  width: 54px;
+  height: 54px;
+  margin: 0 auto 16px;
+  background: rgba(2, 132, 199, 0.15);
+  border: 1px solid var(--dev-border-active);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--dev-accent);
+}
+
+.dev-pin-icon svg {
+  width: 26px;
+  height: 26px;
+}
+
+.dev-pin-box h2 {
+  font-size: 1.25rem;
+  font-weight: 700;
+  margin-bottom: 8px;
+  color: var(--dev-text);
+}
+
+.dev-pin-box p {
+  font-size: 0.85rem;
+  color: var(--dev-text-muted);
+  margin-bottom: 20px;
+  line-height: 1.4;
+}
+
+.dev-pin-input-wrap {
+  margin-bottom: 12px;
+}
+
+.dev-pin-input-wrap input {
+  width: 100%;
+  max-width: 220px;
+  font-family: var(--font-mono);
+  font-size: 1.75rem;
+  letter-spacing: 0.5rem;
+  text-align: center;
+  padding: 10px 14px;
+  background: var(--dev-bg-input);
+  border: 2px solid var(--dev-border);
+  border-radius: var(--radius-md);
+  color: var(--dev-text);
+  outline: none;
+}
+
+.dev-pin-input-wrap input:focus {
+  border-color: var(--dev-accent);
+  box-shadow: 0 0 0 3px var(--dev-primary-glow);
+}
+
+.dev-pin-error {
+  color: var(--dev-danger);
+  font-size: 0.82rem;
+  margin-bottom: 14px;
+  font-weight: 600;
+}
+
+.dev-pin-actions {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+  margin-bottom: 16px;
+}
+
+.dev-pin-hint {
+  font-size: 0.75rem;
+  color: var(--dev-text-dim);
+}
+
+.dev-pin-hint code {
+  background: rgba(255, 255, 255, 0.06);
+  padding: 2px 6px;
+  border-radius: 4px;
+  color: var(--dev-accent);
+}
