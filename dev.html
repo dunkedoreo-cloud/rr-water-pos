@@ -1,0 +1,578 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>R&R Water POS — Developer Cockpit & Telemetry Hub</title>
+  <link rel="icon" type="image/png" href="assets/water_jug.png">
+  <link rel="stylesheet" href="dev.css?v=2.8.34">
+</head>
+<body>
+
+  <!-- ====================================================================
+       1. TOP DEVELOPER HEADER & SYSTEM HEARTBEAT
+       ==================================================================== -->
+  <header class="dev-header">
+    <div class="dev-brand">
+      <div class="dev-logo">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="16 18 22 12 16 6"></polyline>
+          <polyline points="8 6 2 12 8 18"></polyline>
+        </svg>
+      </div>
+      <div class="dev-brand-text">
+        <h1>R&amp;R Water POS <span class="dev-badge-console">DEV CONSOLE</span></h1>
+        <p>Live Input Telemetry • Function Inspector • System Maintenance &amp; Diagnostics</p>
+      </div>
+    </div>
+
+    <div class="dev-header-center">
+      <div class="dev-status-pill online" id="pillTelemetryStatus">
+        <span class="status-dot"></span>
+        <span id="txtTelemetryStatus">Telemetry: Live (0ms)</span>
+      </div>
+      <div class="dev-status-pill" id="pillBackendStatus">
+        <span class="status-dot"></span>
+        <span id="txtBackendStatus">Backend: Probing...</span>
+      </div>
+      <div class="dev-status-pill" id="pillPwaStatus">
+        <span class="status-dot"></span>
+        <span id="txtPwaStatus">PWA: v2.8.34</span>
+      </div>
+    </div>
+
+    <div class="dev-header-actions">
+      <button type="button" class="btn-dev" id="btnThemeToggle" title="Toggle Dark/Light Mode">
+        <svg style="width: 14px; height: 14px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>
+        <span>Theme</span>
+      </button>
+      <button type="button" class="btn-dev btn-dev-primary" id="btnOpenPosApp" title="Switch or Open Active Station POS Window">
+        <svg style="width: 14px; height: 14px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>
+        <span>Open POS Terminal</span>
+      </button>
+    </div>
+  </header>
+
+  <!-- ====================================================================
+       2. NAVIGATION TABS BAR
+       ==================================================================== -->
+  <nav class="dev-tabs-bar">
+    <button type="button" class="dev-tab-btn active" data-tab="tab-monitor">
+      <svg style="width: 15px; height: 15px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="2"></circle><path d="M16.24 7.76a6 6 0 0 1 0 8.49m-8.48-.01a6 6 0 0 1 0-8.49m11.31-2.82a10 10 0 0 1 0 14.14m-14.14 0a10 10 0 0 1 0-14.14"></path></svg>
+      <span>Live Monitor &amp; Inputs</span>
+      <span class="dev-tab-count" id="badgeEventsCount">0</span>
+    </button>
+    <button type="button" class="dev-tab-btn" data-tab="tab-features">
+      <svg style="width: 15px; height: 15px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg>
+      <span>Function Directory &amp; Simulators</span>
+      <span class="dev-tab-count">7 Modules</span>
+    </button>
+    <button type="button" class="dev-tab-btn" data-tab="tab-maintenance">
+      <svg style="width: 15px; height: 15px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"></path></svg>
+      <span>System Health &amp; Maintenance</span>
+      <span class="dev-tab-count" id="badgeStorageUsed">0 KB</span>
+    </button>
+    <button type="button" class="dev-tab-btn" data-tab="tab-explorer">
+      <svg style="width: 15px; height: 15px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><ellipse cx="12" cy="5" rx="9" ry="3"></ellipse><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"></path><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"></path></svg>
+      <span>Raw Database Explorer</span>
+      <span class="dev-tab-count" id="badgeOrdersCount">0 Orders</span>
+    </button>
+  </nav>
+
+  <!-- ====================================================================
+       3. MAIN CONTENT BODY
+       ==================================================================== -->
+  <main class="dev-main">
+
+    <!-- KPI Summary Ribbon -->
+    <section class="dev-kpi-ribbon">
+      <div class="dev-kpi-card">
+        <div class="dev-kpi-top">
+          <span class="dev-kpi-lbl">Today Gross Sales</span>
+          <svg style="width: 16px; height: 16px; color: var(--dev-accent);" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="6" width="20" height="12" rx="2"></rect><circle cx="12" cy="12" r="2"></circle></svg>
+        </div>
+        <strong class="dev-kpi-val" id="kpiGrossSales">₱0.00</strong>
+        <span class="dev-kpi-sub" id="kpiOrdersRatio">0 orders recorded</span>
+      </div>
+
+      <div class="dev-kpi-card">
+        <div class="dev-kpi-top">
+          <span class="dev-kpi-lbl">Operating Expenses</span>
+          <svg style="width: 16px; height: 16px; color: #ef4444;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>
+        </div>
+        <strong class="dev-kpi-val" style="color: #ef4444;" id="kpiExpensesTotal">₱0.00</strong>
+        <span class="dev-kpi-sub" id="kpiExpenseCount">0 operational items</span>
+      </div>
+
+      <div class="dev-kpi-card">
+        <div class="dev-kpi-top">
+          <span class="dev-kpi-lbl">Real Daily Net Profit</span>
+          <svg style="width: 16px; height: 16px; color: #10b981;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"></polyline><polyline points="17 6 23 6 23 12"></polyline></svg>
+        </div>
+        <strong class="dev-kpi-val" style="color: #10b981;" id="kpiNetProfit">₱0.00</strong>
+        <span class="dev-kpi-sub">Gross - Operational Costs</span>
+      </div>
+
+      <div class="dev-kpi-card">
+        <div class="dev-kpi-top">
+          <span class="dev-kpi-lbl">Outstanding Utang (Debt)</span>
+          <svg style="width: 16px; height: 16px; color: #f59e0b;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+        </div>
+        <strong class="dev-kpi-val" style="color: #f59e0b;" id="kpiPendingDebt">₱0.00</strong>
+        <span class="dev-kpi-sub" id="kpiPendingOrders">0 uncollected orders</span>
+      </div>
+
+      <div class="dev-kpi-card">
+        <div class="dev-kpi-top">
+          <span class="dev-kpi-lbl">Rack Ready Jugs</span>
+          <svg style="width: 16px; height: 16px; color: #38bdf8;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"></path></svg>
+        </div>
+        <strong class="dev-kpi-val" id="kpiReadyJugs">150 Gal</strong>
+        <span class="dev-kpi-sub" id="kpiEmptiesCount">34 returned awaiting wash</span>
+      </div>
+    </section>
+
+    <!-- ====================================================================
+         VIEW 1: LIVE MONITOR & REAL-TIME INPUTS
+         ==================================================================== -->
+    <section class="dev-panel active" id="tab-monitor">
+      <div class="dev-monitor-grid">
+
+        <!-- Left: Cashier Register Live Mirror -->
+        <div class="dev-mirror-card">
+          <div class="dev-card-header">
+            <h2 class="dev-card-title">
+              <svg style="width: 16px; height: 16px; color: var(--dev-accent);" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect><line x1="8" y1="21" x2="16" y2="21"></line><line x1="12" y1="17" x2="12" y2="21"></line></svg>
+              <span>POS Terminal Live Mirror</span>
+            </h2>
+            <span class="live-pulse-badge">
+              <span class="pulse-circle"></span>
+              <span>LIVE</span>
+            </span>
+          </div>
+
+          <!-- Active Cashier -->
+          <div class="mirror-operator-row">
+            <div class="mirror-op-left">
+              <div class="mirror-avatar" id="mirrorCashierAvatar">N</div>
+              <div class="mirror-op-info">
+                <strong id="mirrorCashierName">Neil</strong>
+                <span id="mirrorCashierRole">Station Manager • Terminal #1</span>
+              </div>
+            </div>
+            <span class="dev-badge-console" id="mirrorActiveViewBadge">VIEW: POS</span>
+          </div>
+
+          <!-- Live Punch-in Data Strip -->
+          <div class="mirror-order-strip">
+            <div class="mirror-data-row">
+              <span class="mirror-data-lbl">Active Order No:</span>
+              <strong class="mirror-data-val" id="mirrorOrderNo">#000000</strong>
+            </div>
+
+            <div class="mirror-data-row">
+              <span class="mirror-data-lbl">Order Channel:</span>
+              <div class="mirror-pill-group">
+                <span class="mirror-tag active" id="mirrorChannelWalkin">Walk-in</span>
+                <span class="mirror-tag" id="mirrorChannelDelivery">Delivery</span>
+              </div>
+            </div>
+
+            <div class="mirror-data-row">
+              <span class="mirror-data-lbl">Item &amp; Unit Price:</span>
+              <strong class="mirror-data-val" id="mirrorProdDesc">1 Gallon Purified • ₱35</strong>
+            </div>
+
+            <div class="mirror-data-row">
+              <span class="mirror-data-lbl">Quantity Inputted:</span>
+              <strong class="mirror-data-val highlight" id="mirrorQty">1 Gallon</strong>
+            </div>
+
+            <div class="mirror-data-row">
+              <span class="mirror-data-lbl">Computed Total:</span>
+              <strong class="mirror-data-val highlight" style="color: #10b981;" id="mirrorTotal">₱35.00</strong>
+            </div>
+
+            <div class="mirror-data-row">
+              <span class="mirror-data-lbl">Status Mode:</span>
+              <div class="mirror-pill-group">
+                <span class="mirror-tag paid" id="mirrorPayMode">PAID</span>
+              </div>
+            </div>
+
+            <div class="mirror-data-row">
+              <span class="mirror-data-lbl">Payment Method:</span>
+              <span class="mirror-data-val" id="mirrorPaymentMethod">Cash Drawer</span>
+            </div>
+
+            <div class="mirror-data-row">
+              <span class="mirror-data-lbl">Cash Received:</span>
+              <strong class="mirror-data-val" id="mirrorTendered">₱0.00</strong>
+            </div>
+
+            <div class="mirror-data-row">
+              <span class="mirror-data-lbl">Calculated Change:</span>
+              <strong class="mirror-data-val" style="color: #38bdf8;" id="mirrorChange">₱0.00</strong>
+            </div>
+
+            <div class="mirror-data-row">
+              <span class="mirror-data-lbl">Customer / Note:</span>
+            </div>
+            <div class="mirror-note-box" id="mirrorNoteDisplay">
+              (No note or address entered yet...)
+            </div>
+
+            <div class="mirror-data-row" style="margin-top: 4px;">
+              <span class="mirror-data-lbl">Last Input Sync:</span>
+              <span class="mirror-data-val" style="font-size: 0.72rem; color: var(--dev-text-dim);" id="mirrorLastSync">Waiting for input...</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Right: Streaming Telemetry Feed -->
+        <div class="dev-stream-card">
+          <div class="dev-stream-toolbar">
+            <div class="dev-filter-chips">
+              <button type="button" class="filter-chip active" data-filter="all">All Events</button>
+              <button type="button" class="filter-chip" data-filter="order">Orders</button>
+              <button type="button" class="filter-chip" data-filter="pay">Payments</button>
+              <button type="button" class="filter-chip" data-filter="debt">Bayad Utang</button>
+              <button type="button" class="filter-chip" data-filter="driver">Driver Settle</button>
+              <button type="button" class="filter-chip" data-filter="expense">Expenses</button>
+              <button type="button" class="filter-chip" data-filter="system">Hardware &amp; System</button>
+            </div>
+            <div style="display: flex; gap: 8px;">
+              <button type="button" class="btn-dev" id="btnPauseStream">Pause</button>
+              <button type="button" class="btn-dev btn-dev-danger" id="btnClearStream">Clear</button>
+            </div>
+          </div>
+
+          <div class="dev-stream-scroll" id="devStreamContainer">
+            <div class="stream-empty-state" id="streamEmptyNotice">
+              <svg style="width: 32px; height: 32px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+              <strong>Waiting for station events...</strong>
+              <p>Type in the POS terminal or run a simulator below to see real-time telemetry streaming.</p>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ====================================================================
+         VIEW 2: FUNCTION DIRECTORY & SIMULATORS
+         ==================================================================== -->
+    <section class="dev-panel" id="tab-features">
+      <div class="dev-features-grid">
+
+        <!-- 1. Order Punch & Tender Engine -->
+        <div class="dev-feature-card">
+          <div class="feature-top">
+            <div class="feature-icon-circle" style="background: rgba(2, 132, 199, 0.18); color: #38bdf8;">
+              <svg style="width: 20px; height: 20px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="21" r="1"></circle><circle cx="20" cy="21" r="1"></circle><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path></svg>
+            </div>
+            <div class="feature-info">
+              <h3>1. Order &amp; Pricing Engine</h3>
+              <p>Computes refill quantities, wholesale batches, Paid/Unpaid toggles, and live change calculation.</p>
+            </div>
+          </div>
+          <div class="feature-specs-list">
+            <div class="feature-spec-item"><span class="feature-spec-lbl">Refill Pricing:</span><span class="feature-spec-val">₱35.00 / 1 Gallon</span></div>
+            <div class="feature-spec-item"><span class="feature-spec-lbl">New Jug + Water:</span><span class="feature-spec-val">₱250.00 / Jug</span></div>
+            <div class="feature-spec-item"><span class="feature-spec-lbl">Change Calc:</span><span class="feature-spec-val">Real-time Tender - Total</span></div>
+          </div>
+          <div class="feature-actions">
+            <button type="button" class="btn-dev btn-dev-primary" id="btnSimulateWalkin">Simulate Walk-in (3 Gal)</button>
+            <button type="button" class="btn-dev" id="btnSimulateDelivery">Simulate Delivery (10 Gal)</button>
+          </div>
+        </div>
+
+        <!-- 2. Bayad Utang (Debt Subsystem) -->
+        <div class="dev-feature-card">
+          <div class="feature-top">
+            <div class="feature-icon-circle" style="background: rgba(16, 185, 129, 0.18); color: #10b981;">
+              <svg style="width: 20px; height: 20px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+            </div>
+            <div class="feature-info">
+              <h3>2. Bayad Utang (Debt Collection)</h3>
+              <p>Tracks uncollected accounts receivable, partial debt repayments, and automatic order settlement.</p>
+            </div>
+          </div>
+          <div class="feature-specs-list">
+            <div class="feature-spec-item"><span class="feature-spec-lbl">Uncollected Debt:</span><span class="feature-spec-val" id="specTotalDebt">₱0.00</span></div>
+            <div class="feature-spec-item"><span class="feature-spec-lbl">Partial Payment:</span><span class="feature-spec-val">Supported with live balance</span></div>
+            <div class="feature-spec-item"><span class="feature-spec-lbl">Payment Mode:</span><span class="feature-spec-val">Cash Drawer or GCash</span></div>
+          </div>
+          <div class="feature-actions">
+            <button type="button" class="btn-dev btn-dev-success" id="btnSimulateDebtPayment">Simulate Bayad Utang (₱105)</button>
+          </div>
+        </div>
+
+        <!-- 3. GCash QR Code Integration -->
+        <div class="dev-feature-card">
+          <div class="feature-top">
+            <div class="feature-icon-circle" style="background: rgba(0, 122, 255, 0.18); color: #007aff;">
+              <svg style="width: 20px; height: 20px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="5" y="2" width="14" height="20" rx="2" ry="2"></rect><line x1="12" y1="18" x2="12.01" y2="18"></line></svg>
+            </div>
+            <div class="feature-info">
+              <h3>3. GCash QR &amp; E-Wallet</h3>
+              <p>Admin custom QR upload, 512x512 canvas compression, standee presentation, and enlarged modal.</p>
+            </div>
+          </div>
+          <div class="feature-specs-list">
+            <div class="feature-spec-item"><span class="feature-spec-lbl">Station Number:</span><span class="feature-spec-val" id="specGcashNum">0917-829-4102</span></div>
+            <div class="feature-spec-item"><span class="feature-spec-lbl">Custom QR Status:</span><span class="feature-spec-val" id="specGcashQrStatus">Uploaded</span></div>
+            <div class="feature-spec-item"><span class="feature-spec-lbl">Enlarge Standee:</span><span class="feature-spec-val">Full Screen Modal</span></div>
+          </div>
+          <div class="feature-actions">
+            <button type="button" class="btn-dev" id="btnSimulateGcashOrder">Simulate GCash Order (₱70)</button>
+          </div>
+        </div>
+
+        <!-- 4. Multicab Driver Settlement Sheet -->
+        <div class="dev-feature-card">
+          <div class="feature-top">
+            <div class="feature-icon-circle" style="background: rgba(139, 92, 246, 0.18); color: #a78bfa;">
+              <svg style="width: 20px; height: 20px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="3" width="15" height="13"></rect><polygon points="16 8 20 8 23 11 23 16 16 8"></polygon><circle cx="5.5" cy="18.5" r="2.5"></circle><circle cx="18.5" cy="18.5" r="2.5"></circle></svg>
+            </div>
+            <div class="feature-info">
+              <h3>4. Driver Settlement Sheet</h3>
+              <p>Reconciles loaded vs delivered jugs, returned empties, fuel gas deductions, and cashier over/short.</p>
+            </div>
+          </div>
+          <div class="feature-specs-list">
+            <div class="feature-spec-item"><span class="feature-spec-lbl">Active Drivers:</span><span class="feature-spec-val">Kuya Jun, Kuya Bert</span></div>
+            <div class="feature-spec-item"><span class="feature-spec-lbl">Reconciliation Math:</span><span class="feature-spec-val">Loaded = Sold + Empties + Unsold</span></div>
+            <div class="feature-spec-item"><span class="feature-spec-lbl">Auto Fuel Log:</span><span class="feature-spec-val">Auto-creates expense record</span></div>
+          </div>
+          <div class="feature-actions">
+            <button type="button" class="btn-dev" id="btnSimulateDriverSettlement">Simulate Settlement (56 Sold • ₱1,960)</button>
+          </div>
+        </div>
+
+        <!-- 5. Quick Operational Expenses & P&L -->
+        <div class="dev-feature-card">
+          <div class="feature-top">
+            <div class="feature-icon-circle" style="background: rgba(239, 68, 68, 0.18); color: #ef4444;">
+              <svg style="width: 20px; height: 20px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline></svg>
+            </div>
+            <div class="feature-info">
+              <h3>5. Quick Expense &amp; Real Net Profit</h3>
+              <p>One-click logging with 7 category chips, cash drawer vs petty cash source, and real-time P&amp;L deduction.</p>
+            </div>
+          </div>
+          <div class="feature-specs-list">
+            <div class="feature-spec-item"><span class="feature-spec-lbl">Categories:</span><span class="feature-spec-val">Fuel, Seals, Power, Water, Filters, Meals, Other</span></div>
+            <div class="feature-spec-item"><span class="feature-spec-lbl">Drawer Deduction:</span><span class="feature-spec-val">Bawas sa Kaha vs Petty</span></div>
+            <div class="feature-spec-item"><span class="feature-spec-lbl">P&amp;L Metric:</span><span class="feature-spec-val">Net = Gross - Expenses</span></div>
+          </div>
+          <div class="feature-actions">
+            <button type="button" class="btn-dev btn-dev-danger" id="btnSimulateExpenseFuel">Log Test Fuel Expense (₱150)</button>
+            <button type="button" class="btn-dev" id="btnSimulateExpenseSeals">Log Cap Seals (₱85)</button>
+          </div>
+        </div>
+
+        <!-- 6. Hardware & POS Peripherals -->
+        <div class="dev-feature-card">
+          <div class="feature-top">
+            <div class="feature-icon-circle" style="background: rgba(245, 158, 11, 0.18); color: #f59e0b;">
+              <svg style="width: 20px; height: 20px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 6 2 18 2 18 9"></polyline><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path><rect x="6" y="14" width="12" height="8"></rect></svg>
+            </div>
+            <div class="feature-info">
+              <h3>6. Hardware &amp; Peripherals</h3>
+              <p>ESC/POS cash drawer kick solenoid triggers, thermal receipt generation (58mm/80mm), and audio synthesizer.</p>
+            </div>
+          </div>
+          <div class="feature-specs-list">
+            <div class="feature-spec-item"><span class="feature-spec-lbl">Drawer Solenoid:</span><span class="feature-spec-val">RJ11 Pin 2 / Pin 5 Pulse</span></div>
+            <div class="feature-spec-item"><span class="feature-spec-lbl">Receipt Engine:</span><span class="feature-spec-val">Thermal ESC/POS Preview</span></div>
+            <div class="feature-spec-item"><span class="feature-spec-lbl">Audio Feedback:</span><span class="feature-spec-val">HTML5 WebAudio Synthesizer</span></div>
+          </div>
+          <div class="feature-actions">
+            <button type="button" class="btn-dev" id="btnTestDrawerKick">Test Drawer Solenoid</button>
+            <button type="button" class="btn-dev" id="btnTestSoundChime">Test Sound Chimes</button>
+            <button type="button" class="btn-dev" id="btnTestThermalReceipt">Preview Receipt</button>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ====================================================================
+         VIEW 3: SYSTEM HEALTH & MAINTENANCE
+         ==================================================================== -->
+    <section class="dev-panel" id="tab-maintenance">
+      <div class="dev-maintenance-grid">
+
+        <!-- Left: Storage & Database Health -->
+        <div class="maint-card">
+          <div class="dev-card-header">
+            <h2 class="dev-card-title">
+              <svg style="width: 16px; height: 16px; color: var(--dev-accent);" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><ellipse cx="12" cy="5" rx="9" ry="3"></ellipse><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"></path><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"></path></svg>
+              <span>Storage &amp; Database Health</span>
+            </h2>
+          </div>
+
+          <!-- LocalStorage Gauge -->
+          <div class="storage-gauge-wrap">
+            <div class="gauge-stats">
+              <span>LocalStorage Consumption:</span>
+              <strong id="maintStoragePercent">0% (0 KB / 5 MB)</strong>
+            </div>
+            <div class="gauge-track">
+              <div class="gauge-fill" id="maintStorageFill" style="width: 5%;"></div>
+            </div>
+          </div>
+
+          <!-- Table counts breakdown -->
+          <div class="feature-specs-list" style="margin-top: 10px;">
+            <div class="feature-spec-item"><span class="feature-spec-lbl">Orders in DB:</span><span class="feature-spec-val" id="maintCountOrders">0</span></div>
+            <div class="feature-spec-item"><span class="feature-spec-lbl">Operational Expenses:</span><span class="feature-spec-val" id="maintCountExpenses">0</span></div>
+            <div class="feature-spec-item"><span class="feature-spec-lbl">Driver Settlements:</span><span class="feature-spec-val" id="maintCountSettlements">0</span></div>
+            <div class="feature-spec-item"><span class="feature-spec-lbl">Customer Records:</span><span class="feature-spec-val" id="maintCountCustomers">0</span></div>
+            <div class="feature-spec-item"><span class="feature-spec-lbl">Security Audit Logs:</span><span class="feature-spec-val" id="maintCountAudit">0</span></div>
+          </div>
+
+          <div class="feature-specs-list">
+            <div class="feature-spec-item"><span class="feature-spec-lbl">Active PWA Service Worker:</span><span class="feature-spec-val" id="maintSwVersion">v2.8.34</span></div>
+            <div class="feature-spec-item"><span class="feature-spec-lbl">Backend Server (Port 3000):</span><span class="feature-spec-val" id="maintBackendEndpoint">/api/status</span></div>
+          </div>
+        </div>
+
+        <!-- Right: Maintenance Actions -->
+        <div class="maint-card">
+          <div class="dev-card-header">
+            <h2 class="dev-card-title">
+              <svg style="width: 16px; height: 16px; color: var(--dev-accent);" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"></path></svg>
+              <span>Maintenance &amp; Backup Operations</span>
+            </h2>
+          </div>
+
+          <div class="maint-actions-list">
+            <!-- 1. Export JSON -->
+            <div class="maint-action-row">
+              <div class="maint-action-text">
+                <strong>Export Full System Backup (JSON)</strong>
+                <span>Download complete snapshot of orders, settlements, expenses, settings, and inventory.</span>
+              </div>
+              <button type="button" class="btn-dev btn-dev-primary" id="btnExportFullBackup">Export JSON</button>
+            </div>
+
+            <!-- 2. Restore JSON -->
+            <div class="maint-action-row">
+              <div class="maint-action-text">
+                <strong>Restore Database from JSON</strong>
+                <span>Import and restore previously downloaded station database snapshot.</span>
+              </div>
+              <label class="btn-dev" style="cursor: pointer;">
+                <span>Import File</span>
+                <input type="file" id="inputImportBackupFile" accept=".json" style="display: none;">
+              </label>
+            </div>
+
+            <!-- 3. Seed Sample Data -->
+            <div class="maint-action-row">
+              <div class="maint-action-text">
+                <strong>Seed Realistic Test Data</strong>
+                <span>Populates 8 sample transactions across walk-in, delivery, debt, settlements, and expenses.</span>
+              </div>
+              <button type="button" class="btn-dev btn-dev-success" id="btnSeedDemoData">Seed Data</button>
+            </div>
+
+            <!-- 4. Purge Cache -->
+            <div class="maint-action-row">
+              <div class="maint-action-text">
+                <strong>Purge PWA Cache &amp; Unregister SW</strong>
+                <span>Forces all cached HTML/JS/CSS bundles to be wiped so the latest code loads fresh.</span>
+              </div>
+              <button type="button" class="btn-dev" id="btnPurgePwaCache">Purge Cache</button>
+            </div>
+
+            <!-- 5. Clear Demo Orders -->
+            <div class="maint-action-row">
+              <div class="maint-action-text">
+                <strong>Clear Orders &amp; Financials</strong>
+                <span>Wipes transactions, expenses, and settlements while keeping station pricing and configuration intact.</span>
+              </div>
+              <button type="button" class="btn-dev btn-dev-danger" id="btnClearDemoOrders">Reset Orders</button>
+            </div>
+
+            <!-- 6. Factory Reset -->
+            <div class="maint-action-row">
+              <div class="maint-action-text">
+                <strong>Factory Reset Station</strong>
+                <span>Completely erases all LocalStorage data, reset to factory zero state.</span>
+              </div>
+              <button type="button" class="btn-dev btn-dev-danger" id="btnFactoryResetStation">Factory Reset</button>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ====================================================================
+         VIEW 4: RAW DATABASE EXPLORER
+         ==================================================================== -->
+    <section class="dev-panel" id="tab-explorer">
+      <div class="dev-explorer-wrap">
+
+        <div class="explorer-subnav">
+          <button type="button" class="btn-explorer-tab active" data-exp="orders">Orders (<span id="expBadgeOrders">0</span>)</button>
+          <button type="button" class="btn-explorer-tab" data-exp="expenses">Expenses (<span id="expBadgeExpenses">0</span>)</button>
+          <button type="button" class="btn-explorer-tab" data-exp="settlements">Driver Settlements (<span id="expBadgeSettlements">0</span>)</button>
+          <button type="button" class="btn-explorer-tab" data-exp="customers">Customers (<span id="expBadgeCustomers">0</span>)</button>
+          <button type="button" class="btn-explorer-tab" data-exp="inventory">Inventory</button>
+          <button type="button" class="btn-explorer-tab" data-exp="settings">Station Settings</button>
+          <button type="button" class="btn-explorer-tab" data-exp="staff">Staff Directory</button>
+          <button type="button" class="btn-explorer-tab" data-exp="audit">Audit Logs (<span id="expBadgeAudit">0</span>)</button>
+        </div>
+
+        <div class="explorer-table-card">
+          <div class="explorer-table-header">
+            <input type="text" class="explorer-search-input" id="explorerSearchInput" placeholder="Filter rows by text, ID, or name...">
+            <div style="display: flex; gap: 8px;">
+              <button type="button" class="btn-dev" id="btnRefreshExplorerTable">Refresh</button>
+              <button type="button" class="btn-dev btn-dev-primary" id="btnExportExplorerViewJson">View Raw JSON</button>
+            </div>
+          </div>
+
+          <div class="table-responsive">
+            <table class="dev-data-table" id="devDataTable">
+              <thead id="devDataTableHead">
+                <!-- Dynamically populated -->
+              </thead>
+              <tbody id="devDataTableBody">
+                <!-- Dynamically populated -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ====================================================================
+       MODAL: JSON PAYLOAD INSPECTOR
+       ==================================================================== -->
+  <div class="dev-modal-backdrop" id="devPayloadModal" style="display: none;">
+    <div class="dev-modal-box">
+      <div class="dev-modal-header">
+        <h3 id="devModalTitle">Telemetry Event Payload</h3>
+        <button type="button" class="btn-dev" id="btnCloseDevModal">✕</button>
+      </div>
+      <div class="dev-modal-body">
+        <pre class="json-viewer-pre" id="devModalJsonContent"></pre>
+      </div>
+      <div class="dev-modal-footer">
+        <button type="button" class="btn-dev" id="btnCopyModalJson">Copy JSON</button>
+        <button type="button" class="btn-dev btn-dev-primary" id="btnCloseModalBtn">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="dev.js?v=2.8.34"></script>
+</body>
+</html>

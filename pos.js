@@ -246,6 +246,94 @@ class SoundController {
 const soundCtrl = new SoundController();
 
 // ==========================================================================
+// TELEMETRY & DEVELOPER PORTAL REAL-TIME BUS
+// ==========================================================================
+const Telemetry = {
+  channel: (typeof BroadcastChannel !== 'undefined') ? new BroadcastChannel('rr_pos_telemetry') : null,
+
+  broadcast(type, details, payload = {}) {
+    const event = {
+      id: 'evt_' + Date.now() + '_' + Math.random().toString(36).substr(2, 5),
+      timestamp: Date.now(),
+      timeStr: new Date().toLocaleTimeString(),
+      type: type,
+      details: details,
+      user: (typeof getCurrentUser === 'function' && getCurrentUser()) ? getCurrentUser().name : (State.settings?.cashierName || 'Neil'),
+      role: (typeof getCurrentUser === 'function' && getCurrentUser()) ? getCurrentUser().role : 'manager',
+      payload: payload
+    };
+
+    // 1. BroadcastChannel (0ms zero-lag between tabs)
+    if (this.channel) {
+      try { this.channel.postMessage(event); } catch (e) {}
+    }
+
+    // 2. LocalStorage trigger (fires storage event across all windows)
+    try {
+      localStorage.setItem('rr_telemetry_event', JSON.stringify(event));
+    } catch (e) {}
+
+    // 3. Save to rolling history buffer in LocalStorage
+    try {
+      const historyKey = 'rr_telemetry_history';
+      const history = JSON.parse(localStorage.getItem(historyKey) || '[]');
+      history.unshift(event);
+      if (history.length > 80) history.pop();
+      localStorage.setItem(historyKey, JSON.stringify(history));
+    } catch (e) {}
+
+    // 4. Send to Node server if active
+    if (window.location.protocol.startsWith('http')) {
+      fetch('/api/telemetry', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(event)
+      }).catch(() => {});
+    }
+  },
+
+  syncRegisterInputs() {
+    const product = PRODUCTS[State.prodKey] || PRODUCTS.purified;
+    const unitPrice = product ? product.price : 35;
+    const total = unitPrice * (State.qty || 1);
+    const tender = Number(State.tenderAmount) || 0;
+    const change = Math.max(0, tender - total);
+
+    const inputSnapshot = {
+      timestamp: Date.now(),
+      timeStr: new Date().toLocaleTimeString(),
+      cashier: (typeof getCurrentUser === 'function' && getCurrentUser()) ? getCurrentUser().name : 'Neil',
+      orderNo: State.currentOrderNo || '#000000',
+      activeView: State.activeView || 'pos',
+      channel: State.channel || 'walkin',
+      prodKey: State.prodKey || 'purified',
+      prodName: product ? product.name : '1 Gallon Purified',
+      unitPrice: unitPrice,
+      qty: State.qty || 1,
+      total: total,
+      orderPayMode: State.orderPayMode || 'paid',
+      paymentMethod: State.paymentMethod || 'cash',
+      tenderAmount: tender,
+      selectedTender: State.selectedTender || 'exact',
+      changeAmount: change,
+      note: (document.getElementById('orderNoteInput') ? document.getElementById('orderNoteInput').value : '') || State.note || '',
+      deliveryAddress: (document.getElementById('orderDeliveryAddress') ? document.getElementById('orderDeliveryAddress').value : '') || State.deliveryAddress || ''
+    };
+
+    try {
+      localStorage.setItem('rr_active_register_state', JSON.stringify(inputSnapshot));
+    } catch (e) {}
+
+    if (this.channel) {
+      try {
+        this.channel.postMessage({ type: 'REGISTER_INPUT_UPDATE', state: inputSnapshot });
+      } catch (e) {}
+    }
+  }
+};
+
+
+// ==========================================================================
 // INITIALIZATION
 // ==========================================================================
 document.addEventListener('DOMContentLoaded', () => {
@@ -970,6 +1058,7 @@ function bindEvents() {
   if (deliveryAddressInput) {
     deliveryAddressInput.addEventListener('input', (e) => {
       State.deliveryAddress = e.target.value;
+      if (typeof Telemetry !== 'undefined') Telemetry.syncRegisterInputs();
     });
   }
 
@@ -978,6 +1067,7 @@ function bindEvents() {
   if (noteInput) {
     noteInput.addEventListener('input', (e) => {
       State.note = e.target.value;
+      if (typeof Telemetry !== 'undefined') Telemetry.syncRegisterInputs();
     });
   }
 
@@ -1715,6 +1805,9 @@ function renderOrderSummary() {
   if (btnActionText && State.paymentMethod === 'gcash' && State.orderPayMode !== 'unpaid') {
     btnActionText.textContent = `Confirm GCash Sale • ₱${formatPeso(total)}`;
   }
+  if (typeof Telemetry !== 'undefined') {
+    Telemetry.syncRegisterInputs();
+  }
 }
 
 // ==========================================================================
@@ -1784,6 +1877,9 @@ function processPaymentAndStoreOrder() {
   State.storedOrders.unshift(newOrder);
   saveOrders();
   SupabaseSync.pushOrder(newOrder);
+  if (typeof Telemetry !== 'undefined') {
+    Telemetry.broadcast('ORDER_SUBMITTED', `New ${newOrder.channel.toUpperCase()} order ${newOrder.orderNo} (${newOrder.gallons} Gal • ₱${formatPeso(total)} • ${isPending ? 'UNPAID' : 'PAID'})`, newOrder);
+  }
 
   // Process Carboy Borrow / Return Transactions
   if (State.carboysLoaned > 0 || State.carboysReturned > 0) {
@@ -1880,6 +1976,9 @@ function markOrderPaid(orderNo) {
   soundCtrl.playPaymentChime();
   showToast(`Payment Collected: ${orderNo} • ₱${formatPeso(order.total)} remitted to drawer!`);
   updateDroppyMessage(`Delivery ${orderNo} marked PAID! ₱${formatPeso(order.total)} added to Cash in Hand.`, 'assets/droppy_love.png', 'Payment Collected');
+  if (typeof Telemetry !== 'undefined') {
+    Telemetry.broadcast('PAYMENT_COLLECTED', `Payment collected for order ${orderNo}: ₱${formatPeso(order.total)} marked PAID`, order);
+  }
 
   renderAll();
 }
@@ -8431,6 +8530,15 @@ function processBayadUtangSubmit() {
 
   showToast(`Bayad Utang: Collected ₱${formatPeso(payment)} for order ${order.orderNo}!`);
   updateDroppyMessage(`Bayad Utang received! Collected ₱${formatPeso(payment)} (${newDebt === 0 ? 'Fully Paid' : '₱' + formatPeso(newDebt) + ' left'})`, 'assets/droppy_love.png', 'Payment Collected');
+  if (typeof Telemetry !== 'undefined') {
+    Telemetry.broadcast('DEBT_PAYMENT', `Bayad Utang: ₱${formatPeso(payment)} received for order ${order.orderNo} (${newDebt === 0 ? 'Settled in full' : '₱' + formatPeso(newDebt) + ' remaining debt'})`, {
+      orderNo: order.orderNo,
+      payment: payment,
+      remainingDebt: newDebt,
+      method: payMethod,
+      ref: gcashRef
+    });
+  }
 
   const modal = document.getElementById('bayadUtangModal');
   if (modal) modal.style.display = 'none';
@@ -8671,6 +8779,9 @@ function processDriverSettlementConfirm() {
   State.driverSettlements.unshift(settlementRecord);
   saveDriverSettlements();
   saveOrders();
+  if (typeof Telemetry !== 'undefined') {
+    Telemetry.broadcast('DRIVER_SETTLEMENT', `Driver Settlement: ${driver} remitted ₱${formatPeso(actual)} (${sold} sold, ₱${formatPeso(fuel)} fuel)`, settlementRecord);
+  }
 
   soundCtrl.playPaymentChime();
   showToast(`Driver Remittance Confirmed: ₱${formatPeso(actual)} remitted by ${driver}!`);
@@ -8805,6 +8916,9 @@ function processQuickExpenseSubmit() {
 
   State.expenses.unshift(newExpense);
   saveExpenses();
+  if (typeof Telemetry !== 'undefined') {
+    Telemetry.broadcast('EXPENSE_LOGGED', `Operational Expense: ₱${formatPeso(amt)} for ${catLabels[category]} (${newExpense.note})`, newExpense);
+  }
 
   soundCtrl.playTap();
   showToast(`Expense Logged: ₱${formatPeso(amt)} for ${catLabels[category]}!`);

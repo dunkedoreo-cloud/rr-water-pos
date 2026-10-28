@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>R&R Water - Station POS</title>
-  <link rel="stylesheet" href="pos.css?v=2.8.33">
+  <link rel="stylesheet" href="pos.css?v=2.8.34">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700;800&display=swap" rel="stylesheet">
@@ -84,6 +84,16 @@
           </svg>
           <span>Profile</span>
         </button>
+
+        <!-- Developer Portal & Console -->
+        <a href="dev.html" target="_blank" class="nav-item nav-item-dev" id="navDevPortal" title="Open Developer Portal & System Maintenance Cockpit" style="text-decoration: none;">
+          <svg class="ui-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="16 18 22 12 16 6"></polyline>
+            <polyline points="8 6 2 12 8 18"></polyline>
+          </svg>
+          <span>Developer</span>
+          <span class="nav-badge" style="background: rgba(2, 132, 199, 0.2); color: #0284c7; border: 1px solid rgba(2, 132, 199, 0.35); font-size: 0.60rem; padding: 1px 5px;">PRO</span>
+        </a>
 
       </nav>
 
@@ -1999,7 +2009,7 @@
                       <p>Clean Pure Station POS Engine • Tap to force refresh</p>
                     </div>
                     <div style="display: flex; gap: 8px; align-items: center;">
-                      <span class="meta-badge" id="appBuildVersionBadge">v2.8.33 Stable</span>
+                      <span class="meta-badge" id="appBuildVersionBadge">v2.8.34 Stable</span>
                       <button type="button" class="btn-sub-action" id="btnForceCheckUpdate" title="Clear Cache &amp; Reload Latest Build">
                         <svg class="ui-icon-xs" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><polyline points="23 4 23 10 17 10"></polyline><polyline points="1 20 1 14 7 14"></polyline><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path></svg>
                         <span>Force Reload</span>
@@ -2046,7 +2056,38 @@
                 </div>
               </div>
 
-                            <!-- Card: Supabase Cloud Database Synchronization -->
+                            <!-- Card: Developer Portal & System Maintenance -->
+              <div class="setting-card" id="developerPortalCard">
+                <div class="setting-card-header">
+                  <div class="card-icon-tag" style="background-color: rgba(2, 132, 199, 0.12); color: #0284c7; border-color: rgba(2, 132, 199, 0.28);">
+                    <svg class="ui-icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+                      <polyline points="16 18 22 12 16 6"></polyline>
+                      <polyline points="8 6 2 12 8 18"></polyline>
+                    </svg>
+                  </div>
+                  <div>
+                    <h3>Developer Portal &amp; Telemetry Cockpit</h3>
+                    <p>Live terminal mirror, input telemetry feed, function testing, and database maintenance</p>
+                  </div>
+                </div>
+
+                <div class="setting-card-body">
+                  <div class="setting-inputs-list">
+                    <div class="data-tool-action">
+                      <div>
+                        <strong>Developer Console &amp; Maintenance Hub</strong>
+                        <p>Open dedicated real-time telemetry console, state explorer &amp; backup manager</p>
+                      </div>
+                      <a href="dev.html" target="_blank" class="btn-sub-action" style="background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%); color: #fff; text-decoration: none; display: inline-flex; align-items: center; gap: 6px; padding: 8px 16px; border-radius: var(--radius-md); font-weight: 700;">
+                        <svg class="ui-icon-xs" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>
+                        <span>Launch Developer Console</span>
+                      </a>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Card: Supabase Cloud Database Synchronization -->
               <div class="setting-card" id="supabaseSettingCard">
                 <div class="setting-card-header">
                   <div class="card-icon-tag" style="background-color: rgba(62, 207, 142, 0.12); color: #3ecf8e; border-color: rgba(62, 207, 142, 0.28);">
@@ -3421,8 +3462,8 @@
   </aside>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="supabase_config.js?v=2.8.33"></script>
-  <script src="pos.js?v=2.8.33"></script>
+  <script src="supabase_config.js?v=2.8.34"></script>
+  <script src="pos.js?v=2.8.34"></script>
 
   <!-- ====================================================================
        MODAL 1: BAYAD UTANG (CUSTOMER DEBT COLLECTION & PARTIAL PAYMENT)
