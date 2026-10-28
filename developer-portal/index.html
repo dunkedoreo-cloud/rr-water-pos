@@ -1,0 +1,707 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>R&R Water POS — Developer Cockpit & Telemetry Hub</title>
+  <link rel="icon" type="image/png" href="../assets/water_jug.png">
+  <link rel="stylesheet" href="styles.css?v=2.8.35">
+</head>
+<body>
+
+  <!-- ====================================================================
+       1. TOP DEVELOPER HEADER & SYSTEM HEARTBEAT
+       ==================================================================== -->
+  <header class="dev-header">
+    <div class="dev-brand">
+      <div class="dev-brand-icon">
+        <svg style="width: 20px; height: 20px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="16 18 22 12 16 6"></polyline>
+          <polyline points="8 6 2 12 8 18"></polyline>
+        </svg>
+      </div>
+      <div>
+        <div class="dev-brand-title">
+          <h1>R&amp;R Water POS</h1>
+          <span class="badge-dev">DEV PORTAL</span>
+        </div>
+        <p>Live Input Telemetry • Function Inspector • SQLite Maintenance Lab</p>
+      </div>
+    </div>
+
+    <div class="dev-heartbeat">
+      <div class="status-pill online" id="pillDevServerStatus">
+        <span class="status-dot"></span>
+        <span id="txtDevServerStatus">Dev App: Port 4000</span>
+      </div>
+      <div class="status-pill probing" id="pillPosServerStatus">
+        <span class="status-dot"></span>
+        <span id="txtPosServerStatus">Cashier POS: Probing...</span>
+      </div>
+      <div class="status-pill" id="pillTelemetryLatency">
+        <span class="status-dot"></span>
+        <span id="txtTelemetryLatency">Telemetry: 0ms</span>
+      </div>
+    </div>
+
+    <div class="dev-header-actions">
+      <button type="button" class="btn-icon-action" id="btnToggleAudio" title="Toggle Audio Chimes on Events">
+        <svg style="width: 14px; height: 14px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"></path></svg>
+        <span id="txtAudioStatus">SFX: On</span>
+      </button>
+      <button type="button" class="btn-icon-action" id="btnThemeToggle" title="Toggle Dark/Light Mode">
+        <svg style="width: 14px; height: 14px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>
+        <span>Theme</span>
+      </button>
+      <a href="http://localhost:3000" target="_blank" class="btn-icon-action primary" title="Open Cashier POS Web App in new window">
+        <svg style="width: 14px; height: 14px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>
+        <span>Open POS Terminal</span>
+      </a>
+    </div>
+  </header>
+
+  <!-- ====================================================================
+       2. TABS NAVIGATION BAR
+       ==================================================================== -->
+  <nav class="dev-nav-tabs">
+    <button type="button" class="dev-tab-btn active" id="tabBtnMonitor" data-tab="tabViewMonitor">
+      <svg style="width: 15px; height: 15px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="2"></circle><path d="M16.24 7.76a6 6 0 0 1 0 8.49m-8.48-.01a6 6 0 0 1 0-8.49m11.31-2.82a10 10 0 0 1 0 14.14m-14.14 0a10 10 0 0 1 0-14.14"></path></svg>
+      <span>Live Monitor &amp; Inputs</span>
+      <span class="tab-badge" id="badgeTelemetryCount">0</span>
+    </button>
+    <button type="button" class="dev-tab-btn" id="tabBtnSimulators" data-tab="tabViewSimulators">
+      <svg style="width: 15px; height: 15px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg>
+      <span>Function Simulators</span>
+      <span class="tab-badge">7 Modules</span>
+    </button>
+    <button type="button" class="dev-tab-btn" id="tabBtnMaintenance" data-tab="tabViewMaintenance">
+      <svg style="width: 15px; height: 15px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"></path></svg>
+      <span>SQL &amp; DB Maintenance</span>
+      <span class="tab-badge" id="badgeDbSize">0 KB</span>
+    </button>
+    <button type="button" class="dev-tab-btn" id="tabBtnExplorer" data-tab="tabViewExplorer">
+      <svg style="width: 15px; height: 15px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><ellipse cx="12" cy="5" rx="9" ry="3"></ellipse><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"></path><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"></path></svg>
+      <span>Raw Table Explorer</span>
+      <span class="tab-badge" id="badgeExplorerOrders">0</span>
+    </button>
+    <button type="button" class="dev-tab-btn" id="tabBtnDiagnostics" data-tab="tabViewDiagnostics">
+      <svg style="width: 15px; height: 15px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="8" rx="2" ry="2"></rect><rect x="2" y="14" width="20" height="8" rx="2" ry="2"></rect><line x1="6" y1="6" x2="6.01" y2="6"></line><line x1="6" y1="18" x2="6.01" y2="18"></line></svg>
+      <span>Diagnostics &amp; Cloud</span>
+      <span class="tab-badge" id="badgeCloudStatus">Ready</span>
+    </button>
+  </nav>
+
+  <!-- ====================================================================
+       3. MAIN CONTENT BODY
+       ==================================================================== -->
+  <main class="dev-main-container">
+
+    <!-- Top KPI Summary Ribbon -->
+    <section class="kpi-strip">
+      <div class="kpi-card">
+        <div class="kpi-card-header">
+          <span class="kpi-title">Gross Sales</span>
+          <div class="kpi-icon-wrap" style="background: rgba(2, 132, 199, 0.15); color: var(--dev-accent);">
+            <svg style="width: 16px; height: 16px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="6" width="20" height="12" rx="2"></rect><circle cx="12" cy="12" r="2"></circle></svg>
+          </div>
+        </div>
+        <div class="kpi-val" id="kpiGrossSales">₱0.00</div>
+        <div class="kpi-sub" id="kpiGrossOrders">0 total orders</div>
+      </div>
+
+      <div class="kpi-card">
+        <div class="kpi-card-header">
+          <span class="kpi-title">Operating Expenses</span>
+          <div class="kpi-icon-wrap" style="background: rgba(239, 68, 68, 0.15); color: var(--dev-danger);">
+            <svg style="width: 16px; height: 16px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"></line><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>
+          </div>
+        </div>
+        <div class="kpi-val" id="kpiExpenses">₱0.00</div>
+        <div class="kpi-sub" id="kpiExpensesEntries">0 expense entries</div>
+      </div>
+
+      <div class="kpi-card">
+        <div class="kpi-card-header">
+          <span class="kpi-title">Outstanding Utang</span>
+          <div class="kpi-icon-wrap" style="background: rgba(245, 158, 11, 0.15); color: var(--dev-warning);">
+            <svg style="width: 16px; height: 16px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="8.5" cy="7" r="4"></circle><line x1="20" y1="8" x2="20" y2="14"></line><line x1="23" y1="11" x2="17" y2="11"></line></svg>
+          </div>
+        </div>
+        <div class="kpi-val warning" id="kpiUtang">₱0.00</div>
+        <div class="kpi-sub" id="kpiUtangCustomers">0 customers owing</div>
+      </div>
+
+      <div class="kpi-card">
+        <div class="kpi-card-header">
+          <span class="kpi-title">Real Daily Profit</span>
+          <div class="kpi-icon-wrap" style="background: rgba(16, 185, 129, 0.15); color: var(--dev-success);">
+            <svg style="width: 16px; height: 16px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"></polyline><polyline points="17 6 23 6 23 12"></polyline></svg>
+          </div>
+        </div>
+        <div class="kpi-val highlight" id="kpiNetProfit">₱0.00</div>
+        <div class="kpi-sub">Gross - Expenses - Utang</div>
+      </div>
+    </section>
+
+    <!-- ==================================================================
+         VIEW 1: LIVE MONITOR & CASHIER INPUT MIRROR
+         ================================================================== -->
+    <section class="dev-tab-panel active" id="tabViewMonitor">
+      <div class="monitor-grid">
+
+        <!-- LEFT: REAL-TIME REGISTER MIRROR -->
+        <div class="hud-panel">
+          <div class="hud-panel-header">
+            <div class="hud-panel-title">
+              <svg style="width: 18px; height: 18px; color: var(--dev-accent);" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect><line x1="8" y1="21" x2="16" y2="21"></line><line x1="12" y1="17" x2="12" y2="21"></line></svg>
+              <span>Live Cashier Register Mirror</span>
+            </div>
+            <span class="badge-dev" id="mirrorSyncBadge">POLLING 500MS</span>
+          </div>
+
+          <div class="hud-panel-body">
+            <div class="mirror-kpi-row">
+              <div class="mirror-field-card">
+                <span class="mirror-field-lbl">Active Order No</span>
+                <span class="mirror-field-val" id="mirOrderNo">ORD-0001</span>
+              </div>
+              <div class="mirror-field-card">
+                <span class="mirror-field-lbl">Order Channel</span>
+                <span class="mirror-field-val" id="mirChannel">WALK-IN</span>
+              </div>
+            </div>
+
+            <div class="mirror-kpi-row">
+              <div class="mirror-field-card">
+                <span class="mirror-field-lbl">Slim Gallons (5-Gal)</span>
+                <span class="mirror-field-val" id="mirSlim">0</span>
+              </div>
+              <div class="mirror-field-card">
+                <span class="mirror-field-lbl">Round Gallons (5-Gal)</span>
+                <span class="mirror-field-val" id="mirRound">0</span>
+              </div>
+            </div>
+
+            <div class="mirror-kpi-row">
+              <div class="mirror-field-card">
+                <span class="mirror-field-lbl">Computed Total</span>
+                <span class="mirror-field-val" style="color: var(--dev-accent);" id="mirTotal">₱0.00</span>
+              </div>
+              <div class="mirror-field-card">
+                <span class="mirror-field-lbl">Payment Status Mode</span>
+                <span class="badge-payment-status paid" id="mirStatusBadge">PAID</span>
+              </div>
+            </div>
+
+            <div class="mirror-kpi-row">
+              <div class="mirror-field-card">
+                <span class="mirror-field-lbl">Payment Method</span>
+                <span class="mirror-field-val" id="mirMethod">CASH</span>
+              </div>
+              <div class="mirror-field-card">
+                <span class="mirror-field-lbl">Cash Tendered</span>
+                <span class="mirror-field-val" id="mirTendered">₱0.00</span>
+              </div>
+            </div>
+
+            <div class="mirror-kpi-row">
+              <div class="mirror-field-card">
+                <span class="mirror-field-lbl">Calculated Change</span>
+                <span class="mirror-field-val" style="color: var(--dev-success);" id="mirChange">₱0.00</span>
+              </div>
+              <div class="mirror-field-card">
+                <span class="mirror-field-lbl">Active Cashier</span>
+                <span class="mirror-field-val" id="mirCashier">Front Cashier</span>
+              </div>
+            </div>
+
+            <div class="mirror-callout">
+              <strong>Live Delivery Address / Order Note:</strong>
+              <div id="mirNote" style="margin-top: 4px; font-style: italic;">No active note</div>
+            </div>
+
+            <div style="display: flex; justify-content: space-between; font-size: 0.72rem; color: var(--dev-text-dim);">
+              <span>Last Synchronized: <strong id="mirLastSync">Just now</strong></span>
+              <span>Register State: <strong style="color: var(--dev-success);" id="mirHeartbeat">Active</strong></span>
+            </div>
+          </div>
+        </div>
+
+        <!-- RIGHT: LIVE TELEMETRY STREAM -->
+        <div class="hud-panel">
+          <div class="hud-panel-header">
+            <div class="hud-panel-title">
+              <svg style="width: 18px; height: 18px; color: var(--dev-purple);" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><activity x1="2" y1="12" x2="22" y2="12"></activity><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline></svg>
+              <span>Live Station Telemetry Stream</span>
+            </div>
+            <div style="display: flex; gap: 6px;">
+              <button type="button" class="btn-icon-action" id="btnPauseStream">Pause</button>
+              <button type="button" class="btn-icon-action" id="btnClearStream">Clear</button>
+            </div>
+          </div>
+
+          <div class="hud-panel-body">
+            <div class="telemetry-filter-bar">
+              <div class="filter-pills">
+                <button type="button" class="pill-filter-btn active" data-filter="all">All</button>
+                <button type="button" class="pill-filter-btn" data-filter="order">Orders</button>
+                <button type="button" class="pill-filter-btn" data-filter="payment">Payments</button>
+                <button type="button" class="pill-filter-btn" data-filter="debt">Debt</button>
+                <button type="button" class="pill-filter-btn" data-filter="expense">Expenses</button>
+                <button type="button" class="pill-filter-btn" data-filter="drawer">Drawer</button>
+              </div>
+              <span style="font-size: 0.72rem; color: var(--dev-text-dim);" id="txtStreamCounter">Showing 0 events</span>
+            </div>
+
+            <div class="telemetry-events-list" id="telemetryEventsContainer">
+              <!-- Dynamically populated -->
+              <div class="telemetry-event-item">
+                <div class="event-item-left">
+                  <span class="event-type-badge order">SYSTEM</span>
+                  <div>
+                    <div class="event-desc">Telemetry listener online and listening for events...</div>
+                    <div class="event-time">Now</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ==================================================================
+         VIEW 2: FUNCTION SIMULATORS & TEST LAB
+         ================================================================== -->
+    <section class="dev-tab-panel" id="tabViewSimulators">
+      <div class="simulators-grid">
+
+        <!-- SIMULATOR 1: WALK-IN CASH ORDER -->
+        <div class="sim-card">
+          <div class="sim-card-top">
+            <div class="sim-icon-tag">
+              <svg style="width: 18px; height: 18px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"></path><line x1="3" y1="6" x2="21" y2="6"></line><path d="M16 10a4 4 0 0 1-8 0"></path></svg>
+            </div>
+            <div class="sim-title">
+              <h3>Walk-in Cash Order Simulator</h3>
+              <p>Test standard retail sale, tender change calculation, and ledger entry</p>
+            </div>
+          </div>
+
+          <div class="sim-row-2">
+            <div class="sim-form-group">
+              <label>Round Gallons (₱35)</label>
+              <input type="number" class="sim-input" id="simWalkinRound" value="2" min="0">
+            </div>
+            <div class="sim-form-group">
+              <label>Slim Gallons (₱35)</label>
+              <input type="number" class="sim-input" id="simWalkinSlim" value="1" min="0">
+            </div>
+          </div>
+
+          <div class="sim-row-2">
+            <div class="sim-form-group">
+              <label>Cash Tendered (₱)</label>
+              <input type="number" class="sim-input" id="simWalkinTender" value="150" step="5">
+            </div>
+            <div class="sim-form-group">
+              <label>Calculated Change</label>
+              <input type="text" class="sim-input" id="simWalkinChange" value="₱45.00" readonly>
+            </div>
+          </div>
+
+          <button type="button" class="btn-sim-action" id="btnSimWalkinOrder">
+            <svg style="width: 15px; height: 15px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"></polyline></svg>
+            <span>Simulate &amp; Record Walk-in Order</span>
+          </button>
+          <div class="sim-result-box" id="simWalkinResult">Awaiting test execution...</div>
+        </div>
+
+        <!-- SIMULATOR 2: DELIVERY & UNPAID / UTANG ORDER -->
+        <div class="sim-card">
+          <div class="sim-card-top">
+            <div class="sim-icon-tag" style="background: rgba(245, 158, 11, 0.15); border-color: var(--dev-warning); color: var(--dev-warning);">
+              <svg style="width: 18px; height: 18px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="3" width="15" height="13"></rect><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"></polygon><circle cx="5.5" cy="18.5" r="2.5"></circle><circle cx="18.5" cy="18.5" r="2.5"></circle></svg>
+            </div>
+            <div class="sim-title">
+              <h3>Delivery &amp; Utang Simulator</h3>
+              <p>Test unpaid delivery dispatch and customer credit balance update</p>
+            </div>
+          </div>
+
+          <div class="sim-row-2">
+            <div class="sim-form-group">
+              <label>Customer Name</label>
+              <input type="text" class="sim-input" id="simUtangCustomer" value="Aling Nena Store">
+            </div>
+            <div class="sim-form-group">
+              <label>Gallons to Dispatch</label>
+              <input type="number" class="sim-input" id="simUtangGallons" value="5" min="1">
+            </div>
+          </div>
+
+          <div class="sim-form-group">
+            <label>Delivery Address</label>
+            <input type="text" class="sim-input" id="simUtangAddress" value="Purok 4, Riverside">
+          </div>
+
+          <button type="button" class="btn-sim-action" id="btnSimUtangOrder" style="background: var(--dev-warning);">
+            <svg style="width: 15px; height: 15px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg>
+            <span>Dispatch Delivery as Unpaid (Utang)</span>
+          </button>
+          <div class="sim-result-box" id="simUtangResult">Awaiting test execution...</div>
+        </div>
+
+        <!-- SIMULATOR 3: GCASH QR INTEGRATION -->
+        <div class="sim-card">
+          <div class="sim-card-top">
+            <div class="sim-icon-tag" style="background: rgba(2, 132, 199, 0.15); color: var(--dev-accent);">
+              <svg style="width: 18px; height: 18px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
+            </div>
+            <div class="sim-title">
+              <h3>GCash QR &amp; Payment Simulator</h3>
+              <p>Inspect active station GCash QR and simulate reference validation</p>
+            </div>
+          </div>
+
+          <div class="sim-row-2">
+            <div class="sim-form-group">
+              <label>GCash Amount (₱)</label>
+              <input type="number" class="sim-input" id="simGcashAmount" value="140">
+            </div>
+            <div class="sim-form-group">
+              <label>GCash Ref No</label>
+              <input type="text" class="sim-input" id="simGcashRef" value="109283746501">
+            </div>
+          </div>
+
+          <div style="display: flex; gap: 8px;">
+            <button type="button" class="btn-sim-action" id="btnSimGcashPay" style="flex: 1;">
+              <svg style="width: 15px; height: 15px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+              <span>Verify &amp; Record GCash</span>
+            </button>
+            <button type="button" class="btn-sim-action secondary" id="btnPreviewGcashQr" title="View Current Station GCash QR">
+              <span>View QR</span>
+            </button>
+          </div>
+          <div class="sim-result-box" id="simGcashResult">Ready to test GCash payment.</div>
+        </div>
+
+        <!-- SIMULATOR 4: BAYAD UTANG (DEBT COLLECTION) -->
+        <div class="sim-card">
+          <div class="sim-card-top">
+            <div class="sim-icon-tag" style="background: rgba(16, 185, 129, 0.15); border-color: var(--dev-success); color: var(--dev-success);">
+              <svg style="width: 18px; height: 18px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>
+            </div>
+            <div class="sim-title">
+              <h3>Bayad Utang (Debt Collection)</h3>
+              <p>Simulate customer paying outstanding water credits</p>
+            </div>
+          </div>
+
+          <div class="sim-row-2">
+            <div class="sim-form-group">
+              <label>Customer Name</label>
+              <input type="text" class="sim-input" id="simBayadCustomer" value="Aling Nena Store">
+            </div>
+            <div class="sim-form-group">
+              <label>Amount to Pay (₱)</label>
+              <input type="number" class="sim-input" id="simBayadAmount" value="175">
+            </div>
+          </div>
+
+          <button type="button" class="btn-sim-action" id="btnSimBayadUtang" style="background: var(--dev-success);">
+            <svg style="width: 15px; height: 15px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"></polyline></svg>
+            <span>Record Debt Collection</span>
+          </button>
+          <div class="sim-result-box" id="simBayadResult">Ready for debt collection simulation.</div>
+        </div>
+
+        <!-- SIMULATOR 5: QUICK OPERATIONAL EXPENSE -->
+        <div class="sim-card">
+          <div class="sim-card-top">
+            <div class="sim-icon-tag" style="background: rgba(239, 68, 68, 0.15); border-color: var(--dev-danger); color: var(--dev-danger);">
+              <svg style="width: 18px; height: 18px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"></rect><line x1="1" y1="10" x2="23" y2="10"></line></svg>
+            </div>
+            <div class="sim-title">
+              <h3>Quick Operational Expense Entry</h3>
+              <p>Deduct daily operational costs to compute real daily net profit</p>
+            </div>
+          </div>
+
+          <div class="sim-row-2">
+            <div class="sim-form-group">
+              <label>Expense Category</label>
+              <select class="sim-select" id="simExpCategory">
+                <option value="Cap Seals &amp; Shrink Wrap">Cap Seals &amp; Shrink Wrap</option>
+                <option value="Delivery Vehicle Fuel">Delivery Vehicle Fuel</option>
+                <option value="Micron Filter Cartridge">Micron Filter Cartridge</option>
+                <option value="Staff Meal &amp; Snacks">Staff Meal &amp; Snacks</option>
+                <option value="Electricity / Water Utility">Electricity / Water Utility</option>
+                <option value="Miscellaneous">Miscellaneous</option>
+              </select>
+            </div>
+            <div class="sim-form-group">
+              <label>Amount (₱)</label>
+              <input type="number" class="sim-input" id="simExpAmount" value="85.00">
+            </div>
+          </div>
+
+          <button type="button" class="btn-sim-action" id="btnSimExpense" style="background: var(--dev-danger);">
+            <svg style="width: 15px; height: 15px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+            <span>Log Operational Expense</span>
+          </button>
+          <div class="sim-result-box" id="simExpenseResult">Ready to test expense logging.</div>
+        </div>
+
+        <!-- SIMULATOR 6: ESC/POS CASH DRAWER & THERMAL RECEIPT -->
+        <div class="sim-card">
+          <div class="sim-card-top">
+            <div class="sim-icon-tag" style="background: rgba(168, 85, 247, 0.15); border-color: var(--dev-purple); color: var(--dev-purple);">
+              <svg style="width: 18px; height: 18px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 6 2 18 2 18 9"></polyline><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path><rect x="6" y="14" width="12" height="8"></rect></svg>
+            </div>
+            <div class="sim-title">
+              <h3>Cash Drawer &amp; Thermal Printer</h3>
+              <p>Test ESC/POS hardware kick signal and generate 80mm receipt</p>
+            </div>
+          </div>
+
+          <div style="display: flex; gap: 8px;">
+            <button type="button" class="btn-sim-action" id="btnSimDrawerKick" style="flex: 1; background: var(--dev-purple);">
+              <svg style="width: 15px; height: 15px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="6" width="20" height="12" rx="2"></rect><circle cx="12" cy="12" r="2"></circle></svg>
+              <span>Kick Drawer (Pulse)</span>
+            </button>
+            <button type="button" class="btn-sim-action secondary" id="btnSimPrintReceipt" style="flex: 1;">
+              <span>80mm Preview</span>
+            </button>
+          </div>
+          <div class="sim-result-box" id="simHardwareResult">ESC/POS pin ready.</div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ==================================================================
+         VIEW 3: SQL CONSOLE & DB MAINTENANCE LAB
+         ================================================================== -->
+    <section class="dev-tab-panel" id="tabViewMaintenance">
+      <div class="db-tools-grid">
+
+        <!-- SQL CONSOLE -->
+        <div class="hud-panel">
+          <div class="hud-panel-header">
+            <div class="hud-panel-title">
+              <svg style="width: 18px; height: 18px; color: var(--dev-accent);" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="4 17 10 11 4 5"></polyline><line x1="12" y1="19" x2="20" y2="19"></line></svg>
+              <span>Direct SQLite SQL Query Console</span>
+            </div>
+            <button type="button" class="btn-icon-action primary" id="btnRunSqlQuery">Run Query (Ctrl+Enter)</button>
+          </div>
+
+          <div class="hud-panel-body">
+            <div class="sql-quick-queries">
+              <span style="font-size: 0.72rem; color: var(--dev-text-dim);">Quick Templates:</span>
+              <button type="button" class="btn-quick-sql" data-sql="SELECT * FROM orders ORDER BY timestamp DESC LIMIT 20;">Recent Orders</button>
+              <button type="button" class="btn-quick-sql" data-sql="SELECT status, count(*) as count, sum(total) as revenue FROM orders GROUP BY status;">Revenue by Status</button>
+              <button type="button" class="btn-quick-sql" data-sql="SELECT * FROM customers WHERE carboy_balance > 0;">Active Utang Customers</button>
+              <button type="button" class="btn-quick-sql" data-sql="PRAGMA table_info(orders);">Table Schema</button>
+            </div>
+
+            <textarea class="sql-editor-textarea" id="sqlQueryTextarea" spellcheck="false">SELECT * FROM orders ORDER BY timestamp DESC LIMIT 25;</textarea>
+
+            <div style="display: flex; justify-content: space-between; font-size: 0.72rem; color: var(--dev-text-dim);">
+              <span id="txtSqlStatus">Query idle</span>
+              <span id="txtSqlExecutionTime">0ms</span>
+            </div>
+
+            <div class="sql-results-table-wrap" id="sqlResultsWrap">
+              <table class="dev-table" id="sqlResultsTable">
+                <thead id="sqlResultsHead"></thead>
+                <tbody id="sqlResultsBody">
+                  <tr><td style="padding: 20px; text-align: center; color: var(--dev-text-muted);">Execute query to see database records</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- DATABASE OPERATIONS -->
+        <div class="hud-panel">
+          <div class="hud-panel-header">
+            <div class="hud-panel-title">
+              <svg style="width: 18px; height: 18px; color: var(--dev-success);" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path><polyline points="17 21 17 13 7 13 7 21"></polyline><polyline points="7 3 7 8 15 8"></polyline></svg>
+              <span>Database Operations &amp; Safety</span>
+            </div>
+          </div>
+
+          <div class="hud-panel-body">
+            <div class="ops-list">
+              <div class="op-item">
+                <div class="op-info">
+                  <h4>Download SQLite Backup</h4>
+                  <p>Download full binary .db file with WAL checkpointing</p>
+                </div>
+                <button type="button" class="btn-icon-action" id="btnDownloadDbBackup">Download .db</button>
+              </div>
+
+              <div class="op-item">
+                <div class="op-info">
+                  <h4>Export Full Station JSON Dump</h4>
+                  <p>Structured JSON export of all orders, staff, settings, customers</p>
+                </div>
+                <button type="button" class="btn-icon-action" id="btnExportJsonDump">Export JSON</button>
+              </div>
+
+              <div class="op-item">
+                <div class="op-info">
+                  <h4>PRAGMA Integrity Check</h4>
+                  <p>Validate database b-trees, free-lists, and index pages</p>
+                </div>
+                <button type="button" class="btn-icon-action" id="btnRunIntegrityCheck">Check Health</button>
+              </div>
+
+              <div class="op-item">
+                <div class="op-info">
+                  <h4>Run Database VACUUM</h4>
+                  <p>Reclaim unused space and defragment SQLite storage</p>
+                </div>
+                <button type="button" class="btn-icon-action" id="btnRunVacuum">Run VACUUM</button>
+              </div>
+
+              <div class="op-item">
+                <div class="op-info">
+                  <h4>Seed Sample Test Data</h4>
+                  <p>Inject 3 realistic test transactions for POS verification</p>
+                </div>
+                <button type="button" class="btn-icon-action" id="btnSeedData">Seed Orders</button>
+              </div>
+
+              <div class="op-item">
+                <div class="op-info">
+                  <h4>Reset Test Orders</h4>
+                  <p>Wipe all orders table while preserving staff PINs &amp; settings</p>
+                </div>
+                <button type="button" class="btn-icon-action" style="color: var(--dev-danger); border-color: var(--dev-danger);" id="btnWipeOrders">Wipe Orders</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ==================================================================
+         VIEW 4: RAW TABLE EXPLORER
+         ================================================================== -->
+    <section class="dev-tab-panel" id="tabViewExplorer">
+      <div class="hud-panel">
+        <div class="hud-panel-header">
+          <div class="hud-panel-title">
+            <svg style="width: 18px; height: 18px; color: var(--dev-accent);" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><ellipse cx="12" cy="5" rx="9" ry="3"></ellipse><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"></path><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"></path></svg>
+            <span>Raw SQLite Database Table Browser</span>
+          </div>
+          <input type="text" class="sim-input" id="tblSearchInput" placeholder="Filter rows in active table..." style="max-width: 260px;">
+        </div>
+
+        <div class="hud-panel-body">
+          <div class="explorer-controls">
+            <div class="table-subtabs" id="tableSubtabsContainer">
+              <!-- Dynamically populated tables -->
+            </div>
+            <span style="font-size: 0.75rem; color: var(--dev-text-muted);" id="txtExplorerCount">Showing 0 rows</span>
+          </div>
+
+          <div class="sql-results-table-wrap" style="max-height: 520px;">
+            <table class="dev-table" id="explorerDataTable">
+              <thead id="explorerDataHead"></thead>
+              <tbody id="explorerDataBody"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ==================================================================
+         VIEW 5: SYSTEM DIAGNOSTICS & CLOUD SYNC
+         ================================================================== -->
+    <section class="dev-tab-panel" id="tabViewDiagnostics">
+      <div class="simulators-grid">
+
+        <div class="sim-card">
+          <div class="sim-card-top">
+            <div class="sim-icon-tag">
+              <svg style="width: 18px; height: 18px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="8" rx="2" ry="2"></rect><rect x="2" y="14" width="20" height="8" rx="2" ry="2"></rect></svg>
+            </div>
+            <div class="sim-title">
+              <h3>Node.js Server Runtime Metrics</h3>
+              <p>Process health, memory RSS, heap footprint, and uptime</p>
+            </div>
+          </div>
+          <div class="json-pre-viewer" id="diagNodeMetrics">Loading server metrics...</div>
+        </div>
+
+        <div class="sim-card">
+          <div class="sim-card-top">
+            <div class="sim-icon-tag" style="background: rgba(16, 185, 129, 0.15); color: var(--dev-success);">
+              <svg style="width: 18px; height: 18px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 10h-1.26A8 8 0 1 0 9 20h9a5 5 0 0 0 0-10z"></path></svg>
+            </div>
+            <div class="sim-title">
+              <h3>Supabase Cloud Synchronization</h3>
+              <p>Real-time PostgreSQL remote sync status &amp; pending buffer</p>
+            </div>
+          </div>
+          <div class="json-pre-viewer" id="diagCloudMetrics">Probing Supabase configuration...</div>
+        </div>
+
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ====================================================================
+       MODAL: INSPECT JSON PAYLOAD
+       ==================================================================== -->
+  <div class="dev-modal-overlay" id="jsonInspectModal" style="display: none;">
+    <div class="dev-modal-box">
+      <div class="dev-modal-header">
+        <h3 id="jsonModalTitle">Telemetry Event Detail</h3>
+        <button type="button" class="btn-icon-action" id="btnCloseJsonModal" aria-label="Close">
+          <svg style="width: 14px; height: 14px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+        </button>
+      </div>
+      <div class="dev-modal-body">
+        <pre class="json-pre-viewer" id="jsonModalPre"></pre>
+      </div>
+      <div class="dev-modal-footer">
+        <button type="button" class="btn-icon-action" id="btnCopyJson">Copy JSON</button>
+        <button type="button" class="btn-icon-action primary" id="btnDismissJsonModal">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ====================================================================
+       MODAL: THERMAL RECEIPT PREVIEW (80MM)
+       ==================================================================== -->
+  <div class="dev-modal-overlay" id="receiptModal" style="display: none;">
+    <div class="dev-modal-box" style="max-width: 440px;">
+      <div class="dev-modal-header">
+        <h3>80mm ESC/POS Thermal Receipt Preview</h3>
+        <button type="button" class="btn-icon-action" id="btnCloseReceiptModal" aria-label="Close">
+          <svg style="width: 14px; height: 14px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+        </button>
+      </div>
+      <div class="dev-modal-body" style="background: #e2e8f0;">
+        <div class="thermal-paper-view" id="receiptPaperView">
+          <!-- Dynamically populated receipt -->
+        </div>
+      </div>
+      <div class="dev-modal-footer">
+        <button type="button" class="btn-icon-action primary" id="btnDismissReceiptModal">Close Preview</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Developer Web App Engine Script -->
+  <script src="app.js?v=2.8.35"></script>
+</body>
+</html>

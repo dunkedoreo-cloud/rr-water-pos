@@ -5,6 +5,8 @@
   "main": "server.js",
   "scripts": {
     "dev": "node server.js",
+    "dev:portal": "node developer-portal/dev-server.js",
+    "dev:desktop": "python dev_station_console.py",
     "proto": "node -e \"require('child_process').exec('start http://localhost:3000/WRS-POS-Prototype.html'); require('./server.js');\"",
     "dev:proto": "npm run proto",
     "start": "node server.js",
