@@ -1284,6 +1284,42 @@ function bindEvents() {
     });
   }
 
+  // Station Operations inside Cashier Profile Menu
+  const btnMenuExpense = document.getElementById('btnMenuQuickExpense');
+  if (btnMenuExpense) {
+    btnMenuExpense.addEventListener('click', () => {
+      closeCashierDropdown();
+      soundCtrl.playTap();
+      openQuickExpenseModal();
+    });
+  }
+
+  const btnMenuDriver = document.getElementById('btnMenuDriverSettlement');
+  if (btnMenuDriver) {
+    btnMenuDriver.addEventListener('click', () => {
+      closeCashierDropdown();
+      soundCtrl.playTap();
+      openDriverSettlementModal();
+    });
+  }
+
+  const btnMenuEmpties = document.getElementById('btnMenuCarboyEmpties');
+  if (btnMenuEmpties) {
+    btnMenuEmpties.addEventListener('click', () => {
+      closeCashierDropdown();
+      soundCtrl.playTap();
+      openEmptiesModal();
+    });
+  }
+
+  const btnMenuSave = document.getElementById('btnMenuSaveData');
+  if (btnMenuSave) {
+    btnMenuSave.addEventListener('click', () => {
+      closeCashierDropdown();
+      saveStationData();
+    });
+  }
+
   document.addEventListener('click', (e) => {
     const wrap = document.getElementById('cashierProfileWrapper');
     if (wrap && !wrap.contains(e.target)) {

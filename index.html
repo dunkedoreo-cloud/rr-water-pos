@@ -119,16 +119,6 @@
         </div>
 
         <div class="header-right-actions">
-          <!-- Manual Save Data Button -->
-          <button class="btn-header-save" id="btnHeaderSaveData" title="Save All Station Data, Orders &amp; Settings to LocalStorage">
-            <svg class="ui-icon-xs" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
-              <polyline points="17 21 17 13 7 13 7 21"></polyline>
-              <polyline points="7 3 7 8 15 8"></polyline>
-            </svg>
-            <span>Save Data</span>
-          </button>
-
           <!-- Live Clock -->
           <div class="live-clock-pill" id="liveClock">--:--:-- --</div>
 
@@ -155,55 +145,15 @@
             </svg>
           </button>
 
-          <!-- Notification Bell / Live Station Summary Mini-Tab Trigger -->
-          <button class="header-icon-btn btn-header-summary" id="btnNotifications" title="Station Live Summary &amp; All Functions" aria-label="Station Live Summary">
-            <svg class="ui-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
-              <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
-            </svg>
-            <span class="header-status-indicator" title="Live Station Systems Active"></span>
-          </button>
-
-          <!-- Station Live Summary Header Mini-Tab Pill -->
-          <button type="button" class="header-summary-pill-btn" id="btnHeaderSummaryPill" title="Station Live Summary &amp; All Functions (Sales, Drivers, Shift, Shortcuts)" aria-label="Open Station Summary">
+          <!-- Station Live Summary Header Mini-Tab Pill (F2) -->
+          <button type="button" class="header-summary-pill-btn" id="btnHeaderSummaryPill" title="Station Live Summary &amp; All Functions (Sales, Drivers, Shift - F2)" aria-label="Open Station Summary">
             <span class="header-summary-pulse-dot">●</span>
             <span class="header-summary-pill-label">Summary</span>
           </button>
 
-          <!-- Quick Expense Button -->
-          <button type="button" class="btn-header-quick-action expense" id="btnHeaderExpense" title="Record Station Operating Expense (Fuel, Seals, Supplies)">
-            <svg class="ui-icon-xs" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="2" y="5" width="20" height="14" rx="2"></rect><line x1="2" y1="10" x2="22" y2="10"></line></svg>
-            <span>+ Expense</span>
-          </button>
-
-          <!-- Driver Settlement Button -->
-          <button type="button" class="btn-header-quick-action settlement" id="btnHeaderSettlement" title="Driver Multicab Trip Remittance Settlement">
-            <svg class="ui-icon-xs" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="1" y="3" width="15" height="13"></rect><polygon points="16 8 20 8 23 11 23 16 16 8"></polygon><circle cx="5.5" cy="18.5" r="2.5"></circle><circle cx="18.5" cy="18.5" r="2.5"></circle></svg>
-            <span>Driver Settle</span>
-          </button>
-
-          <!-- Empties Ledger / Carboy Tracking Button (F8) -->
-          <button class="header-icon-btn btn-header-empties" id="btnHeaderEmpties" title="Carboy Empties Ledger (F8)" aria-label="Carboy Ledger">
-            <svg class="ui-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M7 2h10v3H7z"></path>
-              <rect x="5" y="5" width="14" height="17" rx="3"></rect>
-              <line x1="9" y1="9" x2="15" y2="9"></line>
-              <line x1="9" y1="13" x2="15" y2="13"></line>
-            </svg>
-            <span class="header-badge-count" id="headerCarboyBadge">0</span>
-          </button>
-
-          <!-- Lock Station Button -->
-          <button class="header-icon-btn" id="btnLockTerminal" title="Lock Station (Away / Privacy)" aria-label="Lock Station">
-            <svg class="ui-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
-              <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
-            </svg>
-          </button>
-
-          <!-- Cashier Profile Pill & Switcher -->
+          <!-- Cashier Profile Pill & Simplified Management Menu -->
           <div class="cashier-profile-wrapper" id="cashierProfileWrapper">
-            <button class="cashier-profile-btn" id="cashierProfileBtn" title="Current Staff Profile">
+            <button class="cashier-profile-btn" id="cashierProfileBtn" title="Current Staff Profile &amp; Station Actions">
               <div class="cashier-avatar" id="headerCashierAvatar">N</div>
               <div class="cashier-profile-meta">
                 <span class="cashier-name-text" id="headerCashierName">Neil</span>
@@ -226,6 +176,29 @@
                 </div>
               </div>
               <div class="cashier-dropdown-divider"></div>
+
+              <!-- Quick Station Operations (Consolidated into menu) -->
+              <button class="cashier-dropdown-item" id="btnMenuQuickExpense">
+                <svg class="ui-icon-xs" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="5" width="20" height="14" rx="2"></rect><line x1="2" y1="10" x2="22" y2="10"></line></svg>
+                <span>Record Station Expense</span>
+              </button>
+              <button class="cashier-dropdown-item" id="btnMenuDriverSettlement">
+                <svg class="ui-icon-xs" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="3" width="15" height="13"></rect><polygon points="16 8 20 8 23 11 23 16 16 8"></polygon><circle cx="5.5" cy="18.5" r="2.5"></circle><circle cx="18.5" cy="18.5" r="2.5"></circle></svg>
+                <span>Driver Trip Settlement</span>
+              </button>
+              <button class="cashier-dropdown-item" id="btnMenuCarboyEmpties">
+                <svg class="ui-icon-xs" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 2h10v3H7z"></path><rect x="5" y="5" width="14" height="17" rx="3"></rect><line x1="9" y1="9" x2="15" y2="9"></line><line x1="9" y1="13" x2="15" y2="13"></line></svg>
+                <span>Carboy Empties Ledger (F8)</span>
+                <span class="header-badge-count" id="headerCarboyBadge" style="margin-left:auto;">0</span>
+              </button>
+              <button class="cashier-dropdown-item" id="btnMenuSaveData">
+                <svg class="ui-icon-xs" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path><polyline points="17 21 17 13 7 13 7 21"></polyline><polyline points="7 3 7 8 15 8"></polyline></svg>
+                <span>Save All Station Data</span>
+              </button>
+
+              <div class="cashier-dropdown-divider"></div>
+
+              <!-- Staff & Security Actions -->
               <button class="cashier-dropdown-item" id="btnMenuViewProfile">
                 <svg class="ui-icon-xs" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
                 <span>Operator Profile &amp; Shift</span>
@@ -236,7 +209,7 @@
               </button>
               <button class="cashier-dropdown-item" id="btnMenuLockTerminal">
                 <svg class="ui-icon-xs" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
-                <span>Lock Station (Away)</span>
+                <span>Lock Station (F10)</span>
               </button>
               <button class="cashier-dropdown-item" id="btnMenuViewAuditLog">
                 <svg class="ui-icon-xs" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>
