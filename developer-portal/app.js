@@ -1714,9 +1714,31 @@
         if (!confirm('Clear all transactions in the orders table? Station settings & staff PINs will be preserved.')) return;
         try {
           localStorage.removeItem('rr_pos_stored_orders');
+          localStorage.setItem('rr_pos_stored_orders', '[]');
+          if (typeof bc !== 'undefined' && bc) {
+            bc.postMessage({ type: 'orders_updated', count: 0, orders: [] });
+          }
           await fetch('/api/dev/wipe', { method: 'POST' });
         } catch (e) {}
-        if (terminal) terminal.textContent = 'Orders table cleared.';
+        if (terminal) terminal.textContent = 'Orders table cleared. History reset to 0.';
+        loadDashboardTable();
+        pollVitals();
+      });
+    }
+
+    // Quick Clear Button in Recent Station Transactions Header
+    const btnQuickClear = document.getElementById('btnDevQuickClearOrders');
+    if (btnQuickClear) {
+      btnQuickClear.addEventListener('click', async () => {
+        if (!confirm('Clear all recorded station orders and start from 0 for deployment?')) return;
+        try {
+          localStorage.removeItem('rr_pos_stored_orders');
+          localStorage.setItem('rr_pos_stored_orders', '[]');
+          if (typeof bc !== 'undefined' && bc) {
+            bc.postMessage({ type: 'orders_updated', count: 0, orders: [] });
+          }
+          await fetch('/api/dev/wipe', { method: 'POST' });
+        } catch (e) {}
         loadDashboardTable();
         pollVitals();
       });

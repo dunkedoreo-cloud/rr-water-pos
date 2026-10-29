@@ -538,7 +538,12 @@
         <div class="dash-table-card">
           <div class="table-header-bar">
             <h3>Recent Station Transactions</h3>
-            <div class="executive-dropdown" id="dropdownTableFilter">
+            <div style="display: flex; align-items: center; gap: 8px;">
+              <button type="button" class="btn-white-secondary" id="btnDevQuickClearOrders" style="padding: 5px 12px; font-size: 0.75rem; color: #ef4444; border-color: rgba(239, 68, 68, 0.35); display: inline-flex; align-items: center; gap: 5px;" title="Clear all station order history and start from 0">
+                <svg class="ui-icon-xs" style="width: 13px; height: 13px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+                <span>Clear History (Start 0)</span>
+              </button>
+              <div class="executive-dropdown" id="dropdownTableFilter">
               <button type="button" class="executive-pill" id="btnTableFilterPill">
                 <span class="pill-label" id="lblTableFilter">All Transactions</span>
                 <svg class="pill-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><polyline points="6 9 12 15 18 9"></polyline></svg>

@@ -2531,6 +2531,19 @@ body:not(.light-mode) .orders-filter-dropdown {
   color: var(--color-primary);
 }
 
+.btn-export-csv.btn-clear-orders-danger {
+  color: #ef4444;
+  border-color: rgba(239, 68, 68, 0.35);
+  background-color: rgba(239, 68, 68, 0.05);
+}
+
+.btn-export-csv.btn-clear-orders-danger:hover {
+  border-color: #ef4444;
+  background-color: rgba(239, 68, 68, 0.12);
+  color: #dc2626;
+  transform: translateY(-1px);
+}
+
 /* ==========================================================================
    Orders Segmented Filter Tabs
    ========================================================================== */

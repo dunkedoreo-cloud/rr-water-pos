@@ -390,20 +390,37 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 });
 
+function isMockOrder(o) {
+  if (!o) return true;
+  const num = (o.orderNo || '').toString();
+  if (num.startsWith('#8238') || num.startsWith('#ORD-') || num === '#839102' || num === '#104928' || num === '#T944930' || num === '#169735') return true;
+  if ((Number(o.total) || 0) > 2000) return true;
+  if (o.note && (o.note.includes('Jecob') || o.note.includes('Wade Kuttar') || o.note.includes('Fox ANderson') || o.note.includes('Mile Preden') || o.note.includes('Test Customer') || o.note.includes('Barangay Health') || o.note.includes('Grace Academy') || o.note.includes('Purok 4 Mini Mart'))) return true;
+  return false;
+}
+
 function loadSavedData() {
-  const savedOrders = localStorage.getItem('rr_pos_stored_orders');
-  if (savedOrders !== null) {
-    try {
-      const parsed = JSON.parse(savedOrders);
-      // Retain real orders, purge any previous legacy mock/sample orders
-      const mockOrderNumbers = new Set(['#839102', '#104928', '#8238283', '#8238275', '#8238270']);
-      State.storedOrders = (Array.isArray(parsed) ? parsed : []).filter(o => !mockOrderNumbers.has(o.orderNo));
-    } catch (e) {
+  // Purge any legacy mock or test data for production deployment (Start 0)
+  const cleanSlateVersion = '2026_10_29_clean_zero';
+  const currentSlate = localStorage.getItem('rr_pos_deployment_slate');
+  
+  if (currentSlate !== cleanSlateVersion) {
+    localStorage.removeItem('rr_pos_stored_orders');
+    localStorage.setItem('rr_pos_stored_orders', '[]');
+    localStorage.setItem('rr_pos_deployment_slate', cleanSlateVersion);
+    State.storedOrders = [];
+  } else {
+    const savedOrders = localStorage.getItem('rr_pos_stored_orders');
+    if (savedOrders !== null) {
+      try {
+        const parsed = JSON.parse(savedOrders);
+        State.storedOrders = (Array.isArray(parsed) ? parsed : []).filter(o => !isMockOrder(o));
+      } catch (e) {
+        State.storedOrders = [];
+      }
+    } else {
       State.storedOrders = [];
     }
-  } else {
-    // Start on a clean, empty state by default!
-    State.storedOrders = [];
   }
 
   const savedTheme = localStorage.getItem('rr_pos_theme');
@@ -457,57 +474,9 @@ function loadSavedData() {
   if (urlParams.get('open_mini') === 'true') {
     setTimeout(function() { openMiniOrdersDrawer(); }, 200);
   }
-  if (urlParams.get('demo') === 'analytics' || urlParams.get('demo') === 'realistic') {
-    State.storedOrders = generateRealisticReportOrders();
-  } else if (urlParams.get('demo')) {
-    State.storedOrders = [
-      {
-        orderNo: '#839102',
-        time: '10:15 AM',
-        timestamp: Date.now() - 600000,
-        channel: 'delivery',
-        prodKey: 'purified',
-        prodName: '1 Gallon Purified Refill',
-        gallons: 15,
-        unitPrice: 35,
-        total: 525,
-        paidAmount: 0,
-        unpaidAmount: 525,
-        status: 'pending',
-        tendered: 0,
-        change: 0,
-        note: 'Purok 2 - Aling Nena Store'
-      },
-      {
-        orderNo: '#104928',
-        time: '09:30 AM',
-        timestamp: Date.now() - 1800000,
-        channel: 'walkin',
-        prodKey: 'purified',
-        prodName: '1 Gallon Purified Refill',
-        gallons: 2,
-        unitPrice: 35,
-        total: 70,
-        paidAmount: 70,
-        unpaidAmount: 0,
-        status: 'paid',
-        tendered: 70,
-        change: 0,
-        note: 'Walk-in Counter'
-      }
-    ];
-  }
-
-  const savedSound = localStorage.getItem('rr_pos_sound');
-  if (savedSound !== null) {
-    State.soundEnabled = savedSound === 'true';
-  }
-
-  const savedInv = localStorage.getItem('rr_pos_inventory');
-  if (savedInv) {
-    try {
-      State.inventory = Object.assign({ ready: 150, returned: 34, tds: 8, tankLiters: 1760, maxTank: 2000 }, JSON.parse(savedInv));
-    } catch (e) {}
+  if (urlParams.get('demo')) {
+    // Production deployment starts at 0 orders
+    State.storedOrders = [];
   }
 
   const savedSettings = localStorage.getItem('rr_pos_settings');
@@ -831,6 +800,46 @@ function renderPresets() {
 // ==========================================================================
 // EVENT BINDINGS
 // ==========================================================================
+
+// ==========================================================================
+// DEVELOPER & CASHIER ORDER HISTORY CLEAR (START 0 FOR DEPLOYMENT)
+// ==========================================================================
+function clearStationOrdersHistory(skipConfirm = false) {
+  const executeClear = () => {
+    State.storedOrders = [];
+    saveOrders();
+    try {
+      localStorage.setItem('rr_pos_stored_orders', '[]');
+      if (typeof BroadcastChannel !== 'undefined') {
+        const bc = new BroadcastChannel('rr_pos_channel');
+        bc.postMessage({ type: 'orders_updated', count: 0, orders: [] });
+      }
+      fetch('/api/dev/wipe', { method: 'POST' }).catch(() => {});
+    } catch (e) {}
+
+    renderAll();
+    renderStoredOrders();
+    renderReports();
+    renderFleetDelivered();
+    if (typeof renderStationSummaryDrawer === 'function') renderStationSummaryDrawer();
+    soundCtrl.playTap();
+    showToast('Order history cleared. Station ready at 0 orders.');
+    updateDroppyMessage('Order history reset to 0. Ready for live dispensing!', 'assets/droppy_happy.png', 'Station Ready (0 Orders)');
+  };
+
+  if (skipConfirm) {
+    executeClear();
+    return;
+  }
+
+  openConfirmModal(
+    'Clear All Order History (Start 0)?',
+    'Are you sure you want to permanently clear all recorded orders and transactions? The station will start fresh at 0 orders for production deployment.',
+    executeClear,
+    'assets/droppy_happy.png'
+  );
+}
+
 function bindEvents() {
   // 1. Sidebar Nav
   document.querySelectorAll('.nav-item').forEach(btn => {
@@ -1172,6 +1181,23 @@ function bindEvents() {
     searchInput.addEventListener('input', (e) => {
       State.searchQuery = e.target.value.toLowerCase().trim();
       renderStoredOrders();
+    });
+  }
+
+  // Clear Order History / Reset Orders (Start 0)
+  const btnClearOrders = document.getElementById('btnClearOrdersLog');
+  if (btnClearOrders) {
+    btnClearOrders.addEventListener('click', () => {
+      soundCtrl.playTap();
+      clearStationOrdersHistory();
+    });
+  }
+
+  const btnWipeSettings = document.getElementById('btnWipeAllOrdersSettings');
+  if (btnWipeSettings) {
+    btnWipeSettings.addEventListener('click', () => {
+      soundCtrl.playTap();
+      clearStationOrdersHistory();
     });
   }
 
@@ -2680,268 +2706,8 @@ function renderFleetDelivered() {
 // ==========================================================================
 
 function generateRealisticReportOrders() {
-  const now = Date.now();
-  const ONE_HOUR = 3600 * 1000;
-  const ONE_DAY = 24 * ONE_HOUR;
-
-  // Exact matching items from reference screenshot + chronological distribution across year/months/weeks/today
-  return [
-    {
-      orderNo: '#8238283',
-      note: 'John Mark, +06',
-      gallons: 7,
-      channel: 'walkin',
-      prodKey: 'purified',
-      prodName: '1 Gallon Purified Refill',
-      unitPrice: 35,
-      fare: 14500,
-      tax: 1500,
-      total: 16000,
-      paidAmount: 16000,
-      unpaidAmount: 0,
-      status: 'paid',
-      time: '08:00 AM',
-      timestamp: now - (2 * ONE_HOUR) // Today
-    },
-    {
-      orderNo: '#8238275',
-      note: 'Robart Fox, +08',
-      gallons: 9,
-      channel: 'delivery',
-      prodKey: 'purified',
-      prodName: '1 Gallon Purified Refill',
-      unitPrice: 35,
-      fare: 19500,
-      tax: 1500,
-      total: 21000,
-      paidAmount: 21000,
-      unpaidAmount: 0,
-      status: 'paid',
-      time: '02:00 PM',
-      timestamp: now - (1 * ONE_DAY) // Yesterday (This week)
-    },
-    {
-      orderNo: '#8238270',
-      note: 'Janny Wilson, +06',
-      gallons: 7,
-      channel: 'delivery',
-      prodKey: 'purified',
-      prodName: '1 Gallon Purified Refill',
-      unitPrice: 35,
-      fare: 23500,
-      tax: 1000,
-      total: 24500,
-      paidAmount: 0,
-      unpaidAmount: 24500,
-      status: 'pending',
-      time: '08:00 PM',
-      timestamp: now - (3 * ONE_DAY) // 3 days ago (This week)
-    },
-    {
-      orderNo: '#8238265',
-      note: 'Jecob Mara, +03',
-      gallons: 4,
-      channel: 'walkin',
-      prodKey: 'purified',
-      prodName: '1 Gallon Purified Refill',
-      unitPrice: 35,
-      fare: 14000,
-      tax: 2000,
-      total: 16000,
-      paidAmount: 16000,
-      unpaidAmount: 0,
-      status: 'paid',
-      time: '07:00 PM',
-      timestamp: now - (4 * ONE_DAY) // 4 days ago (This week)
-    },
-    {
-      orderNo: '#8238264',
-      note: 'Wade Kuttar, +04',
-      gallons: 5,
-      channel: 'walkin',
-      prodKey: 'purified',
-      prodName: '1 Gallon Purified Refill',
-      unitPrice: 35,
-      fare: 12500,
-      tax: 1500,
-      total: 14000,
-      paidAmount: 0,
-      unpaidAmount: 14000,
-      status: 'pending',
-      time: '10:00 AM',
-      timestamp: now - (6 * ONE_DAY) // 6 days ago (This week)
-    },
-    {
-      orderNo: '#8238262',
-      note: 'Mile Preden, +06',
-      gallons: 7,
-      channel: 'delivery',
-      prodKey: 'purified',
-      prodName: '1 Gallon Purified Refill',
-      unitPrice: 35,
-      fare: 13500,
-      tax: 1500,
-      total: 15000,
-      paidAmount: 15000,
-      unpaidAmount: 0,
-      status: 'paid',
-      time: '06:00 PM',
-      timestamp: now - (8 * ONE_DAY) // 8 days ago (This month)
-    },
-    {
-      orderNo: '#8238260',
-      note: 'Fox ANderson, +08',
-      gallons: 9,
-      channel: 'walkin',
-      prodKey: 'purified',
-      prodName: '1 Gallon Purified Refill',
-      unitPrice: 35,
-      fare: 14500,
-      tax: 1500,
-      total: 16000,
-      paidAmount: 16000,
-      unpaidAmount: 0,
-      status: 'paid',
-      time: '03:00 PM',
-      timestamp: now - (11 * ONE_DAY) // 11 days ago (This month)
-    },
-    {
-      orderNo: '#8238258',
-      note: 'Sarah Miller, +05',
-      gallons: 12,
-      channel: 'delivery',
-      prodKey: 'purified',
-      prodName: '1 Gallon Purified Refill',
-      unitPrice: 35,
-      fare: 16500,
-      tax: 1500,
-      total: 18000,
-      paidAmount: 18000,
-      unpaidAmount: 0,
-      status: 'paid',
-      time: '11:30 AM',
-      timestamp: now - (14 * ONE_DAY)
-    },
-    {
-      orderNo: '#8238255',
-      note: 'Barangay Health Center',
-      gallons: 20,
-      channel: 'delivery',
-      prodKey: 'purified',
-      prodName: '1 Gallon Purified Refill',
-      unitPrice: 30,
-      fare: 21000,
-      tax: 2000,
-      total: 23000,
-      paidAmount: 23000,
-      unpaidAmount: 0,
-      status: 'paid',
-      time: '09:15 AM',
-      timestamp: now - (18 * ONE_DAY)
-    },
-    {
-      orderNo: '#8238251',
-      note: 'Purok 4 Mini Mart',
-      gallons: 15,
-      channel: 'delivery',
-      prodKey: 'purified',
-      prodName: '1 Gallon Purified Refill',
-      unitPrice: 35,
-      fare: 18000,
-      tax: 2500,
-      total: 20500,
-      paidAmount: 0,
-      unpaidAmount: 20500,
-      status: 'pending',
-      time: '04:45 PM',
-      timestamp: now - (22 * ONE_DAY)
-    },
-    {
-      orderNo: '#8238249',
-      note: 'Dr. Santos Clinic',
-      gallons: 6,
-      channel: 'walkin',
-      prodKey: 'purified',
-      prodName: '1 Gallon Purified Refill',
-      unitPrice: 35,
-      fare: 12500,
-      tax: 1500,
-      total: 14000,
-      paidAmount: 14000,
-      unpaidAmount: 0,
-      status: 'paid',
-      time: '01:20 PM',
-      timestamp: now - (27 * ONE_DAY)
-    },
-    {
-      orderNo: '#8238240',
-      note: 'Grace Academy Canteen',
-      gallons: 25,
-      channel: 'delivery',
-      prodKey: 'purified',
-      prodName: '1 Gallon Purified Refill',
-      unitPrice: 30,
-      fare: 28000,
-      tax: 2000,
-      total: 30000,
-      paidAmount: 30000,
-      unpaidAmount: 0,
-      status: 'paid',
-      time: '10:00 AM',
-      timestamp: now - (45 * ONE_DAY)
-    },
-    {
-      orderNo: '#8238235',
-      note: 'St. Joseph Chapel Office',
-      gallons: 10,
-      channel: 'delivery',
-      prodKey: 'purified',
-      prodName: '1 Gallon Purified Refill',
-      unitPrice: 35,
-      fare: 14000,
-      tax: 1000,
-      total: 15000,
-      paidAmount: 15000,
-      unpaidAmount: 0,
-      status: 'paid',
-      time: '03:15 PM',
-      timestamp: now - (70 * ONE_DAY)
-    },
-    {
-      orderNo: '#8238228',
-      note: 'New Residence Block 12',
-      gallons: 2,
-      channel: 'walkin',
-      prodKey: 'new_container',
-      prodName: 'New Gallon Jug + Water',
-      unitPrice: 250,
-      fare: 18000,
-      tax: 2000,
-      total: 20000,
-      paidAmount: 20000,
-      unpaidAmount: 0,
-      status: 'paid',
-      time: '11:40 AM',
-      timestamp: now - (120 * ONE_DAY)
-    },
-    {
-      orderNo: '#8238210',
-      note: 'Victory Gym & Fitness',
-      gallons: 30,
-      channel: 'delivery',
-      prodKey: 'purified',
-      prodName: '1 Gallon Purified Refill',
-      unitPrice: 30,
-      fare: 32000,
-      tax: 3000,
-      total: 35000,
-      paidAmount: 35000,
-      unpaidAmount: 0,
-      status: 'paid',
-      time: '08:30 AM',
-      timestamp: now - (200 * ONE_DAY)
-    }
-  ];
+  // Production deployment: no fake or unnecessary mock orders
+  return [];
 }
 
 function getReportFilteredOrders() {
