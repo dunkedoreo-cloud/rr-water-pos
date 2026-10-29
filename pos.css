@@ -5881,7 +5881,7 @@ body:not(.light-mode) .dd-growth-stat {
   display: flex;
   flex-direction: column;
   gap: 18px;
-  min-height: 580px;
+  min-height: auto;
 }
 
 .settings-view-header {
@@ -6006,6 +6006,22 @@ body:not(.light-mode) .dd-growth-stat {
   flex-direction: column;
   gap: 14px;
   box-shadow: var(--shadow-sm);
+}
+
+.setting-card.setting-card-full {
+  grid-column: 1 / -1;
+}
+
+.setting-inputs-grid-2col {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+}
+
+@media (max-width: 900px) {
+  .setting-inputs-grid-2col {
+    grid-template-columns: 1fr;
+  }
 }
 
 .setting-card-header {
