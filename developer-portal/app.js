@@ -78,6 +78,9 @@
     initTheme();
     initSidebarNavigation();
     initSidebarCollapse();
+    initExecutiveDropdowns();
+    initDashboardFilters();
+    initAiAssistantModal();
     initSimulators();
     initSqlConsole();
     initMaintenance();
@@ -148,7 +151,11 @@
     const btnAi = document.getElementById('btnLaunchPosAssistant');
     if (btnAi) {
       btnAi.addEventListener('click', () => {
-        window.open('http://localhost:3000', '_blank');
+        const modal = document.getElementById('modalAiAssistant');
+        if (modal) {
+          modal.style.display = 'flex';
+          document.body.classList.add('overflow-hidden');
+        }
       });
     }
   }
@@ -167,6 +174,296 @@
         }
       });
     }
+  }
+
+  // =========================================================================
+  // 2B. EXECUTIVE CUSTOM DROPDOWNS & FILTER ENGINE
+  // =========================================================================
+  function initExecutiveDropdowns() {
+    const dropdowns = document.querySelectorAll('.executive-dropdown');
+
+    dropdowns.forEach(dd => {
+      const btn = dd.querySelector('.executive-pill');
+      const label = dd.querySelector('.pill-label');
+      const hiddenSelect = dd.querySelector('select');
+      const items = dd.querySelectorAll('.dropdown-item');
+
+      if (btn) {
+        btn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          const isOpen = dd.classList.contains('open');
+          document.querySelectorAll('.executive-dropdown.open').forEach(d => {
+            if (d !== dd) {
+              d.classList.remove('open');
+              const b = d.querySelector('.executive-pill');
+              if (b) b.setAttribute('aria-expanded', 'false');
+            }
+          });
+
+          if (isOpen) {
+            dd.classList.remove('open');
+            btn.setAttribute('aria-expanded', 'false');
+          } else {
+            dd.classList.add('open');
+            btn.setAttribute('aria-expanded', 'true');
+          }
+        });
+      }
+
+      items.forEach(item => {
+        item.addEventListener('click', (e) => {
+          e.stopPropagation();
+          const val = item.getAttribute('data-val');
+          const spanText = item.querySelector('span')?.textContent || '';
+
+          items.forEach(i => {
+            i.classList.remove('active');
+            const chk = i.querySelector('.check-icon');
+            if (chk) chk.remove();
+          });
+
+          item.classList.add('active');
+          if (!item.querySelector('.check-icon')) {
+            item.insertAdjacentHTML('beforeend', '<svg class="check-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>');
+          }
+
+          if (label) {
+            label.textContent = spanText;
+          }
+
+          if (hiddenSelect) {
+            hiddenSelect.value = val;
+            hiddenSelect.dispatchEvent(new Event('change', { bubbles: true }));
+          }
+
+          dd.classList.remove('open');
+          if (btn) btn.setAttribute('aria-expanded', 'false');
+        });
+      });
+    });
+
+    document.addEventListener('click', (e) => {
+      if (!e.target.closest('.executive-dropdown')) {
+        document.querySelectorAll('.executive-dropdown.open').forEach(d => {
+          d.classList.remove('open');
+          const b = d.querySelector('.executive-pill');
+          if (b) b.setAttribute('aria-expanded', 'false');
+        });
+      }
+    });
+
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') {
+        document.querySelectorAll('.executive-dropdown.open').forEach(d => {
+          d.classList.remove('open');
+          const b = d.querySelector('.executive-pill');
+          if (b) b.setAttribute('aria-expanded', 'false');
+        });
+      }
+    });
+  }
+
+  function initDashboardFilters() {
+    const selTimeframe = document.getElementById('selTimeframe');
+    const selSegment = document.getElementById('selSegment');
+    const selChartInterval = document.getElementById('selChartInterval');
+    const selTableFilter = document.getElementById('selTableFilter');
+    const pillDateRange = document.getElementById('pillDateRange');
+
+    // 1. Timeframe Filter
+    if (selTimeframe) {
+      selTimeframe.addEventListener('change', () => {
+        const val = selTimeframe.value;
+        const dateSpan = pillDateRange?.querySelector('span');
+        const kpiCards = document.querySelectorAll('.dash-kpi-card');
+        const kpiRefill = kpiCards[0]?.querySelector('.kpi-card-val');
+        const kpiGross = kpiCards[1]?.querySelector('.kpi-card-val');
+        const kpiCust = kpiCards[2]?.querySelector('.kpi-card-val');
+        const kpiSat = kpiCards[3]?.querySelector('.kpi-card-val');
+
+        if (val === 'daily') {
+          if (dateSpan) dateSpan.textContent = 'Today, Jun 4';
+          if (kpiRefill) kpiRefill.textContent = '386';
+          if (kpiGross) kpiGross.textContent = '₱13,510.00';
+          if (kpiCust) kpiCust.textContent = '48';
+          if (kpiSat) kpiSat.textContent = '99.2%';
+        } else if (val === 'quarterly') {
+          if (dateSpan) dateSpan.textContent = 'Q2 Apr - Jun';
+          if (kpiRefill) kpiRefill.textContent = '37,800';
+          if (kpiGross) kpiGross.textContent = '₱1,323,000.00';
+          if (kpiCust) kpiCust.textContent = '3,558';
+          if (kpiSat) kpiSat.textContent = '91.4%';
+        } else {
+          if (dateSpan) dateSpan.textContent = 'Jun 1 - Jun 30';
+          if (kpiRefill) kpiRefill.textContent = '12,600';
+          if (kpiGross) kpiGross.textContent = '₱441,000.00';
+          if (kpiCust) kpiCust.textContent = '1,186';
+          if (kpiSat) kpiSat.textContent = '89.9%';
+        }
+        applyTableFilter();
+      });
+    }
+
+    // 2. Segment Filter
+    if (selSegment) {
+      selSegment.addEventListener('change', () => {
+        applyTableFilter();
+      });
+    }
+
+    // 3. Chart Interval Filter
+    if (selChartInterval) {
+      selChartInterval.addEventListener('change', () => {
+        const val = selChartInterval.value;
+        const container = document.getElementById('barChartContainer');
+        if (!container) return;
+
+        if (val === 'daily') {
+          container.innerHTML = `
+            <div class="chart-tooltip-popup">
+              <div class="chart-tooltip-date">Today 12:00 PM Peak</div>
+              <div class="tooltip-stat-row"><span>Walk-in Refills:</span><span>62%</span></div>
+              <div class="tooltip-stat-row"><span>Route Deliveries:</span><span>28%</span></div>
+              <div class="tooltip-stat-row"><span>Dispensers:</span><span>10%</span></div>
+            </div>
+            <div class="bar-col"><div class="bar-pill" style="height: 25%;"></div><span class="bar-label">8 AM</span></div>
+            <div class="bar-col"><div class="bar-pill" style="height: 55%;"></div><span class="bar-label">10 AM</span></div>
+            <div class="bar-col"><div class="bar-pill" style="height: 85%;"></div><span class="bar-label">12 PM</span></div>
+            <div class="bar-col"><div class="bar-pill" style="height: 70%;"></div><span class="bar-label">2 PM</span></div>
+            <div class="bar-col"><div class="bar-pill" style="height: 48%;"></div><span class="bar-label">4 PM</span></div>
+            <div class="bar-col"><div class="bar-pill" style="height: 35%;"></div><span class="bar-label">6 PM</span></div>
+            <div class="bar-col"><div class="bar-pill" style="height: 18%;"></div><span class="bar-label">8 PM</span></div>
+          `;
+        } else {
+          container.innerHTML = `
+            <div class="chart-tooltip-popup">
+              <div class="chart-tooltip-date">June 6, 2026</div>
+              <div class="tooltip-stat-row"><span>Round Gallons:</span><span>58%</span></div>
+              <div class="tooltip-stat-row"><span>Slim Gallons:</span><span>65%</span></div>
+              <div class="tooltip-stat-row"><span>Dispensers:</span><span>49%</span></div>
+            </div>
+            <div class="bar-col"><div class="bar-pill" style="height: 60%;"></div><span class="bar-label">1 June</span></div>
+            <div class="bar-col"><div class="bar-pill" style="height: 45%;"></div><span class="bar-label">2 June</span></div>
+            <div class="bar-col"><div class="bar-pill" style="height: 52%;"></div><span class="bar-label">3 June</span></div>
+            <div class="bar-col"><div class="bar-pill" style="height: 85%;"></div><span class="bar-label">4 June</span></div>
+            <div class="bar-col"><div class="bar-pill" style="height: 70%;"></div><span class="bar-label">5 June</span></div>
+            <div class="bar-col"><div class="bar-pill" style="height: 50%;"></div><span class="bar-label">6 June</span></div>
+            <div class="bar-col"><div class="bar-pill" style="height: 65%;"></div><span class="bar-label">7 June</span></div>
+          `;
+        }
+      });
+    }
+
+    // 4. Table Filter
+    if (selTableFilter) {
+      selTableFilter.addEventListener('change', () => {
+        applyTableFilter();
+      });
+    }
+  }
+
+  function applyTableFilter() {
+    const tbody = document.getElementById('dashTableBody');
+    if (!tbody || !Array.isArray(recentOrdersCache) || recentOrdersCache.length === 0) return;
+
+    const segVal = document.getElementById('selSegment')?.value || 'all';
+    const filterVal = document.getElementById('selTableFilter')?.value || 'all';
+
+    let filtered = [...recentOrdersCache];
+
+    if (segVal === 'walkin') {
+      filtered = filtered.filter(r => (r.channel || '').toUpperCase().includes('WALK'));
+    } else if (segVal === 'delivery') {
+      filtered = filtered.filter(r => (r.channel || '').toUpperCase().includes('DELIV'));
+    }
+
+    if (filterVal === 'walkin') {
+      filtered = filtered.filter(r => (r.channel || '').toUpperCase().includes('WALK'));
+    } else if (filterVal === 'delivery') {
+      filtered = filtered.filter(r => (r.channel || '').toUpperCase().includes('DELIV'));
+    } else if (filterVal === 'utang') {
+      filtered = filtered.filter(r => {
+        const isPaid = (r.status || 'completed') === 'completed' || Number(r.paid_amount || 0) >= Number(r.total || 0);
+        return !isPaid;
+      });
+    }
+
+    renderTableRows(tbody, filtered);
+  }
+
+  // =========================================================================
+  // 2C. AI ASSISTANT STATION COPILOT LOGIC
+  // =========================================================================
+  function initAiAssistantModal() {
+    const btnLaunch = document.getElementById('btnLaunchPosAssistant');
+    const modal = document.getElementById('modalAiAssistant');
+    const inputPrompt = document.getElementById('inputAiPrompt');
+    const btnSubmit = document.getElementById('btnSubmitAiPrompt');
+    const container = document.getElementById('aiResponseContainer');
+    const quickBtns = document.querySelectorAll('.btn-quick-ai');
+
+    if (btnLaunch && modal) {
+      btnLaunch.addEventListener('click', () => {
+        modal.style.display = 'flex';
+        document.body.classList.add('overflow-hidden');
+      });
+    }
+
+    const runAiQuery = (query) => {
+      if (!query || !query.trim() || !container) return;
+      container.style.display = 'block';
+      container.innerHTML = `
+        <div style="display: flex; align-items: center; gap: 8px; color: var(--text-muted);">
+          <svg style="width: 16px; height: 16px; animation: spin 1s linear infinite;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10" stroke-opacity="0.25"></circle><path d="M12 2a10 10 0 0 1 10 10" stroke="currentColor"></path></svg>
+          <span>Analyzing station metrics, pump flow rates, and receivable ledgers...</span>
+        </div>
+      `;
+
+      setTimeout(() => {
+        const q = query.toLowerCase();
+        let answer = '';
+
+        if (q.includes('profit') || q.includes('margin') || q.includes('diesel')) {
+          answer = `<strong>Station Financial Insight:</strong><br>
+          Estimated Daily Net Take-home: <strong>₱9,435.00</strong> (Operating Margin: 82.3%).<br>
+          Gross Sales: ₱11,460.00 across 327 Gallons dispatched.<br>
+          Daily Operating Overhead: ₱1,850.00 (Bottle caps/seals: ₱350, Electricity: ₱800, Route delivery diesel: ₱700).<br>
+          Pending Collectibles (Utang): ₱175.00.`;
+        } else if (q.includes('delivery') || q.includes('logistics') || q.includes('truck')) {
+          answer = `<strong>Route Delivery Optimization:</strong><br>
+          Active scheduled route drops: 12 commercial accounts.<br>
+          Optimal truck dispatch departure: <strong>8:30 AM</strong> to bypass morning arterial congestion.<br>
+          Est. total route mileage: 16.4 km (4.2 Liters diesel). Recommended route: San Vicente -> Poblacion -> Central High School.`;
+        } else if (q.includes('audit') || q.includes('cashier') || q.includes('integrity') || q.includes('void')) {
+          answer = `<strong>Station Integrity &amp; Cashier Audit:</strong><br>
+          Cashier shift logs show <strong>100% register reconciliation</strong>.<br>
+          Unrecorded voids or discrepancy events: <strong>0 detected</strong>.<br>
+          Cash drawer drawer-kick pulses: Exactly 42 openings matched to 42 cash receipts.`;
+        } else {
+          answer = `<strong>Station Intelligence Analysis for "${escapeHtml(query)}":</strong><br>
+          Refill pacing is running healthy at 386 Gallons today with 99.2% customer satisfaction. Water purity sensor reads <strong>12 PPM TDS</strong> (well within the safe bottled mineral standard &lt; 50 PPM). Stock levels: 48 Slim containers, 62 Round jugs staged and sanitized.`;
+        }
+
+        container.innerHTML = answer;
+      }, 450);
+    };
+
+    if (btnSubmit && inputPrompt) {
+      btnSubmit.addEventListener('click', () => {
+        runAiQuery(inputPrompt.value);
+      });
+      inputPrompt.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') runAiQuery(inputPrompt.value);
+      });
+    }
+
+    quickBtns.forEach(qb => {
+      qb.addEventListener('click', () => {
+        const query = qb.getAttribute('data-query');
+        if (inputPrompt) inputPrompt.value = query;
+        runAiQuery(query);
+      });
+    });
   }
 
   // =========================================================================
@@ -381,7 +678,7 @@
         const data = await res.json();
         if (data.success && Array.isArray(data.rows) && data.rows.length > 0) {
           recentOrdersCache = data.rows;
-          renderTableRows(tbody, data.rows);
+          applyTableFilter();
           return;
         }
       }
@@ -392,7 +689,7 @@
       const local = JSON.parse(localStorage.getItem('rr_pos_stored_orders') || '[]');
       if (Array.isArray(local) && local.length > 0) {
         recentOrdersCache = local.slice(0, 15);
-        renderTableRows(tbody, recentOrdersCache);
+        applyTableFilter();
         return;
       }
     } catch (e) {}
@@ -401,6 +698,11 @@
   }
 
   function renderTableRows(tbody, rows) {
+    if (!rows || rows.length === 0) {
+      tbody.innerHTML = `<tr><td colspan="8" style="text-align: center; padding: 24px; color: var(--text-muted); font-size: 0.85rem;">No transactions match the selected filter criteria.</td></tr>`;
+      return;
+    }
+
     tbody.innerHTML = rows.map((r, idx) => {
       const isPaid = (r.status || 'completed') === 'completed' || Number(r.paid_amount || 0) >= Number(r.total || 0);
       const custName = r.customer_name || 'Walk-in Customer';
@@ -467,7 +769,8 @@
       { order_no: 'ORD-9651', customer_name: 'Floyd Miles', channel: 'WALK_IN', prod_name: 'Round 5-Gal Refill', gallons: 1, total: 35, tendered: 50, status: 'completed' },
       { order_no: 'ORD-9650', customer_name: 'Jane Cooper', channel: 'DELIVERY', prod_name: 'Slim 5-Gal Refill', gallons: 10, total: 350, tendered: 350, status: 'completed' }
     ];
-    renderTableRows(tbody, demo);
+    recentOrdersCache = demo;
+    applyTableFilter();
   }
 
   // =========================================================================
@@ -1062,9 +1365,14 @@
     const btnCloseReceipt = document.getElementById('btnCloseReceiptModal');
     const btnDismissReceipt = document.getElementById('btnDismissReceiptModal');
 
+    const modalAi = document.getElementById('modalAiAssistant');
+    const btnCloseAi = document.getElementById('btnCloseAiModal');
+    const btnDismissAi = document.getElementById('btnDismissAiModal');
+
     const closeAll = () => {
       if (modalJson) modalJson.style.display = 'none';
       if (modalReceipt) modalReceipt.style.display = 'none';
+      if (modalAi) modalAi.style.display = 'none';
       document.body.classList.remove('overflow-hidden');
     };
 
@@ -1072,6 +1380,8 @@
     if (btnDismissJson) btnDismissJson.addEventListener('click', closeAll);
     if (btnCloseReceipt) btnCloseReceipt.addEventListener('click', closeAll);
     if (btnDismissReceipt) btnDismissReceipt.addEventListener('click', closeAll);
+    if (btnCloseAi) btnCloseAi.addEventListener('click', closeAll);
+    if (btnDismissAi) btnDismissAi.addEventListener('click', closeAll);
 
     if (modalJson) {
       modalJson.addEventListener('click', (e) => {
@@ -1081,6 +1391,11 @@
     if (modalReceipt) {
       modalReceipt.addEventListener('click', (e) => {
         if (e.target === modalReceipt) closeAll();
+      });
+    }
+    if (modalAi) {
+      modalAi.addEventListener('click', (e) => {
+        if (e.target === modalAi) closeAll();
       });
     }
 
