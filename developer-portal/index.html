@@ -89,7 +89,7 @@
           <div class="sidebar-section-title">Station Management</div>
           <ul class="sidebar-nav-list">
             <li>
-              <button type="button" class="nav-link-btn" data-nav="viewSimulators" data-sub="simBayadUtang" id="navBtnBayadUtang">
+              <button type="button" class="nav-link-btn" data-nav="viewUtangLedger" id="navBtnBayadUtang">
                 <div class="nav-link-left">
                   <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 1v22M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>
                   <span>Bayad Utang Ledger</span>
@@ -97,7 +97,7 @@
               </button>
             </li>
             <li>
-              <button type="button" class="nav-link-btn" data-nav="viewSimulators" data-sub="simGcash" id="navBtnGcash">
+              <button type="button" class="nav-link-btn" data-nav="viewGcashPortal" id="navBtnGcash">
                 <div class="nav-link-left">
                   <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
                   <span>GCash Portal</span>
@@ -105,7 +105,7 @@
               </button>
             </li>
             <li>
-              <button type="button" class="nav-link-btn" data-nav="viewSimulators" data-sub="simExpense" id="navBtnExpenses">
+              <button type="button" class="nav-link-btn" data-nav="viewExpensesLedger" id="navBtnExpenses">
                 <div class="nav-link-left">
                   <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"></rect><line x1="1" y1="10" x2="23" y2="10"></line></svg>
                   <span>Quick Expenses</span>
@@ -320,11 +320,11 @@
               <span class="kpi-card-title">Unpaid Debt (Utang)</span>
               <button type="button" class="btn-card-more">•••</button>
             </div>
-            <div class="kpi-card-val" style="color: var(--status-warning);" id="cardValUtang">₱3,850</div>
+            <div class="kpi-card-val" id="cardValUtang">₱0.00</div>
             <div class="kpi-trend-row">
-              <span class="kpi-trend-badge negative">
-                <svg style="width: 12px; height: 12px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="23 18 13.5 8.5 8.5 13.5 1 6"></polyline><polyline points="17 18 23 18 23 12"></polyline></svg>
-                <span>+2%</span>
+              <span class="kpi-trend-badge neutral">
+                <svg style="width: 12px; height: 12px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+                <span>0.0%</span>
               </span>
               <span>receivable balance</span>
             </div>
@@ -335,11 +335,11 @@
               <span class="kpi-card-title">Real Daily Profit</span>
               <button type="button" class="btn-card-more">•••</button>
             </div>
-            <div class="kpi-card-val" style="color: var(--status-success);" id="cardValProfit">89.9%</div>
+            <div class="kpi-card-val" style="color: var(--primary-blue);" id="cardValProfit">100.0%</div>
             <div class="kpi-trend-row">
               <span class="kpi-trend-badge positive">
                 <svg style="width: 12px; height: 12px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"></polyline><polyline points="17 6 23 6 23 12"></polyline></svg>
-                <span>+5%</span>
+                <span>Synced</span>
               </span>
               <span>net profit margin</span>
             </div>
@@ -443,15 +443,15 @@
                 <svg class="donut-svg" viewBox="0 0 36 36">
                   <!-- Donut background circle -->
                   <circle cx="18" cy="18" r="14" fill="none" stroke="var(--border-color)" stroke-width="3.8"></circle>
-                  <!-- Segment 1: Paid (Purple/Blue) -->
-                  <circle cx="18" cy="18" r="14" fill="none" stroke="#6366f1" stroke-width="3.8" stroke-dasharray="75 25" stroke-dashoffset="0"></circle>
-                  <!-- Segment 2: GCash (Green) -->
-                  <circle cx="18" cy="18" r="14" fill="none" stroke="#10b981" stroke-width="3.8" stroke-dasharray="15 85" stroke-dashoffset="-75"></circle>
-                  <!-- Segment 3: Utang (Amber) -->
-                  <circle cx="18" cy="18" r="14" fill="none" stroke="#f59e0b" stroke-width="3.8" stroke-dasharray="10 90" stroke-dashoffset="-90"></circle>
+                  <!-- Segment 1: Paid Cash (Royal Blue) -->
+                  <circle cx="18" cy="18" r="14" fill="none" stroke="#0284c7" stroke-width="3.8" stroke-dasharray="100 0" stroke-dashoffset="0"></circle>
+                  <!-- Segment 2: GCash Direct (Sky Blue) -->
+                  <circle cx="18" cy="18" r="14" fill="none" stroke="#38bdf8" stroke-width="3.8" stroke-dasharray="0 100" stroke-dashoffset="0"></circle>
+                  <!-- Segment 3: On Credit (Slate) -->
+                  <circle cx="18" cy="18" r="14" fill="none" stroke="#94a3b8" stroke-width="3.8" stroke-dasharray="0 100" stroke-dashoffset="0"></circle>
                 </svg>
                 <div class="donut-center-info">
-                  <span class="donut-center-val" id="donutTotalCount">12,600</span>
+                  <span class="donut-center-val" id="donutTotalCount">2</span>
                   <span class="donut-center-lbl">Total Orders</span>
                 </div>
               </div>
@@ -459,31 +459,31 @@
               <div class="donut-legend-list">
                 <div class="legend-item">
                   <div class="legend-top">
-                    <span class="legend-color-dot" style="background: #6366f1;"></span>
+                    <span class="legend-color-dot" style="background: #0284c7;"></span>
                     <span>Paid Cash</span>
                   </div>
-                  <span class="legend-num">12,562</span>
+                  <span class="legend-num" id="donutLegPaid">2</span>
                 </div>
                 <div class="legend-item">
                   <div class="legend-top">
-                    <span class="legend-color-dot" style="background: #f59e0b;"></span>
+                    <span class="legend-color-dot" style="background: #94a3b8;"></span>
                     <span>On Credit (Utang)</span>
                   </div>
-                  <span class="legend-num">10</span>
-                </div>
-                <div class="legend-item">
-                  <div class="legend-top">
-                    <span class="legend-color-dot" style="background: #10b981;"></span>
-                    <span>GCash Direct</span>
-                  </div>
-                  <span class="legend-num">25</span>
+                  <span class="legend-num" id="donutLegUtang">0</span>
                 </div>
                 <div class="legend-item">
                   <div class="legend-top">
                     <span class="legend-color-dot" style="background: #38bdf8;"></span>
-                    <span>Free Promo</span>
+                    <span>GCash Direct</span>
                   </div>
-                  <span class="legend-num">4</span>
+                  <span class="legend-num" id="donutLegGcash">0</span>
+                </div>
+                <div class="legend-item">
+                  <div class="legend-top">
+                    <span class="legend-color-dot" style="background: #bae6fd;"></span>
+                    <span>Route Delivery</span>
+                  </div>
+                  <span class="legend-num" id="donutLegDelivery">0</span>
                 </div>
               </div>
             </div>
@@ -703,7 +703,7 @@
           <!-- SIM 2: Delivery & Utang -->
           <div class="white-box-card">
             <div class="white-box-header">
-              <div class="white-box-icon" style="background: var(--status-warning-light); color: var(--status-warning);">
+              <div class="white-box-icon" >
                 <svg style="width: 20px; height: 20px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="3" width="15" height="13"></rect><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"></polygon></svg>
               </div>
               <div>
@@ -728,14 +728,14 @@
                 </select>
               </div>
             </div>
-            <button type="button" class="btn-blue-primary" id="btnRunUtangSim" style="background: var(--status-warning); color: #fff;">Dispatch Delivery Order</button>
+            <button type="button" class="btn-blue-primary" id="btnRunUtangSim" >Dispatch Delivery Order</button>
             <div class="result-terminal-box" id="resUtangSim">Ready to test delivery dispatch.</div>
           </div>
 
           <!-- SIM 3: Bayad Utang Collection -->
           <div class="white-box-card">
             <div class="white-box-header">
-              <div class="white-box-icon" style="background: var(--status-success-light); color: var(--status-success);">
+              <div class="white-box-icon" >
                 <svg style="width: 20px; height: 20px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 1v22M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>
               </div>
               <div>
@@ -751,7 +751,7 @@
               <label style="font-size: 0.75rem; font-weight: 700; color: var(--text-muted);">Payment Amount (₱)</label>
               <input type="number" class="white-input" id="simDebtAmount" value="175">
             </div>
-            <button type="button" class="btn-blue-primary" id="btnRunDebtPayment" style="background: var(--status-success); color: #fff;">Record Debt Payment</button>
+            <button type="button" class="btn-blue-primary" id="btnRunDebtPayment" >Record Debt Payment</button>
             <div class="result-terminal-box" id="resDebtPayment">Ready for debt payment test.</div>
           </div>
 
@@ -783,7 +783,7 @@
           <!-- SIM 5: Operational Expense -->
           <div class="white-box-card">
             <div class="white-box-header">
-              <div class="white-box-icon" style="background: var(--status-danger-light); color: var(--status-danger);">
+              <div class="white-box-icon" >
                 <svg style="width: 20px; height: 20px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"></rect><line x1="1" y1="10" x2="23" y2="10"></line></svg>
               </div>
               <div>
@@ -807,7 +807,7 @@
                 <input type="number" class="white-input" id="simExpCost" value="85.00">
               </div>
             </div>
-            <button type="button" class="btn-blue-primary" id="btnRunExpenseSim" style="background: var(--status-danger); color: #fff;">Log Operational Expense</button>
+            <button type="button" class="btn-blue-primary" id="btnRunExpenseSim" >Log Operational Expense</button>
             <div class="result-terminal-box" id="resExpenseSim">Ready to log station expense.</div>
           </div>
 
@@ -832,6 +832,372 @@
         </div>
       </section>
 
+
+      <!-- ==================================================================
+           VIEW: BAYAD UTANG LEDGER (DEDICATED STATION MANAGEMENT)
+           ================================================================== -->
+      <section class="dev-view-panel" id="viewUtangLedger">
+        <div class="dash-banner">
+          <div class="dash-banner-left">
+            <h2>Customer Credit &amp; Bayad Utang Ledger</h2>
+            <p>Live accounts receivable tracking, credit aging, and debt collection console</p>
+          </div>
+          <button type="button" class="btn-blue-primary" id="btnRefreshUtangLedger">
+            <svg style="width: 14px; height: 14px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"></polyline><polyline points="1 20 1 14 7 14"></polyline><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path></svg>
+            <span>Refresh Ledger</span>
+          </button>
+        </div>
+
+        <div class="tool-guide-card">
+          <div class="tool-guide-header">
+            <svg style="width: 16px; height: 16px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
+            <span>How to use the Bayad Utang Ledger</span>
+          </div>
+          <div class="tool-guide-steps">
+            <div class="tool-guide-step-item">
+              <span class="tool-guide-step-num">1</span>
+              <div><strong>Monitor Receivables:</strong> View total outstanding balances and loaned 5-gallon carboys per customer.</div>
+            </div>
+            <div class="tool-guide-step-item">
+              <span class="tool-guide-step-num">2</span>
+              <div><strong>Record Payment:</strong> Use the right form to record a full or partial debt collection payment via Cash or GCash.</div>
+            </div>
+            <div class="tool-guide-step-item">
+              <span class="tool-guide-step-num">3</span>
+              <div><strong>Live Parity:</strong> Settling utang here immediately updates the main POS app and recalculates net profit.</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Utang KPI Metrics -->
+        <div class="dash-kpi-grid" style="margin-bottom: 24px;">
+          <div class="dash-kpi-card">
+            <span class="kpi-card-title">Total Outstanding Receivables</span>
+            <div class="kpi-card-val" id="utangTotalVal">₱0.00</div>
+            <p style="font-size: 0.75rem; color: var(--text-muted);">Uncollected customer balances</p>
+          </div>
+          <div class="dash-kpi-card">
+            <span class="kpi-card-title">Active Credit Accounts</span>
+            <div class="kpi-card-val" id="utangActiveCustCount">0 Accounts</div>
+            <p style="font-size: 0.75rem; color: var(--text-muted);">Customers with pending balance</p>
+          </div>
+          <div class="dash-kpi-card">
+            <span class="kpi-card-title">Loaned Carboys In Field</span>
+            <div class="kpi-card-val" id="utangLoanedJugsCount">1 Carboy</div>
+            <p style="font-size: 0.75rem; color: var(--text-muted);">Borrowed 5-Gal jugs to retrieve</p>
+          </div>
+          <div class="dash-kpi-card">
+            <span class="kpi-card-title">Collection Rate</span>
+            <div class="kpi-card-val" style="color: var(--primary-blue);" id="utangRateVal">100.0%</div>
+            <p style="font-size: 0.75rem; color: var(--text-muted);">Cash collected vs total billed</p>
+          </div>
+        </div>
+
+        <!-- 2 Columns: Table on Left, Payment Action on Right -->
+        <div class="two-col-station-grid">
+          <div class="dash-table-card">
+            <div class="table-header-bar">
+              <h3>Customer Credit Accounts</h3>
+              <input type="text" id="utangSearchInput" class="white-input" placeholder="Search customer or address..." style="max-width: 220px; font-size: 0.8rem; padding: 6px 12px;">
+            </div>
+            <div class="table-scroll-wrap">
+              <table class="dev-table">
+                <thead>
+                  <tr>
+                    <th>Customer Name</th>
+                    <th>Contact / Address</th>
+                    <th>Borrowed Jugs</th>
+                    <th>Unpaid Balance</th>
+                    <th>Status</th>
+                    <th style="text-align: right;">Action</th>
+                  </tr>
+                </thead>
+                <tbody id="utangTableBody">
+                  <!-- Populated dynamically -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- Record Payment Card -->
+          <div class="white-box-card">
+            <div class="white-box-header">
+              <div class="white-box-icon">
+                <svg style="width: 20px; height: 20px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 1v22M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>
+              </div>
+              <div>
+                <h3>Record Debt Payment</h3>
+                <p>Accept cash or GCash settlement</p>
+              </div>
+            </div>
+            <div>
+              <label style="font-size: 0.75rem; font-weight: 700; color: var(--text-muted);">Customer</label>
+              <select class="white-select" id="utangPayCustSelect">
+                <option value="Test Customer Aling Tess">Test Customer Aling Tess</option>
+                <option value="Aling Nena Sari-Sari Store">Aling Nena Sari-Sari Store</option>
+                <option value="San Vicente Bakery">San Vicente Bakery</option>
+              </select>
+            </div>
+            <div>
+              <label style="font-size: 0.75rem; font-weight: 700; color: var(--text-muted);">Payment Amount (₱)</label>
+              <input type="number" class="white-input" id="utangPayAmount" value="105" min="1">
+            </div>
+            <div>
+              <label style="font-size: 0.75rem; font-weight: 700; color: var(--text-muted);">Payment Channel</label>
+              <select class="white-select" id="utangPayMethod">
+                <option value="cash">Cash Tender</option>
+                <option value="gcash">GCash Direct</option>
+              </select>
+            </div>
+            <div>
+              <label style="font-size: 0.75rem; font-weight: 700; color: var(--text-muted);">Carboys Returned</label>
+              <input type="number" class="white-input" id="utangJugsReturned" value="0" min="0">
+            </div>
+            <div>
+              <label style="font-size: 0.75rem; font-weight: 700; color: var(--text-muted);">Note / Remarks</label>
+              <input type="text" class="white-input" id="utangPayNote" placeholder="e.g. Settle balance via cashier">
+            </div>
+            <button type="button" class="btn-blue-primary" id="btnSubmitUtangCollection">Record Collection &amp; Sync POS</button>
+            <div class="result-terminal-box" id="resUtangCollection">Ready to record payment.</div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ==================================================================
+           VIEW: GCASH PORTAL (DEDICATED DIGITAL RECONCILIATION)
+           ================================================================== -->
+      <section class="dev-view-panel" id="viewGcashPortal">
+        <div class="dash-banner">
+          <div class="dash-banner-left">
+            <h2>GCash Gateway &amp; Digital Reconciliation</h2>
+            <p>Live digital payment verification, merchant QR status, and fraud audit tool</p>
+          </div>
+          <button type="button" class="btn-blue-primary" id="btnRefreshGcashPortal">
+            <svg style="width: 14px; height: 14px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"></polyline><polyline points="1 20 1 14 7 14"></polyline><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path></svg>
+            <span>Refresh Portal</span>
+          </button>
+        </div>
+
+        <div class="tool-guide-card">
+          <div class="tool-guide-header">
+            <svg style="width: 16px; height: 16px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
+            <span>How to use the GCash Gateway Portal</span>
+          </div>
+          <div class="tool-guide-steps">
+            <div class="tool-guide-step-item">
+              <span class="tool-guide-step-num">1</span>
+              <div><strong>Verify Digital Sales:</strong> Review all customer GCash transactions logged in the station stream.</div>
+            </div>
+            <div class="tool-guide-step-item">
+              <span class="tool-guide-step-num">2</span>
+              <div><strong>Audit Reference #:</strong> Enter a customer's reference number to verify authenticity and stop duplicate reuse.</div>
+            </div>
+            <div class="tool-guide-step-item">
+              <span class="tool-guide-step-num">3</span>
+              <div><strong>Daily Reconciliation:</strong> Compare GCash volume totals with cash register collections at shift close.</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- GCash KPI Metrics -->
+        <div class="dash-kpi-grid" style="margin-bottom: 24px;">
+          <div class="dash-kpi-card">
+            <span class="kpi-card-title">Today's GCash Total</span>
+            <div class="kpi-card-val" style="color: var(--primary-blue);" id="gcashTotalVal">₱0.00</div>
+            <p style="font-size: 0.75rem; color: var(--text-muted);">Verified digital collections</p>
+          </div>
+          <div class="dash-kpi-card">
+            <span class="kpi-card-title">Verified Transactions</span>
+            <div class="kpi-card-val" id="gcashVerifiedCount">0 Verified</div>
+            <p style="font-size: 0.75rem; color: var(--text-muted);">Confirmed reference numbers</p>
+          </div>
+          <div class="dash-kpi-card">
+            <span class="kpi-card-title">Station Merchant QR</span>
+            <div class="kpi-card-val" style="font-size: 1.1rem; color: var(--primary-blue);">ONLINE &amp; ACTIVE</div>
+            <p style="font-size: 0.75rem; color: var(--text-muted);">R&amp;R Purified Water Refilling</p>
+          </div>
+          <div class="dash-kpi-card">
+            <span class="kpi-card-title">Reference Integrity</span>
+            <div class="kpi-card-val">100.0%</div>
+            <p style="font-size: 0.75rem; color: var(--text-muted);">Zero duplicate references</p>
+          </div>
+        </div>
+
+        <div class="two-col-station-grid">
+          <!-- Digital Payments Table -->
+          <div class="dash-table-card">
+            <div class="table-header-bar">
+              <h3>Digital Payments Stream</h3>
+              <input type="text" id="gcashSearchInput" class="white-input" placeholder="Search ref # or customer..." style="max-width: 220px; font-size: 0.8rem; padding: 6px 12px;">
+            </div>
+            <div class="table-scroll-wrap">
+              <table class="dev-table">
+                <thead>
+                  <tr>
+                    <th>Order #</th>
+                    <th>Customer Name</th>
+                    <th>Amount</th>
+                    <th>GCash Reference #</th>
+                    <th>Timestamp</th>
+                    <th>Status</th>
+                  </tr>
+                </thead>
+                <tbody id="gcashTableBody">
+                  <!-- Populated dynamically -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- Reference Number Auditor Card -->
+          <div class="white-box-card">
+            <div class="white-box-header">
+              <div class="white-box-icon">
+                <svg style="width: 20px; height: 20px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+              </div>
+              <div>
+                <h3>Reference Number Auditor</h3>
+                <p>Prevent screenshot &amp; reuse fraud</p>
+              </div>
+            </div>
+            <div>
+              <label style="font-size: 0.75rem; font-weight: 700; color: var(--text-muted);">GCash Reference # (10-13 Digits)</label>
+              <input type="text" class="white-input" id="inputAuditGcashRef" placeholder="e.g. 102938475612">
+            </div>
+            <div>
+              <label style="font-size: 0.75rem; font-weight: 700; color: var(--text-muted);">Expected Amount (₱)</label>
+              <input type="number" class="white-input" id="inputAuditGcashAmount" placeholder="Optional amount check">
+            </div>
+            <button type="button" class="btn-blue-primary" id="btnAuditGcashSubmit">Audit Reference Number</button>
+            <div class="result-terminal-box" id="resAuditGcash">Ready to audit reference number.</div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ==================================================================
+           VIEW: QUICK EXPENSES (DEDICATED OPERATING EXPENSES LEDGER)
+           ================================================================== -->
+      <section class="dev-view-panel" id="viewExpensesLedger">
+        <div class="dash-banner">
+          <div class="dash-banner-left">
+            <h2>Station Operational Expenses Ledger</h2>
+            <p>Daily cash disbursements, vehicle fuel, utilities, consumables, and net margin tracking</p>
+          </div>
+          <button type="button" class="btn-blue-primary" id="btnRefreshExpensesLedger">
+            <svg style="width: 14px; height: 14px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"></polyline><polyline points="1 20 1 14 7 14"></polyline><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path></svg>
+            <span>Refresh Expenses</span>
+          </button>
+        </div>
+
+        <div class="tool-guide-card">
+          <div class="tool-guide-header">
+            <svg style="width: 16px; height: 16px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
+            <span>How to use the Operational Expenses Ledger</span>
+          </div>
+          <div class="tool-guide-steps">
+            <div class="tool-guide-step-item">
+              <span class="tool-guide-step-num">1</span>
+              <div><strong>Log Disbursements:</strong> Record daily petty cash expenses for delivery diesel, cap seals, or utilities.</div>
+            </div>
+            <div class="tool-guide-step-item">
+              <span class="tool-guide-step-num">2</span>
+              <div><strong>Accurate Profit:</strong> Logged expenses are immediately deducted from Gross Sales to compute Real Net Profit.</div>
+            </div>
+            <div class="tool-guide-step-item">
+              <span class="tool-guide-step-num">3</span>
+              <div><strong>Audit History:</strong> Every expense is timestamped with the cashier's signature and stored persistently.</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Expenses KPI Metrics -->
+        <div class="dash-kpi-grid" style="margin-bottom: 24px;">
+          <div class="dash-kpi-card">
+            <span class="kpi-card-title">Total Operating Expenses</span>
+            <div class="kpi-card-val" id="expTotalVal">₱0.00</div>
+            <p style="font-size: 0.75rem; color: var(--text-muted);">All logged disbursements</p>
+          </div>
+          <div class="dash-kpi-card">
+            <span class="kpi-card-title">Delivery Truck Diesel</span>
+            <div class="kpi-card-val" id="expDieselVal">₱0.00</div>
+            <p style="font-size: 0.75rem; color: var(--text-muted);">Fuel &amp; transport logistics</p>
+          </div>
+          <div class="dash-kpi-card">
+            <span class="kpi-card-title">Cap Seals &amp; Consumables</span>
+            <div class="kpi-card-val" id="expSuppliesVal">₱0.00</div>
+            <p style="font-size: 0.75rem; color: var(--text-muted);">Bottle packaging supplies</p>
+          </div>
+          <div class="dash-kpi-card">
+            <span class="kpi-card-title">Net Daily Profit</span>
+            <div class="kpi-card-val" style="color: var(--primary-blue);" id="expNetVal">₱280.00</div>
+            <p style="font-size: 0.75rem; color: var(--text-muted);">Gross Sales minus Expenses</p>
+          </div>
+        </div>
+
+        <div class="two-col-station-grid">
+          <!-- Expenses Table -->
+          <div class="dash-table-card">
+            <div class="table-header-bar">
+              <h3>Operating Disbursements Ledger</h3>
+              <input type="text" id="expSearchInput" class="white-input" placeholder="Filter category or note..." style="max-width: 220px; font-size: 0.8rem; padding: 6px 12px;">
+            </div>
+            <div class="table-scroll-wrap">
+              <table class="dev-table">
+                <thead>
+                  <tr>
+                    <th>Date / Time</th>
+                    <th>Category</th>
+                    <th>Description / Vendor</th>
+                    <th>Staff</th>
+                    <th>Amount</th>
+                  </tr>
+                </thead>
+                <tbody id="expTableBody">
+                  <!-- Populated dynamically -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- Log Expense Form -->
+          <div class="white-box-card">
+            <div class="white-box-header">
+              <div class="white-box-icon">
+                <svg style="width: 20px; height: 20px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"></rect><line x1="1" y1="10" x2="23" y2="10"></line></svg>
+              </div>
+              <div>
+                <h3>Log Station Expense</h3>
+                <p>Record cash disbursement</p>
+              </div>
+            </div>
+            <div>
+              <label style="font-size: 0.75rem; font-weight: 700; color: var(--text-muted);">Category</label>
+              <select class="white-select" id="expCategorySelect">
+                <option value="Cap Seals &amp; Shrink Wrap">Cap Seals &amp; Shrink Wrap</option>
+                <option value="Delivery Fuel">Delivery Fuel / Diesel</option>
+                <option value="Filters Replacement">Filter Media &amp; Maintenance</option>
+                <option value="Staff Meals">Staff Meals &amp; Allowance</option>
+                <option value="Utility Electric">Electricity &amp; Water Utility</option>
+              </select>
+            </div>
+            <div>
+              <label style="font-size: 0.75rem; font-weight: 700; color: var(--text-muted);">Amount (₱)</label>
+              <input type="number" class="white-input" id="expAmountInput" value="85" min="1">
+            </div>
+            <div>
+              <label style="font-size: 0.75rem; font-weight: 700; color: var(--text-muted);">Description / Vendor Note</label>
+              <input type="text" class="white-input" id="expDescriptionInput" placeholder="e.g. 500 pcs blue cap seal bands">
+            </div>
+            <div>
+              <label style="font-size: 0.75rem; font-weight: 700; color: var(--text-muted);">Disbursed By</label>
+              <input type="text" class="white-input" id="expStaffInput" value="Neil (Manager)">
+            </div>
+            <button type="button" class="btn-blue-primary" id="btnSubmitExpense">Log Expense &amp; Deduct from Profit</button>
+            <div class="result-terminal-box" id="resExpenseLog">Ready to log expense.</div>
+          </div>
+        </div>
+      </section>
+
       <!-- ==================================================================
            VIEW 4: SQL CONSOLE
            ================================================================== -->
@@ -845,6 +1211,29 @@
             <svg style="width: 14px; height: 14px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
             <span>Run Query (Ctrl+Enter)</span>
           </button>
+        </div>
+
+        
+        <!-- SQL Console Tutorial & Usage Guide -->
+        <div class="tool-guide-card">
+          <div class="tool-guide-header">
+            <svg style="width: 16px; height: 16px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
+            <span>How to use the Direct SQLite Query Console</span>
+          </div>
+          <div class="tool-guide-steps">
+            <div class="tool-guide-step-item">
+              <span class="tool-guide-step-num">1</span>
+              <div><strong>Choose or Type SQL:</strong> Click any <span class="kbd-badge">Quick Query</span> button or type custom SQL commands into the editor box.</div>
+            </div>
+            <div class="tool-guide-step-item">
+              <span class="tool-guide-step-num">2</span>
+              <div><strong>Execute Query:</strong> Press <span class="kbd-badge">Ctrl + Enter</span> or click <strong>Run Query</strong> to profile and retrieve live database rows.</div>
+            </div>
+            <div class="tool-guide-step-item">
+              <span class="tool-guide-step-num">3</span>
+              <div><strong>Safe Execution:</strong> Available station tables: <span class="kbd-badge">orders</span>, <span class="kbd-badge">customers</span>, <span class="kbd-badge">inventory</span>, <span class="kbd-badge">staff</span>, <span class="kbd-badge">shifts</span>.</div>
+            </div>
+          </div>
         </div>
 
         <div class="white-box-card" style="margin-bottom: 20px;">
