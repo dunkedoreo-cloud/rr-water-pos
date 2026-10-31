@@ -2008,7 +2008,7 @@ body:not(.light-mode) .selected-item-img {
 
 .stepper-qty-num {
   font-family: var(--font-mono);
-  font-size: 1.5rem;
+  font-size: 1.85rem;
   font-weight: 800;
   color: var(--text-main);
   line-height: 1;
@@ -2225,14 +2225,14 @@ body:not(.light-mode) .selected-item-img {
 }
 
 .keypad-key {
-  height: 44px;
-  min-height: 44px;
-  border-radius: 8px;
+  height: 48px;
+  min-height: 48px;
+  border-radius: 9px;
   background-color: #ffffff;
   border: 1.5px solid #cbd5e1;
   color: #0f172a;
   font-family: var(--font-mono, "JetBrains Mono", monospace);
-  font-size: 1.45rem;
+  font-size: 1.55rem;
   font-weight: 800;
   cursor: pointer;
   display: flex;
@@ -2258,12 +2258,18 @@ body:not(.light-mode) .selected-item-img {
   background-color: #f1f5f9;
 }
 
+.keypad-key.key-num {
+  font-size: 1.95rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+
 /* Keypad Function Variants (Senior-Friendly Color Coded) */
 .keypad-key.key-op {
   background-color: #f0f9ff;
   border-color: #bae6fd;
   color: #0284c7;
-  font-size: 1.25rem;
+  font-size: 1.45rem;
   font-weight: 800;
   box-shadow: 0 3px 0 #7dd3fc, 0 3px 6px rgba(2, 132, 199, 0.08);
 }
@@ -2281,7 +2287,7 @@ body:not(.light-mode) .selected-item-img {
   background-color: #fff1f2;
   border-color: #fecdd3;
   color: #e11d48;
-  font-size: 1.2rem;
+  font-size: 1.45rem;
   font-weight: 800;
   box-shadow: 0 3px 0 #fda4af, 0 3px 6px rgba(225, 29, 72, 0.08);
 }
@@ -2299,7 +2305,7 @@ body:not(.light-mode) .selected-item-img {
   background-color: #f8fafc;
   border-color: #cbd5e1;
   color: #475569;
-  font-size: 1.35rem;
+  font-size: 1.5rem;
   font-weight: 800;
 }
 
@@ -2312,7 +2318,7 @@ body:not(.light-mode) .selected-item-img {
   background-color: #f0fdf4;
   border-color: #bbf7d0;
   color: #16a34a;
-  font-size: 1.15rem;
+  font-size: 1.35rem;
   font-weight: 800;
   box-shadow: 0 3px 0 #86efac, 0 3px 6px rgba(22, 163, 74, 0.08);
 }
@@ -2328,7 +2334,7 @@ body:not(.light-mode) .selected-item-img {
 
 .keypad-key.key-exact {
   font-family: var(--font-sans);
-  font-size: 0.92rem;
+  font-size: 1.05rem;
   font-weight: 800;
   background-color: #eff6ff;
   border-color: #bfdbfe;
@@ -7127,8 +7133,11 @@ body:not(.light-mode) .btn-sub-action.primary:hover {
   .keypad-key {
     height: 56px !important;
     min-height: 56px !important;
-    font-size: 1.45rem !important;
+    font-size: 1.65rem !important;
     border-radius: 10px !important;
+  }
+  .keypad-key.key-num {
+    font-size: 2.05rem !important;
   }
 
   /* Quick Cash Tender Row on Tablet */
@@ -8035,8 +8044,11 @@ body:not(.light-mode) .btn-sub-action.primary:hover {
   .keypad-key {
     min-height: 52px;
     height: 52px;
-    font-size: 1.4rem;
+    font-size: 1.6rem;
     border-radius: 8px;
+  }
+  .keypad-key.key-num {
+    font-size: 1.95rem;
   }
   .quick-cash-btn-row {
     grid-template-columns: repeat(6, 1fr) !important;
@@ -9611,7 +9623,7 @@ body:not(.light-mode) .btn-sub-action.primary:hover {
   border: 1px solid var(--border-subtle);
   border-radius: var(--radius-md);
   padding: 6px 2px;
-  font-size: 0.78rem;
+  font-size: 0.88rem;
   font-weight: 700;
   color: var(--text-main);
   cursor: pointer;
@@ -9709,7 +9721,7 @@ body.dark-mode .cash-tender-numeric-input {
   width: 44px;
   height: 26px;
   font-family: var(--font-mono);
-  font-size: 0.90rem;
+  font-size: 1.05rem;
   font-weight: 800;
   color: var(--text-main);
   text-align: center;
