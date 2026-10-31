@@ -65,6 +65,7 @@ const State = {
   deliveryAddress: '',             // Delivery destination / customer
   prodKey: 'purified',             // 'purified' | 'new_container'
   qty: 1,                          // number >= 1
+  keypadTarget: 'qty',             // 'qty' (gallons) | 'cash' (cash received)
   keypadBuffer: '',                // temporary string typed on keypad
   note: '',                        // walk-in note
   storedOrders: [],
@@ -991,6 +992,7 @@ function bindEvents() {
   if (btnMinus) {
     btnMinus.addEventListener('click', () => {
       soundCtrl.playTap();
+      setKeypadTarget('qty');
       if (State.qty > 1) {
         State.qty--;
         State.keypadBuffer = '';
@@ -1003,11 +1005,17 @@ function bindEvents() {
   if (btnPlus) {
     btnPlus.addEventListener('click', () => {
       soundCtrl.playTap();
+      setKeypadTarget('qty');
       State.qty++;
       State.keypadBuffer = '';
       renderOrderSummary();
       renderPresets();
     });
+  }
+
+  const stepperCenter = document.querySelector('.stepper-center-box');
+  if (stepperCenter) {
+    stepperCenter.addEventListener('click', () => setKeypadTarget('qty'));
   }
 
   // 6. Channel Switcher (Walk-in vs Multicab Delivery)
@@ -1092,9 +1100,25 @@ function bindEvents() {
   const btnClearOrder = document.getElementById('btnClearCurrentOrder');
   const btnBottomClear = document.getElementById('btnBottomClear');
   const btnResetKp = document.getElementById('btnKeypadReset');
+  const btnClearKp = document.getElementById('btnKeypadClear');
   const btnBackspace = document.getElementById('btnKeypadBackspace');
+  const btnTargetQty = document.getElementById('btnTargetQty');
+  const btnTargetCash = document.getElementById('btnTargetCash');
 
-  [btnClearOrder, btnBottomClear, btnResetKp].forEach(b => {
+  if (btnTargetQty) {
+    btnTargetQty.addEventListener('click', () => setKeypadTarget('qty'));
+  }
+  if (btnTargetCash) {
+    btnTargetCash.addEventListener('click', () => setKeypadTarget('cash'));
+  }
+
+  const cashInputEl = document.getElementById('cashTenderInput');
+  if (cashInputEl) {
+    cashInputEl.addEventListener('focus', () => setKeypadTarget('cash'));
+    cashInputEl.addEventListener('click', () => setKeypadTarget('cash'));
+  }
+
+  [btnClearOrder, btnBottomClear].forEach(b => {
     if (b) {
       b.addEventListener('click', () => {
         soundCtrl.playTap();
@@ -1110,23 +1134,58 @@ function bindEvents() {
         if (deliveryAddressInput) deliveryAddressInput.value = '';
         renderPresets();
         renderOrderSummary();
+        updateKeypadTargetDisplays();
         showToast('Order cleared and reset to 1 Gallon.');
       });
     }
   });
 
+  if (btnResetKp) {
+    btnResetKp.addEventListener('click', () => {
+      soundCtrl.playTap();
+      State.selectedTender = 'exact';
+      const inCash = document.getElementById('cashTenderInput');
+      if (inCash) inCash.value = '';
+      updateTenderAndChange();
+      updateKeypadTargetDisplays();
+      showToast('Payment set to Exact Total.');
+    });
+  }
+
+  if (btnClearKp) {
+    btnClearKp.addEventListener('click', () => {
+      handleKeypadInput('C');
+    });
+  }
+
   if (btnBackspace) {
     btnBackspace.addEventListener('click', () => {
       soundCtrl.playTap();
-      if (State.keypadBuffer.length > 0) {
-        State.keypadBuffer = State.keypadBuffer.slice(0, -1);
-        const parsed = parseInt(State.keypadBuffer, 10);
-        State.qty = (!isNaN(parsed) && parsed > 0) ? parsed : 1;
+      if (State.keypadTarget === 'cash') {
+        let str = String(State.selectedTender || '');
+        if (str === 'exact') str = '';
+        if (str.length > 0) {
+          str = str.slice(0, -1);
+          State.selectedTender = str ? str : 'exact';
+        } else {
+          State.selectedTender = 'exact';
+        }
+        const inCash = document.getElementById('cashTenderInput');
+        if (inCash) inCash.value = (State.selectedTender === 'exact' ? '' : State.selectedTender);
+        updateTenderAndChange();
+        updateKeypadTargetDisplays();
       } else {
-        State.qty = 1;
+        if (State.keypadBuffer.length > 0) {
+          State.keypadBuffer = State.keypadBuffer.slice(0, -1);
+          const parsed = parseInt(State.keypadBuffer, 10);
+          State.qty = (!isNaN(parsed) && parsed > 0) ? parsed : 1;
+        } else {
+          State.qty = 1;
+        }
+        renderPresets();
+        renderOrderSummary();
+        updateKeypadTargetDisplays();
       }
-      renderPresets();
-      renderOrderSummary();
     });
   }
 
@@ -1680,47 +1739,133 @@ function selectProduct(key) {
 }
 
 // ==========================================================================
-// NUMERIC KEYPAD HANDLER
+// SENIOR-FRIENDLY NUMPAD & TARGET CONTROLLER
 // ==========================================================================
+function setKeypadTarget(target) {
+  soundCtrl.playTap();
+  State.keypadTarget = target;
+  State.keypadBuffer = '';
+  const btnQty = document.getElementById('btnTargetQty');
+  const btnCash = document.getElementById('btnTargetCash');
+  if (btnQty) btnQty.classList.toggle('active', target === 'qty');
+  if (btnCash) btnCash.classList.toggle('active', target === 'cash');
+  updateKeypadTargetDisplays();
+}
+
+function updateKeypadTargetDisplays() {
+  const badgeQty = document.getElementById('kpTargetQtyDisplay');
+  const badgeCash = document.getElementById('kpTargetCashDisplay');
+  if (badgeQty) {
+    badgeQty.textContent = `${State.qty}` + (State.qty > 1 ? ' Gals' : ' Gal');
+  }
+  if (badgeCash) {
+    const total = calculateTotal();
+    if (State.selectedTender === 'exact' || !State.selectedTender || State.selectedTender === '') {
+      badgeCash.textContent = `Exact ₱${formatPeso(total)}`;
+    } else {
+      badgeCash.textContent = `₱${formatPeso(Number(State.selectedTender) || total)}`;
+    }
+  }
+}
+
 function handleKeypadInput(key) {
   soundCtrl.playTap();
 
+  const isCash = (State.keypadTarget === 'cash');
+  const inCash = document.getElementById('cashTenderInput');
+
   if (key === 'C') {
     State.keypadBuffer = '';
-    State.qty = 1;
-    renderPresets();
-    renderOrderSummary();
+    if (isCash) {
+      State.selectedTender = 'exact';
+      if (inCash) inCash.value = '';
+      updateTenderAndChange();
+    } else {
+      State.qty = 1;
+      renderPresets();
+      renderOrderSummary();
+    }
+    updateKeypadTargetDisplays();
     return;
   }
 
   if (key === '+') {
-    State.qty++;
-    State.keypadBuffer = '';
-    renderPresets();
-    renderOrderSummary();
-    return;
-  }
-
-  if (key === '-') {
-    if (State.qty > 1) {
-      State.qty--;
+    if (isCash) {
+      const cur = (State.selectedTender === 'exact' || !State.selectedTender) ? calculateTotal() : (Number(State.selectedTender) || 0);
+      State.selectedTender = String(cur + 10);
+      if (inCash) inCash.value = State.selectedTender;
+      updateTenderAndChange();
+    } else {
+      State.qty = Math.min(999, State.qty + 1);
       State.keypadBuffer = '';
       renderPresets();
       renderOrderSummary();
     }
+    updateKeypadTargetDisplays();
     return;
   }
 
-  if (key === '.') return; // Whole gallons
-
-  State.keypadBuffer += key;
-  const parsed = parseInt(State.keypadBuffer, 10);
-  if (!isNaN(parsed) && parsed > 0 && parsed <= 999) {
-    State.qty = parsed;
+  if (key === '-') {
+    if (isCash) {
+      const cur = (State.selectedTender === 'exact' || !State.selectedTender) ? calculateTotal() : (Number(State.selectedTender) || 0);
+      if (cur > 10) {
+        State.selectedTender = String(cur - 10);
+        if (inCash) inCash.value = State.selectedTender;
+        updateTenderAndChange();
+      }
+    } else {
+      if (State.qty > 1) {
+        State.qty--;
+        State.keypadBuffer = '';
+        renderPresets();
+        renderOrderSummary();
+      }
+    }
+    updateKeypadTargetDisplays();
+    return;
   }
 
-  renderPresets();
-  renderOrderSummary();
+  if (key === '+5') {
+    if (isCash) {
+      const cur = (State.selectedTender === 'exact' || !State.selectedTender) ? calculateTotal() : (Number(State.selectedTender) || 0);
+      State.selectedTender = String(cur + 50);
+      if (inCash) inCash.value = State.selectedTender;
+      updateTenderAndChange();
+    } else {
+      State.qty = Math.min(999, State.qty + 5);
+      State.keypadBuffer = '';
+      renderPresets();
+      renderOrderSummary();
+    }
+    updateKeypadTargetDisplays();
+    return;
+  }
+
+  if (key === '.') return; // Whole gallons/pesos
+
+  // Digits 0-9
+  if (isCash) {
+    if (State.keypadBuffer === '' && (State.selectedTender === 'exact' || !State.selectedTender)) {
+      State.keypadBuffer = key;
+    } else {
+      State.keypadBuffer += key;
+    }
+    const parsed = parseInt(State.keypadBuffer, 10);
+    if (!isNaN(parsed) && parsed >= 0 && parsed <= 99999) {
+      State.selectedTender = String(parsed);
+      if (inCash) inCash.value = String(parsed);
+      updateTenderAndChange();
+    }
+  } else {
+    State.keypadBuffer += key;
+    const parsed = parseInt(State.keypadBuffer, 10);
+    if (!isNaN(parsed) && parsed > 0 && parsed <= 999) {
+      State.qty = parsed;
+    }
+    renderPresets();
+    renderOrderSummary();
+  }
+  updateKeypadTargetDisplays();
 }
 
 // ==========================================================================
@@ -5538,6 +5683,7 @@ function updateTenderAndChange() {
     badge.textContent = `Short: ₱${formatPeso(Math.abs(diff))}`;
     badge.className = 'change-due-badge insufficient';
   }
+  updateKeypadTargetDisplays();
 }
 
 // ==========================================================================

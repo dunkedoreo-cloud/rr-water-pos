@@ -1957,19 +1957,20 @@ body:not(.light-mode) .selected-item-img {
 }
 
 .btn-stepper {
-  width: 42px;
-  height: 42px;
-  border-radius: var(--radius-md);
-  border: 1px solid var(--border-subtle);
-  background-color: var(--bg-card-subtle);
+  width: 50px;
+  height: 50px;
+  border-radius: 10px;
+  border: 2px solid #cbd5e1;
+  background-color: var(--bg-surface);
   color: var(--text-main);
-  font-size: 1.5rem;
+  font-size: 1.75rem;
   font-weight: 800;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: all 0.15s ease;
+  box-shadow: 0 2px 0 #94a3b8;
+  transition: all 0.1s ease;
   user-select: none;
 }
 
@@ -1994,7 +1995,7 @@ body:not(.light-mode) .selected-item-img {
 
 .stepper-qty-num {
   font-family: var(--font-mono);
-  font-size: 1.7rem;
+  font-size: 2.2rem;
   font-weight: 800;
   color: var(--text-main);
   line-height: 1.1;
@@ -2130,57 +2131,251 @@ body:not(.light-mode) .selected-item-img {
   color: var(--text-dim);
 }
 
-/* Numeric Keypad Grid */
+/* ==========================================================================
+   SENIOR-FRIENDLY ACCESSIBLE NUMPAD (Large Touch Targets & 3D Tactile Feel)
+   ========================================================================== */
+.keypad-container {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  background-color: var(--bg-card-subtle, #f8fafc);
+  border: 1.5px solid var(--border-subtle, #e2e8f0);
+  border-radius: var(--radius-lg, 12px);
+  padding: 12px;
+}
+
+.keypad-target-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.keypad-target-hint {
+  font-size: 0.72rem;
+  font-weight: 800;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.keypad-target-pills {
+  display: flex;
+  gap: 6px;
+  flex: 1;
+  justify-content: flex-end;
+}
+
+.kp-target-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border-radius: var(--radius-full, 9999px);
+  border: 1.5px solid var(--border-subtle, #cbd5e1);
+  background: var(--bg-surface, #ffffff);
+  color: var(--text-muted);
+  font-size: 0.76rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.kp-target-pill strong {
+  font-family: var(--font-mono, monospace);
+  color: var(--text-main);
+}
+
+.kp-target-pill:hover {
+  border-color: var(--color-primary, #0284c7);
+  color: var(--color-primary, #0284c7);
+}
+
+.kp-target-pill.active {
+  background-color: rgba(2, 132, 199, 0.1);
+  border-color: var(--color-primary, #0284c7);
+  color: var(--color-primary, #0284c7);
+  box-shadow: 0 0 0 2px rgba(2, 132, 199, 0.15);
+}
+
+.kp-target-pill.active strong {
+  color: var(--color-primary, #0284c7);
+  font-weight: 800;
+}
+
+/* 4-Column Keypad Grid (Huge 60px Keys with High-Contrast Bold Digits) */
 .numeric-keypad-grid {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
-  gap: 7px;
+  gap: 8px;
 }
 
 .keypad-key {
-  height: 44px;
-  border-radius: var(--radius-md);
-  background-color: var(--bg-surface);
-  border: 1px solid var(--border-subtle);
-  color: var(--text-main);
-  font-family: var(--font-mono);
-  font-size: 1.15rem;
-  font-weight: 700;
+  height: 60px;
+  min-height: 60px;
+  border-radius: 10px;
+  background-color: #ffffff;
+  border: 2px solid #cbd5e1;
+  color: #0f172a;
+  font-family: var(--font-mono, "JetBrains Mono", monospace);
+  font-size: 1.55rem;
+  font-weight: 800;
   cursor: pointer;
-  box-shadow: var(--shadow-sm);
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: all 0.12s ease;
+  gap: 4px;
+  box-shadow: 0 3px 0 #94a3b8, 0 3px 6px rgba(0, 0, 0, 0.05);
+  transition: transform 0.06s ease, box-shadow 0.06s ease, background-color 0.1s ease;
   user-select: none;
+  -webkit-tap-highlight-color: transparent;
 }
 
 .keypad-key:hover {
-  background-color: var(--bg-card-hover);
-  border-color: var(--border-active);
+  border-color: #0284c7;
+  color: #0284c7;
   transform: translateY(-1px);
+  box-shadow: 0 4px 0 #94a3b8, 0 4px 8px rgba(0, 0, 0, 0.08);
 }
 
 .keypad-key:active {
-  transform: scale(0.96);
+  transform: translateY(2px);
+  box-shadow: 0 1px 0 #94a3b8;
+  background-color: #f1f5f9;
+}
+
+/* Keypad Function Variants (Senior-Friendly Color Coded) */
+.keypad-key.key-op {
+  background-color: #f0f9ff;
+  border-color: #bae6fd;
+  color: #0284c7;
+  font-size: 1.25rem;
+  font-weight: 800;
+  box-shadow: 0 3px 0 #7dd3fc, 0 3px 6px rgba(2, 132, 199, 0.08);
+}
+
+.keypad-key.key-op:hover {
+  background-color: #e0f2fe;
+  border-color: #0284c7;
+}
+
+.keypad-key.key-op:active {
+  box-shadow: 0 1px 0 #7dd3fc;
 }
 
 .keypad-key.key-clear {
-  color: var(--color-danger);
+  background-color: #fff1f2;
+  border-color: #fecdd3;
+  color: #e11d48;
+  font-size: 1.2rem;
+  font-weight: 800;
+  box-shadow: 0 3px 0 #fda4af, 0 3px 6px rgba(225, 29, 72, 0.08);
+}
+
+.keypad-key.key-clear:hover {
+  background-color: #ffe4e6;
+  border-color: #e11d48;
+}
+
+.keypad-key.key-clear:active {
+  box-shadow: 0 1px 0 #fda4af;
+}
+
+.keypad-key.key-backspace {
+  background-color: #f8fafc;
+  border-color: #cbd5e1;
+  color: #475569;
+  font-size: 1.35rem;
   font-weight: 800;
 }
 
-.keypad-key.key-op {
-  color: var(--color-primary);
+.keypad-key.key-backspace:hover {
+  border-color: #0284c7;
+  color: #0284c7;
+}
+
+.keypad-key.key-quick {
+  background-color: #f0fdf4;
+  border-color: #bbf7d0;
+  color: #16a34a;
+  font-size: 1.15rem;
   font-weight: 800;
-  font-size: 1.3rem;
+  box-shadow: 0 3px 0 #86efac, 0 3px 6px rgba(22, 163, 74, 0.08);
+}
+
+.keypad-key.key-quick:hover {
+  background-color: #dcfce7;
+  border-color: #16a34a;
+}
+
+.keypad-key.key-quick:active {
+  box-shadow: 0 1px 0 #86efac;
 }
 
 .keypad-key.key-exact {
   font-family: var(--font-sans);
-  font-size: 0.74rem;
+  font-size: 0.92rem;
   font-weight: 800;
-  color: var(--text-muted);
+  background-color: #eff6ff;
+  border-color: #bfdbfe;
+  color: #1d4ed8;
+  box-shadow: 0 3px 0 #93c5fd, 0 3px 6px rgba(29, 78, 216, 0.08);
+}
+
+.keypad-key.key-exact:hover {
+  background-color: #dbeafe;
+  border-color: #1d4ed8;
+}
+
+.keypad-key.key-exact:active {
+  box-shadow: 0 1px 0 #93c5fd;
+}
+
+/* Dark Mode Keypad Enhancements */
+body:not(.light-mode) .keypad-container {
+  background-color: #0f172a;
+  border-color: #334155;
+}
+
+body:not(.light-mode) .keypad-key {
+  background-color: #1e293b;
+  border-color: #334155;
+  color: #f8fafc;
+  box-shadow: 0 3px 0 #0f172a, 0 3px 6px rgba(0, 0, 0, 0.25);
+}
+
+body:not(.light-mode) .keypad-key:active {
+  box-shadow: 0 1px 0 #0f172a;
+  background-color: #334155;
+}
+
+body:not(.light-mode) .keypad-key.key-op {
+  background-color: rgba(2, 132, 199, 0.2);
+  border-color: rgba(2, 132, 199, 0.4);
+  color: #38bdf8;
+  box-shadow: 0 3px 0 rgba(2, 132, 199, 0.4);
+}
+
+body:not(.light-mode) .keypad-key.key-clear {
+  background-color: rgba(225, 29, 72, 0.18);
+  border-color: rgba(225, 29, 72, 0.35);
+  color: #fb7185;
+  box-shadow: 0 3px 0 rgba(225, 29, 72, 0.35);
+}
+
+body:not(.light-mode) .keypad-key.key-quick {
+  background-color: rgba(22, 163, 74, 0.18);
+  border-color: rgba(22, 163, 74, 0.35);
+  color: #4ade80;
+  box-shadow: 0 3px 0 rgba(22, 163, 74, 0.35);
+}
+
+body:not(.light-mode) .keypad-key.key-exact {
+  background-color: rgba(59, 130, 246, 0.2);
+  border-color: rgba(59, 130, 246, 0.4);
+  color: #60a5fa;
+  box-shadow: 0 3px 0 rgba(59, 130, 246, 0.4);
 }
 
 /* Order Submit Box (Simplified & Grouped) */
@@ -6912,15 +7107,15 @@ body:not(.light-mode) .btn-sub-action.primary:hover {
     font-size: 0.90rem !important;
   }
 
-  /* Numeric Keypad on Tablet */
+  /* Numeric Keypad on Tablet (Large & Accessible) */
   .numeric-keypad-grid {
-    gap: 5px !important;
+    gap: 7px !important;
   }
   .keypad-key {
-    height: 38px !important;
-    min-height: 38px !important;
-    font-size: 1.05rem !important;
-    border-radius: var(--radius-sm) !important;
+    height: 56px !important;
+    min-height: 56px !important;
+    font-size: 1.45rem !important;
+    border-radius: 10px !important;
   }
 
   /* Quick Cash Tender Row on Tablet */
@@ -7820,14 +8015,15 @@ body:not(.light-mode) .btn-sub-action.primary:hover {
     font-size: 0.65rem;
   }
 
-  /* Keypad on Mobile */
+  /* Keypad on Mobile (Accessible & Comfortable) */
   .numeric-keypad-grid {
     gap: 6px;
   }
   .keypad-key {
-    min-height: 46px;
-    height: 46px;
-    font-size: 1.15rem;
+    min-height: 52px;
+    height: 52px;
+    font-size: 1.4rem;
+    border-radius: 8px;
   }
   .quick-cash-btn-row {
     grid-template-columns: repeat(6, 1fr) !important;
@@ -9290,12 +9486,12 @@ body:not(.light-mode) .btn-sub-action.primary:hover {
 
 .change-due-badge {
   font-family: var(--font-mono, 'JetBrains Mono', monospace);
-  font-size: 0.88rem;
+  font-size: 1.05rem;
   font-weight: 800;
   color: #059669;
-  background: rgba(16, 185, 129, 0.12);
-  border: 1px solid rgba(16, 185, 129, 0.28);
-  padding: 2px 10px;
+  background: rgba(16, 185, 129, 0.14);
+  border: 1.5px solid rgba(16, 185, 129, 0.35);
+  padding: 5px 14px;
   border-radius: var(--radius-full);
   transition: all 0.2s ease;
 }

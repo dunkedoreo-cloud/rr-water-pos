@@ -451,27 +451,44 @@
               </div>
             </div>
 
-            <!-- Numeric Keypad Grid (Direct & clean numeric gallon input) -->
-            <div class="numeric-keypad-grid">
-              <button class="keypad-key" data-key="7">7</button>
-              <button class="keypad-key" data-key="8">8</button>
-              <button class="keypad-key" data-key="9">9</button>
-              <button class="keypad-key key-clear" data-key="C">C</button>
+            <!-- Senior-Friendly Accessible Numpad & Dual Target Switcher -->
+            <div class="keypad-container" id="keypadContainer">
+              <div class="keypad-target-bar">
+                <span class="keypad-target-hint">Numpad Mode:</span>
+                <div class="keypad-target-pills" role="tablist">
+                  <button type="button" class="kp-target-pill active" id="btnTargetQty" data-target="qty" title="Type gallon quantity directly on numpad">
+                    <svg class="ui-icon-xs" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"></path></svg>
+                    <span>Gallons: <strong id="kpTargetQtyDisplay">1</strong></span>
+                  </button>
+                  <button type="button" class="kp-target-pill" id="btnTargetCash" data-target="cash" title="Type cash received directly on numpad to compute change">
+                    <svg class="ui-icon-xs" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="2" y="6" width="20" height="12" rx="2"></rect><circle cx="12" cy="12" r="2"></circle><path d="M6 12h.01M18 12h.01"></path></svg>
+                    <span>Cash Given: <strong id="kpTargetCashDisplay">Exact ₱35</strong></span>
+                  </button>
+                </div>
+              </div>
 
-              <button class="keypad-key" data-key="4">4</button>
-              <button class="keypad-key" data-key="5">5</button>
-              <button class="keypad-key" data-key="6">6</button>
-              <button class="keypad-key key-op" data-key="+">+</button>
+              <!-- High-Contrast Large Touch Keypad (Senior-Friendly 60px Keys) -->
+              <div class="numeric-keypad-grid" id="mainNumericKeypad">
+                <button type="button" class="keypad-key key-num" data-key="7">7</button>
+                <button type="button" class="keypad-key key-num" data-key="8">8</button>
+                <button type="button" class="keypad-key key-num" data-key="9">9</button>
+                <button type="button" class="keypad-key key-op" data-key="+" id="kpBtnPlus" title="Add 1 Gallon / +₱10">+1</button>
 
-              <button class="keypad-key" data-key="1">1</button>
-              <button class="keypad-key" data-key="2">2</button>
-              <button class="keypad-key" data-key="3">3</button>
-              <button class="keypad-key key-op" data-key="-">-</button>
+                <button type="button" class="keypad-key key-num" data-key="4">4</button>
+                <button type="button" class="keypad-key key-num" data-key="5">5</button>
+                <button type="button" class="keypad-key key-num" data-key="6">6</button>
+                <button type="button" class="keypad-key key-op" data-key="-" id="kpBtnMinus" title="Subtract 1 Gallon / -₱10">-1</button>
 
-              <button class="keypad-key" data-key=".">.</button>
-              <button class="keypad-key" data-key="0">0</button>
-              <button class="keypad-key key-exact" id="btnKeypadReset">Reset</button>
-              <button class="keypad-key key-clear" id="btnKeypadBackspace">⌫</button>
+                <button type="button" class="keypad-key key-num" data-key="1">1</button>
+                <button type="button" class="keypad-key key-num" data-key="2">2</button>
+                <button type="button" class="keypad-key key-num" data-key="3">3</button>
+                <button type="button" class="keypad-key key-backspace" id="btnKeypadBackspace" title="Erase last digit">⌫</button>
+
+                <button type="button" class="keypad-key key-clear" data-key="C" id="btnKeypadClear" title="Clear to 1 Gallon / Reset Cash">C</button>
+                <button type="button" class="keypad-key key-num" data-key="0">0</button>
+                <button type="button" class="keypad-key key-quick" data-key="+5" id="kpBtnPlusFive" title="Quick Add 5 Gallons / +₱50">+5</button>
+                <button type="button" class="keypad-key key-exact" id="btnKeypadReset" title="Exact Total or Reset">Exact</button>
+              </div>
             </div>
 
             <!-- Payment Method Selector: Cash vs GCash QR -->
