@@ -1002,8 +1002,8 @@ body:not(.light-mode) .cashier-avatar {
    ========================================================================== */
 .pos-workspace-grid {
   display: grid;
-  grid-template-columns: 1.22fr 1fr;
-  gap: 18px;
+  grid-template-columns: 0.96fr 1.14fr;
+  gap: 16px;
   align-items: start;
 }
 
@@ -1802,13 +1802,13 @@ body:not(.light-mode) .preset-pill.active {
   background-color: var(--bg-card);
   border: 1px solid var(--border-card);
   border-radius: var(--radius-xl);
-  padding: 18px;
+  padding: 12px 14px;
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  gap: 7px;
   box-shadow: var(--shadow-card);
   position: sticky;
-  top: 14px;
+  top: 10px;
 }
 
 /* Order Header Row */
@@ -1897,32 +1897,37 @@ body:not(.light-mode) .preset-pill.active {
   transform: scale(1.1);
 }
 
-/* Order Selected Item Card & Stepper (Simplified & Grouped) */
+/* Order Selected Item Card & Stepper (Compact Single-Row Design) */
 .order-selected-item-card {
   background-color: var(--bg-card-subtle);
   border: 1px solid var(--border-subtle);
   border-radius: var(--radius-lg);
-  padding: 12px 14px;
+  padding: 6px 10px;
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
   gap: 10px;
 }
 
 .selected-item-row {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 8px;
+  flex: 1;
+  min-width: 0;
 }
 
 .selected-item-img {
-  width: 44px;
-  height: 44px;
+  width: 34px;
+  height: 34px;
   background-color: #e0f2fe;
   border: 1px solid #bae6fd;
   border-radius: var(--radius-sm);
-  padding: 4px;
+  padding: 3px;
   object-fit: contain;
   transition: background-color 0.3s ease, border-color 0.3s ease;
+  flex-shrink: 0;
 }
 
 body:not(.light-mode) .selected-item-img {
@@ -1930,46 +1935,54 @@ body:not(.light-mode) .selected-item-img {
   border-color: rgba(56, 189, 248, 0.28);
 }
 
+.selected-item-details {
+  min-width: 0;
+  overflow: hidden;
+}
+
 .selected-item-details h5 {
-  font-size: 0.94rem;
+  font-size: 0.86rem;
   font-weight: 800;
   color: var(--text-main);
-  line-height: 1.2;
+  line-height: 1.15;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .selected-item-rate {
   font-family: var(--font-mono);
-  font-size: 0.74rem;
+  font-size: 0.72rem;
   font-weight: 700;
   color: var(--color-primary);
 }
 
-/* Stepper Row */
+/* Stepper Row (Compact Horizontal Integration) */
 .quantity-stepper-row {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: 10px;
+  gap: 6px;
   background: var(--bg-surface);
   border: 1px solid var(--border-subtle);
   border-radius: var(--radius-md);
-  padding: 6px 10px;
+  padding: 3px 6px;
+  flex-shrink: 0;
 }
 
 .btn-stepper {
-  width: 50px;
-  height: 50px;
-  border-radius: 10px;
-  border: 2px solid #cbd5e1;
+  width: 34px;
+  height: 34px;
+  border-radius: 8px;
+  border: 1.5px solid #cbd5e1;
   background-color: var(--bg-surface);
   color: var(--text-main);
-  font-size: 1.75rem;
+  font-size: 1.45rem;
   font-weight: 800;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 2px 0 #94a3b8;
+  box-shadow: 0 1px 0 #94a3b8;
   transition: all 0.1s ease;
   user-select: none;
 }
@@ -1985,28 +1998,28 @@ body:not(.light-mode) .selected-item-img {
 }
 
 .stepper-center-box {
-  flex: 1;
+  padding: 0 8px;
   text-align: center;
   display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
+  align-items: baseline;
+  gap: 3px;
+  cursor: pointer;
 }
 
 .stepper-qty-num {
   font-family: var(--font-mono);
-  font-size: 2.2rem;
+  font-size: 1.5rem;
   font-weight: 800;
   color: var(--text-main);
-  line-height: 1.1;
+  line-height: 1;
 }
 
 .stepper-unit-lbl {
-  font-size: 0.68rem;
+  font-size: 0.65rem;
   font-weight: 700;
   color: var(--text-muted);
   text-transform: uppercase;
-  letter-spacing: 0.05em;
+  letter-spacing: 0.04em;
 }
 
 /* Delivery Options Card (Multicab Batch Mode) */
@@ -2137,11 +2150,11 @@ body:not(.light-mode) .selected-item-img {
 .keypad-container {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 6px;
   background-color: var(--bg-card-subtle, #f8fafc);
   border: 1.5px solid var(--border-subtle, #e2e8f0);
   border-radius: var(--radius-lg, 12px);
-  padding: 12px;
+  padding: 8px 10px;
 }
 
 .keypad-target-bar {
@@ -2153,11 +2166,11 @@ body:not(.light-mode) .selected-item-img {
 }
 
 .keypad-target-hint {
-  font-size: 0.72rem;
+  font-size: 0.68rem;
   font-weight: 800;
   color: var(--text-muted);
   text-transform: uppercase;
-  letter-spacing: 0.05em;
+  letter-spacing: 0.04em;
 }
 
 .keypad-target-pills {
@@ -2170,13 +2183,13 @@ body:not(.light-mode) .selected-item-img {
 .kp-target-pill {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-  padding: 6px 12px;
+  gap: 5px;
+  padding: 4px 10px;
   border-radius: var(--radius-full, 9999px);
   border: 1.5px solid var(--border-subtle, #cbd5e1);
   background: var(--bg-surface, #ffffff);
   color: var(--text-muted);
-  font-size: 0.76rem;
+  font-size: 0.72rem;
   font-weight: 700;
   cursor: pointer;
   transition: all 0.15s ease;
@@ -2204,29 +2217,29 @@ body:not(.light-mode) .selected-item-img {
   font-weight: 800;
 }
 
-/* 4-Column Keypad Grid (Huge 60px Keys with High-Contrast Bold Digits) */
+/* 4-Column Keypad Grid (Wider Touch Surface, 44px Height to Prevent Vertical Scrolling) */
 .numeric-keypad-grid {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
-  gap: 8px;
+  gap: 6px;
 }
 
 .keypad-key {
-  height: 60px;
-  min-height: 60px;
-  border-radius: 10px;
+  height: 44px;
+  min-height: 44px;
+  border-radius: 8px;
   background-color: #ffffff;
-  border: 2px solid #cbd5e1;
+  border: 1.5px solid #cbd5e1;
   color: #0f172a;
   font-family: var(--font-mono, "JetBrains Mono", monospace);
-  font-size: 1.55rem;
+  font-size: 1.45rem;
   font-weight: 800;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 4px;
-  box-shadow: 0 3px 0 #94a3b8, 0 3px 6px rgba(0, 0, 0, 0.05);
+  box-shadow: 0 2px 0 #94a3b8, 0 2px 4px rgba(0, 0, 0, 0.04);
   transition: transform 0.06s ease, box-shadow 0.06s ease, background-color 0.1s ease;
   user-select: none;
   -webkit-tap-highlight-color: transparent;
@@ -6816,8 +6829,8 @@ body:not(.light-mode) .btn-sub-action.primary:hover {
 @media (max-width: 1200px) {
   .pos-workspace-grid {
     display: grid;
-    grid-template-columns: 1.15fr 1fr;
-    gap: 14px;
+    grid-template-columns: 0.98fr 1.14fr;
+    gap: 12px;
     align-items: start;
   }
   .order-calculator-panel {
@@ -9462,12 +9475,12 @@ body:not(.light-mode) .btn-sub-action.primary:hover {
   background-color: var(--bg-card);
   border: 1px solid var(--border-card);
   border-radius: var(--radius-lg);
-  padding: 10px 14px;
-  margin-top: 8px;
-  margin-bottom: 8px;
+  padding: 6px 10px;
+  margin-top: 2px;
+  margin-bottom: 2px;
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 5px;
 }
 
 .cash-tender-header {
