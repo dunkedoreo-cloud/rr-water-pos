@@ -1691,10 +1691,16 @@
               <h3>Station Configuration &amp; POS Settings</h3>
               <p>Configure gallon pricing, station details, driver fleet, and terminal security</p>
             </div>
-            <button class="btn-save-settings" id="btnSaveAllSettings">
-              <svg class="ui-icon-xs" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path><polyline points="17 21 17 13 7 13 7 21"></polyline><polyline points="7 3 7 8 15 8"></polyline></svg>
-              <span>Save Changes</span>
-            </button>
+            <div style="display: flex; gap: 8px; align-items: center;">
+              <button type="button" class="btn-sub-action" id="btnLaunchSetupWizard" title="Run Quick Station Setup Wizard (PIN, Name, Gallon Price, Driver)" style="font-weight: 700; height: 38px; border-radius: var(--radius-sm); border: 1px solid var(--border-subtle); background: var(--bg-card); color: var(--text-main);">
+                <svg class="ui-icon-xs" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"></path></svg>
+                <span>Setup Wizard</span>
+              </button>
+              <button class="btn-save-settings" id="btnSaveAllSettings">
+                <svg class="ui-icon-xs" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path><polyline points="17 21 17 13 7 13 7 21"></polyline><polyline points="7 3 7 8 15 8"></polyline></svg>
+                <span>Save Changes</span>
+              </button>
+            </div>
           </div>
 
           <!-- Settings Tabbed Navigation -->
@@ -3123,6 +3129,145 @@
         <button type="button" class="btn-modal-cancel" id="btnCancelStaffModal">Cancel</button>
         <button type="button" class="btn-modal-confirm" id="btnSaveStaffModal" style="background: #0284c7; color: #ffffff; min-width: 140px;">
           <span>Save Staff</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Station Initialization & Quick Setup Wizard Modal -->
+  <div class="modal-backdrop" id="stationSetupWizardModal" style="display: none;">
+    <div class="modal-card setup-wizard-card">
+      <div class="thermal-modal-header">
+        <div class="thermal-modal-title">
+          <div class="thermal-icon-circle" style="background: rgba(2, 132, 199, 0.12); color: var(--color-primary);">
+            <svg class="ui-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"></path>
+            </svg>
+          </div>
+          <div class="thermal-modal-title-text">
+            <h3 id="wizardModalTitle">Station Quick Setup Wizard</h3>
+            <p id="wizardModalSubtitle">Configure manager credentials, security PIN, gallon rates, and delivery fleet</p>
+          </div>
+        </div>
+        <button type="button" class="modal-close-icon" id="btnCloseStationWizard" aria-label="Close" title="Close (Esc)">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+        </button>
+      </div>
+
+      <div class="setup-wizard-body">
+        
+        <!-- Section 1: Station Business Profile -->
+        <div class="setup-wizard-section">
+          <div class="setup-wizard-section-title">
+            <span class="section-num">1</span>
+            <span>Station Business Details</span>
+          </div>
+          <div class="setting-row-2col">
+            <div class="setting-input-group">
+              <label for="wizardStationName" style="font-size: 0.74rem; font-weight: 700; color: var(--text-muted); display: block; margin-bottom: 3px;">Station Business Name *</label>
+              <input type="text" id="wizardStationName" placeholder="e.g. R&amp;R Water Refilling Station" class="setting-input" value="R&amp;R Water Refilling Station" required>
+            </div>
+            <div class="setting-input-group">
+              <label for="wizardStationBranch" style="font-size: 0.74rem; font-weight: 700; color: var(--text-muted); display: block; margin-bottom: 3px;">Branch / Terminal</label>
+              <input type="text" id="wizardStationBranch" placeholder="e.g. Counter #1 (Main Terminal)" class="setting-input" value="Counter #1 (Main Terminal)">
+            </div>
+          </div>
+          <div class="setting-row-2col">
+            <div class="setting-input-group">
+              <label for="wizardStationPhone" style="font-size: 0.74rem; font-weight: 700; color: var(--text-muted); display: block; margin-bottom: 3px;">Station Contact Phone</label>
+              <input type="tel" id="wizardStationPhone" placeholder="e.g. 0917-829-4102" class="setting-input">
+            </div>
+            <div class="setting-input-group">
+              <label for="wizardStationAddress" style="font-size: 0.74rem; font-weight: 700; color: var(--text-muted); display: block; margin-bottom: 3px;">Station Location / Address</label>
+              <input type="text" id="wizardStationAddress" placeholder="e.g. Purok 1, Main Road" class="setting-input">
+            </div>
+          </div>
+        </div>
+
+        <!-- Section 2: Manager Credentials & Security PIN -->
+        <div class="setup-wizard-section">
+          <div class="setup-wizard-section-title">
+            <span class="section-num">2</span>
+            <span>Station Manager &amp; Security PIN</span>
+          </div>
+          <div class="setting-row-2col">
+            <div class="setting-input-group">
+              <label for="wizardManagerName" style="font-size: 0.74rem; font-weight: 700; color: var(--text-muted); display: block; margin-bottom: 3px;">Manager / Owner Name *</label>
+              <input type="text" id="wizardManagerName" placeholder="e.g. Maria Santos / Station Manager" class="setting-input" required>
+            </div>
+            <div class="setting-input-group">
+              <label for="wizardManagerPin" style="font-size: 0.74rem; font-weight: 700; color: var(--text-muted); display: block; margin-bottom: 3px;">4-Digit Security PIN *</label>
+              <input type="password" id="wizardManagerPin" placeholder="•••• (4 digits)" maxlength="4" pattern="\d{4}" inputmode="numeric" class="setting-input" style="letter-spacing: 3px;" required>
+            </div>
+          </div>
+          <small style="font-size: 0.72rem; color: var(--text-muted); display: block;">This 4-digit PIN authorizes manager overrides: voids, shift resets, and pricing adjustments.</small>
+        </div>
+
+        <!-- Section 3: Gallon Pricing & Rates -->
+        <div class="setup-wizard-section">
+          <div class="setup-wizard-section-title">
+            <span class="section-num">3</span>
+            <span>Gallon Selling Prices</span>
+          </div>
+          <div class="setting-row-2col">
+            <div class="setting-input-group">
+              <label for="wizardPricePurified" style="font-size: 0.74rem; font-weight: 700; color: var(--text-muted); display: block; margin-bottom: 3px;">1-Gallon Refill Price (₱) *</label>
+              <input type="number" id="wizardPricePurified" placeholder="35" class="setting-input num-input" value="35" min="1" step="1" required>
+            </div>
+            <div class="setting-input-group">
+              <label for="wizardPriceNewJug" style="font-size: 0.74rem; font-weight: 700; color: var(--text-muted); display: block; margin-bottom: 3px;">New Container + Water (₱) *</label>
+              <input type="number" id="wizardPriceNewJug" placeholder="250" class="setting-input num-input" value="250" min="1" step="5" required>
+            </div>
+          </div>
+          <div class="setting-row-2col">
+            <div class="setting-input-group">
+              <label for="wizardWholesalePrice" style="font-size: 0.74rem; font-weight: 700; color: var(--text-muted); display: block; margin-bottom: 3px;">Wholesale Bulk Rate (₱ / Gal)</label>
+              <input type="number" id="wizardWholesalePrice" placeholder="30" class="setting-input num-input" value="30" min="1" step="1">
+            </div>
+            <div class="setting-input-group">
+              <label for="wizardMinBatch" style="font-size: 0.74rem; font-weight: 700; color: var(--text-muted); display: block; margin-bottom: 3px;">Min Delivery Batch (Gallons)</label>
+              <input type="number" id="wizardMinBatch" placeholder="10" class="setting-input num-input" value="10" min="1" step="1">
+            </div>
+          </div>
+        </div>
+
+        <!-- Section 4: Initial Delivery Driver & Vehicle -->
+        <div class="setup-wizard-section">
+          <div class="setup-wizard-section-title">
+            <span class="section-num">4</span>
+            <span>Delivery Driver &amp; Multicab (Optional)</span>
+          </div>
+          <div class="setting-row-2col">
+            <div class="setting-input-group">
+              <label for="wizardDriverName" style="font-size: 0.74rem; font-weight: 700; color: var(--text-muted); display: block; margin-bottom: 3px;">Driver / Courier Name</label>
+              <input type="text" id="wizardDriverName" placeholder="e.g. Kuya Jun (optional)" class="setting-input">
+            </div>
+            <div class="setting-input-group">
+              <label for="wizardDriverVehicle" style="font-size: 0.74rem; font-weight: 700; color: var(--text-muted); display: block; margin-bottom: 3px;">Vehicle / Unit</label>
+              <input type="text" id="wizardDriverVehicle" placeholder="e.g. Multicab #1" value="Multicab #1" class="setting-input">
+            </div>
+          </div>
+          <div class="setting-row-2col">
+            <div class="setting-input-group">
+              <label for="wizardDriverPlate" style="font-size: 0.74rem; font-weight: 700; color: var(--text-muted); display: block; margin-bottom: 3px;">Plate Number</label>
+              <input type="text" id="wizardDriverPlate" placeholder="e.g. ABC-1234" class="setting-input" style="text-transform: uppercase;">
+            </div>
+            <div class="setting-input-group">
+              <label for="wizardDriverPhone" style="font-size: 0.74rem; font-weight: 700; color: var(--text-muted); display: block; margin-bottom: 3px;">Driver Mobile #</label>
+              <input type="tel" id="wizardDriverPhone" placeholder="e.g. 0918-555-0192" class="setting-input">
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <div class="modal-button-row" style="display: flex; justify-content: flex-end; gap: 10px; border-top: 1px solid var(--border-subtle); padding-top: 14px;">
+        <button type="button" class="btn-modal-cancel" id="btnCancelStationWizard">Cancel</button>
+        <button type="button" class="btn-modal-confirm" id="btnSaveStationWizard" style="background: #0284c7; color: #ffffff; min-width: 170px;">
+          <span>Save &amp; Launch POS</span>
         </button>
       </div>
     </div>

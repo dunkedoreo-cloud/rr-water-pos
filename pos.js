@@ -366,11 +366,12 @@ document.addEventListener('DOMContentLoaded', () => {
   initDriverSettlementEvents();
   initFleetEvents();
   initStaffManagementEvents();
+  initStationSetupWizardEvents();
   setTimeout(() => {
     if (!State.staff || State.staff.length === 0) {
-      openStaffModal();
+      openStationSetupWizardModal();
     }
-  }, 450);
+  }, 400);
   initQuickExpenseEvents();
   initGcashSettingsUI();
   SupabaseSync.init();
@@ -1475,10 +1476,11 @@ function bindEvents() {
       soundCtrl.playTap();
       const tabKey = btn.getAttribute('data-tab');
 
-      // Restrict pricing, system, and security tabs to Managers
+      // Restrict pricing, system, and security tabs to Managers when a manager account is configured
       const user = getCurrentUser();
+      const hasManager = (State.staff || []).some(s => s.role === 'manager');
       const protectedTabs = ['pricing', 'system', 'security'];
-      if (protectedTabs.includes(tabKey) && user.role !== 'manager') {
+      if (hasManager && protectedTabs.includes(tabKey) && (!user || user.role !== 'manager')) {
         requestManagerAuth({
           title: 'Manager Authorization Required',
           description: `Accessing ${btn.textContent.trim()} requires Manager PIN approval.`,
@@ -1499,7 +1501,8 @@ function bindEvents() {
   if (btnSaveSettings) {
     btnSaveSettings.addEventListener('click', () => {
       const user = getCurrentUser();
-      if (user.role !== 'manager') {
+      const hasManager = (State.staff || []).some(s => s.role === 'manager');
+      if (hasManager && (!user || user.role !== 'manager')) {
         requestManagerAuth({
           title: 'Authorize Settings Changes',
           description: 'Saving station rates and terminal settings requires Manager PIN verification.',
@@ -1511,7 +1514,7 @@ function bindEvents() {
         });
       } else {
         saveSettings();
-        logSecurityEvent('SETTINGS_CHANGE', 'Updated station configuration & rates', user.name);
+        logSecurityEvent('SETTINGS_CHANGE', 'Updated station configuration & rates', user ? user.name : 'Manager');
       }
     });
   }
@@ -5820,6 +5823,269 @@ function deleteStaffProfile(staffId) {
     logSecurityEvent('STAFF_DELETE', `Deleted staff profile for ${target.name}`);
     showToast(`Removed ${target.name} from staff`);
   }
+}
+
+// ==========================================================================
+// STATION INITIALIZATION & QUICK SETUP WIZARD CONTROLLER
+// (PIN, Owner Name, Gallon Price, Initial Delivery Driver)
+// ==========================================================================
+function openStationSetupWizardModal() {
+  const modal = document.getElementById('stationSetupWizardModal');
+  if (!modal) return;
+  soundCtrl.playTap();
+
+  const inStName = document.getElementById('wizardStationName');
+  const inStBranch = document.getElementById('wizardStationBranch');
+  const inStPhone = document.getElementById('wizardStationPhone');
+  const inStAddr = document.getElementById('wizardStationAddress');
+  const inMgrName = document.getElementById('wizardManagerName');
+  const inMgrPin = document.getElementById('wizardManagerPin');
+  const inPricePurified = document.getElementById('wizardPricePurified');
+  const inPriceNewJug = document.getElementById('wizardPriceNewJug');
+  const inWholesalePrice = document.getElementById('wizardWholesalePrice');
+  const inMinBatch = document.getElementById('wizardMinBatch');
+  const inDrvName = document.getElementById('wizardDriverName');
+  const inDrvVehicle = document.getElementById('wizardDriverVehicle');
+  const inDrvPlate = document.getElementById('wizardDriverPlate');
+  const inDrvPhone = document.getElementById('wizardDriverPhone');
+
+  // Populate Station Info
+  if (inStName) inStName.value = State.settings.stationName || 'R&R Water Refilling Station';
+  if (inStBranch) inStBranch.value = State.settings.stationBranch || 'Counter #1 (Main Terminal)';
+  if (inStPhone) inStPhone.value = State.settings.stationPhone || '';
+  if (inStAddr) inStAddr.value = State.settings.stationAddress || '';
+
+  // Populate Manager Profile
+  const mgr = (State.staff || []).find(s => s.role === 'manager');
+  if (mgr) {
+    if (inMgrName) inMgrName.value = mgr.name || '';
+    if (inMgrPin) inMgrPin.value = mgr.pin || '';
+  } else {
+    if (inMgrName) inMgrName.value = '';
+    if (inMgrPin) inMgrPin.value = '';
+  }
+
+  // Populate Gallon Prices
+  if (inPricePurified) inPricePurified.value = State.settings.pricePurified || 35;
+  if (inPriceNewJug) inPriceNewJug.value = State.settings.priceNewJug || 250;
+  if (inWholesalePrice) inWholesalePrice.value = State.settings.wholesalePrice || 30;
+  if (inMinBatch) inMinBatch.value = State.settings.minBatch || 10;
+
+  // Populate Driver
+  const d = (State.fleet || [])[0];
+  if (d) {
+    if (inDrvName) inDrvName.value = d.name || '';
+    if (inDrvVehicle) inDrvVehicle.value = d.vehicle || 'Multicab #1';
+    if (inDrvPlate) inDrvPlate.value = d.plate || '';
+    if (inDrvPhone) inDrvPhone.value = d.phone || '';
+  } else {
+    if (inDrvName) inDrvName.value = '';
+    if (inDrvVehicle) inDrvVehicle.value = 'Multicab #1';
+    if (inDrvPlate) inDrvPlate.value = '';
+    if (inDrvPhone) inDrvPhone.value = '';
+  }
+
+  modal.style.display = 'flex';
+  modal.classList.add('show');
+  setTimeout(() => {
+    if (inMgrName && !inMgrName.value) inMgrName.focus();
+    else if (inStName) inStName.focus();
+  }, 100);
+}
+
+function closeStationSetupWizardModal() {
+  const modal = document.getElementById('stationSetupWizardModal');
+  if (!modal) return;
+  soundCtrl.playTap();
+  modal.classList.remove('show');
+  setTimeout(() => {
+    modal.style.display = 'none';
+  }, 200);
+}
+
+function saveStationSetupWizard() {
+  const inStName = document.getElementById('wizardStationName');
+  const inStBranch = document.getElementById('wizardStationBranch');
+  const inStPhone = document.getElementById('wizardStationPhone');
+  const inStAddr = document.getElementById('wizardStationAddress');
+  const inMgrName = document.getElementById('wizardManagerName');
+  const inMgrPin = document.getElementById('wizardManagerPin');
+  const inPricePurified = document.getElementById('wizardPricePurified');
+  const inPriceNewJug = document.getElementById('wizardPriceNewJug');
+  const inWholesalePrice = document.getElementById('wizardWholesalePrice');
+  const inMinBatch = document.getElementById('wizardMinBatch');
+  const inDrvName = document.getElementById('wizardDriverName');
+  const inDrvVehicle = document.getElementById('wizardDriverVehicle');
+  const inDrvPlate = document.getElementById('wizardDriverPlate');
+  const inDrvPhone = document.getElementById('wizardDriverPhone');
+
+  const stName = inStName ? inStName.value.trim() : 'R&R Water Refilling Station';
+  const stBranch = inStBranch ? inStBranch.value.trim() : 'Counter #1 (Main Terminal)';
+  const stPhone = inStPhone ? inStPhone.value.trim() : '';
+  const stAddr = inStAddr ? inStAddr.value.trim() : '';
+
+  const mgrName = inMgrName ? inMgrName.value.trim() : '';
+  const mgrPin = inMgrPin ? inMgrPin.value.trim() : '';
+
+  const pPurified = inPricePurified ? (parseFloat(inPricePurified.value) || 35) : 35;
+  const pNewJug = inPriceNewJug ? (parseFloat(inPriceNewJug.value) || 250) : 250;
+  const pWholesale = inWholesalePrice ? (parseFloat(inWholesalePrice.value) || 30) : 30;
+  const minBatch = inMinBatch ? (parseInt(inMinBatch.value, 10) || 10) : 10;
+
+  const drvName = inDrvName ? inDrvName.value.trim() : '';
+  const drvVehicle = inDrvVehicle ? inDrvVehicle.value.trim() : 'Multicab #1';
+  const drvPlate = inDrvPlate ? inDrvPlate.value.trim().toUpperCase() : '';
+  const drvPhone = inDrvPhone ? inDrvPhone.value.trim() : '';
+
+  if (!mgrName) {
+    alert('Please enter the Station Manager / Owner name.');
+    if (inMgrName) inMgrName.focus();
+    return;
+  }
+
+  if (!mgrPin || !/^\d{4}$/.test(mgrPin)) {
+    alert('Manager Security PIN must be exactly 4 numeric digits.');
+    if (inMgrPin) inMgrPin.focus();
+    return;
+  }
+
+  if (pPurified <= 0) {
+    alert('Please enter a valid 1-gallon refill price.');
+    if (inPricePurified) inPricePurified.focus();
+    return;
+  }
+
+  // 1. Update State.settings
+  State.settings.stationName = stName;
+  State.settings.stationBranch = stBranch;
+  State.settings.stationPhone = stPhone;
+  State.settings.stationAddress = stAddr;
+  State.settings.pricePurified = pPurified;
+  State.settings.priceNewJug = pNewJug;
+  State.settings.wholesalePrice = pWholesale;
+  State.settings.minBatch = minBatch;
+  State.settings.cashierName = mgrName;
+
+  // Also sync inputs in Settings tab DOM
+  const sPur = document.getElementById('settingPricePurified');
+  if (sPur) sPur.value = pPurified;
+  const sNew = document.getElementById('settingPriceNewJug');
+  if (sNew) sNew.value = pNewJug;
+  const sWho = document.getElementById('settingWholesalePrice');
+  if (sWho) sWho.value = pWholesale;
+  const sBat = document.getElementById('settingMinBatch');
+  if (sBat) sBat.value = minBatch;
+  const sName = document.getElementById('settingStationName');
+  if (sName) sName.value = stName;
+  const sBra = document.getElementById('settingStationBranch');
+  if (sBra) sBra.value = stBranch;
+  const sPho = document.getElementById('settingStationPhone');
+  if (sPho) sPho.value = stPhone;
+  const sAdd = document.getElementById('settingStationAddress');
+  if (sAdd) sAdd.value = stAddr;
+
+  // 2. Register / Update Manager in State.staff
+  if (!Array.isArray(State.staff)) State.staff = [];
+  let mgr = State.staff.find(s => s.role === 'manager');
+  if (mgr) {
+    mgr.name = mgrName;
+    mgr.pin = mgrPin;
+    mgr.title = 'Station Manager';
+  } else {
+    mgr = {
+      id: 'usr_' + Date.now(),
+      name: mgrName,
+      role: 'manager',
+      title: 'Station Manager',
+      pin: mgrPin,
+      avatarColor: 'linear-gradient(135deg, #0284c7 0%, #0369a1 100%)'
+    };
+    State.staff.unshift(mgr);
+  }
+  State.currentUserId = mgr.id;
+
+  // 3. Register / Update Delivery Driver if entered
+  if (drvName) {
+    if (!Array.isArray(State.fleet)) State.fleet = [];
+    let flt = State.fleet[0];
+    if (flt) {
+      flt.name = drvName;
+      flt.vehicle = drvVehicle;
+      flt.plate = drvPlate;
+      flt.phone = drvPhone;
+      flt.status = 'active';
+    } else {
+      flt = {
+        id: 'flt_' + Date.now(),
+        name: drvName,
+        vehicle: drvVehicle,
+        plate: drvPlate,
+        phone: drvPhone,
+        status: 'active'
+      };
+      State.fleet.push(flt);
+    }
+
+    let drvStaff = State.staff.find(s => s.role === 'driver');
+    if (drvStaff) {
+      drvStaff.name = drvName;
+      drvStaff.title = `${drvVehicle} Courier`;
+    } else {
+      State.staff.push({
+        id: 'usr_drv_' + Date.now(),
+        name: drvName,
+        role: 'driver',
+        title: `${drvVehicle} Courier`,
+        pin: '0000',
+        avatarColor: '#0369a1'
+      });
+    }
+    saveFleet();
+  }
+
+  // 4. Commit and update all views
+  saveSettings();
+  saveStaff();
+  applySettings();
+  renderPresets();
+  renderOrderSummary();
+  renderStaffSettingsList();
+  renderFleetSettingsList();
+  renderHeaderUser();
+  updateStationSummaryDrawer();
+  updateFleetDropdowns();
+
+  logSecurityEvent('STATION_SETUP', `Station setup completed: ${stName} | ₱${pPurified}/gal | Manager: ${mgrName}`);
+  soundCtrl.playSuccess();
+  showToast('✓ Station setup saved! Terminal ready for sales.');
+  closeStationSetupWizardModal();
+}
+
+function initStationSetupWizardEvents() {
+  const btnOpen = document.getElementById('btnLaunchSetupWizard');
+  if (btnOpen) btnOpen.addEventListener('click', openStationSetupWizardModal);
+
+  const btnClose = document.getElementById('btnCloseStationWizard');
+  if (btnClose) btnClose.addEventListener('click', closeStationSetupWizardModal);
+
+  const btnCancel = document.getElementById('btnCancelStationWizard');
+  if (btnCancel) btnCancel.addEventListener('click', closeStationSetupWizardModal);
+
+  const btnSave = document.getElementById('btnSaveStationWizard');
+  if (btnSave) btnSave.addEventListener('click', saveStationSetupWizard);
+
+  const modal = document.getElementById('stationSetupWizardModal');
+  if (modal) {
+    modal.addEventListener('click', (e) => {
+      if (e.target === modal) closeStationSetupWizardModal();
+    });
+  }
+
+  window.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && modal && modal.classList.contains('show')) {
+      closeStationSetupWizardModal();
+    }
+  });
 }
 
 function initStaffManagementEvents() {
