@@ -111,10 +111,6 @@
       <!-- Top Greeting & Header Bar (With Distinct Divider Line) -->
       <header class="top-header">
         <div class="welcome-box">
-          <div class="station-status-pill">
-            <span class="status-live-dot">● Station Terminal Active</span>
-            <span class="station-sub-tag">Counter #1</span>
-          </div>
           <h2 class="welcome-title">Welcome, Neil</h2>
         </div>
 
@@ -849,8 +845,16 @@
               <strong id="shiftVolumeVal">0 Gallons</strong>
             </div>
             <div class="footer-stat">
-              <span class="lbl">Total Cash Collected:</span>
+              <span class="lbl">Total Net Sales:</span>
               <strong id="shiftCashVal">₱0.00</strong>
+            </div>
+            <div class="footer-stat">
+              <span class="lbl">Customer Paid (Cash In):</span>
+              <strong id="shiftTenderedVal" class="font-num text-primary">₱0.00</strong>
+            </div>
+            <div class="footer-stat">
+              <span class="lbl">Change Given (Cash Out):</span>
+              <strong id="shiftChangeVal" class="font-num text-change">₱0.00</strong>
             </div>
             <button class="btn-reset-shift-log" id="btnResetShiftLog">
               <svg class="ui-icon-xs" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"></polyline><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path></svg>
@@ -3240,6 +3244,16 @@
           <div class="summary-metric-box">
             <span class="metric-lbl">Settlement Rate</span>
             <strong class="metric-val" id="drawerShiftPaidPct">100%</strong>
+          </div>
+        </div>
+        <div class="summary-drawer-cashflow">
+          <div class="drawer-flow-item">
+            <span class="flow-lbl">Customer Cash Paid:</span>
+            <strong class="flow-val font-num text-primary" id="drawerShiftTendered">₱0.00</strong>
+          </div>
+          <div class="drawer-flow-item">
+            <span class="flow-lbl">Change Given (Cashier Spent):</span>
+            <strong class="flow-val font-num text-change" id="drawerShiftChange">₱0.00</strong>
           </div>
         </div>
       </div>

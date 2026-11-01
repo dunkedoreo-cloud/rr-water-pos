@@ -246,7 +246,7 @@ class StationDatabase {
       loaned,
       returned,
       Number(orderData.tendered) || paidAmount,
-      Number(orderData.changeAmount) || 0,
+      Number(orderData.changeAmount) || Number(orderData.change) || 0,
       orderData.note || '',
       now
     );
@@ -430,7 +430,7 @@ class StationDatabase {
             Number(o.carboysLoaned) || 0,
             Number(o.carboysReturned) || 0,
             Number(o.tendered) || total,
-            Number(o.changeAmount) || 0,
+            Number(o.changeAmount) || Number(o.change) || 0,
             o.note || '',
             o.timestamp || now
           );

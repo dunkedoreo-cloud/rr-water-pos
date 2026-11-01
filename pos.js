@@ -416,6 +416,20 @@ function loadSavedData() {
       try {
         const parsed = JSON.parse(savedOrders);
         State.storedOrders = (Array.isArray(parsed) ? parsed : []).filter(o => !isMockOrder(o));
+        State.storedOrders.forEach(o => {
+          if (!o.time && (o.timestamp || o.created_at || o.createdAt)) {
+            const ts = o.timestamp ? Number(o.timestamp) : new Date(o.created_at || o.createdAt).getTime();
+            if (!isNaN(ts)) {
+              o.time = new Date(ts).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true });
+            }
+          }
+          if (typeof o.tendered !== 'number') {
+            o.tendered = Number(o.tendered) || (o.status === 'paid' ? (Number(o.total) || 0) : 0);
+          }
+          if (typeof o.change !== 'number') {
+            o.change = Number(o.change_amount) || Number(o.changeAmount) || Math.max(0, o.tendered - (Number(o.total) || 0));
+          }
+        });
       } catch (e) {
         State.storedOrders = [];
       }
@@ -2050,16 +2064,22 @@ function processPaymentAndStoreOrder() {
     ? (State.deliveryAddress.trim() || 'Multicab Delivery')
     : (State.note.trim() || (isPending ? 'Walk-in (Unpaid / Utang)' : ''));
 
-  // Compute Tender & Change
-  let tenderVal = 0;
+  // Compute Tender & Change (Customer Paid vs Cashier Change Given)
+  let tenderVal = total;
   let changeVal = 0;
   if (!isPending) {
-    if (State.selectedTender === 'exact' || State.selectedTender === '' || isNaN(Number(State.selectedTender))) {
-      tenderVal = total;
-      changeVal = 0;
-    } else {
+    const inCash = document.getElementById('cashTenderInput');
+    const typedCash = inCash && inCash.value.trim() !== '' ? parseFloat(inCash.value.trim()) : NaN;
+
+    if (!isNaN(typedCash) && typedCash > 0) {
+      tenderVal = typedCash;
+      changeVal = Math.max(0, tenderVal - total);
+    } else if (State.selectedTender !== 'exact' && State.selectedTender !== '' && !isNaN(Number(State.selectedTender)) && Number(State.selectedTender) > 0) {
       tenderVal = Number(State.selectedTender);
       changeVal = Math.max(0, tenderVal - total);
+    } else {
+      tenderVal = total;
+      changeVal = 0;
     }
   }
 
@@ -2079,6 +2099,7 @@ function processPaymentAndStoreOrder() {
     status: isPending ? 'pending' : 'paid',
     tendered: tenderVal,
     change: changeVal,
+    changeAmount: changeVal,
     carboysLoaned: State.carboysLoaned || 0,
     carboysReturned: State.carboysReturned || 0,
     paymentMethod: State.paymentMethod || 'cash',
@@ -2121,9 +2142,12 @@ function processPaymentAndStoreOrder() {
   if (isPending) {
     showToast(`Dispatched: ${newOrder.orderNo} • ${State.qty.toLocaleString()} Gal (Pending ₱${formatPeso(total)})`);
     updateDroppyMessage(`Multicab batch ${newOrder.orderNo} dispatched with ${State.qty.toLocaleString()} gallons! Payment pending remittance.`, 'assets/droppy_winking.png', 'Batch Dispatched');
+  } else if (changeVal > 0) {
+    showToast(`Paid: ${newOrder.orderNo} • Due: ₱${formatPeso(total)} • Received: ₱${formatPeso(tenderVal)} • Change: ₱${formatPeso(changeVal)}`);
+    updateDroppyMessage(`Order ${newOrder.orderNo} stored! Customer paid ₱${formatPeso(tenderVal)}, change given: ₱${formatPeso(changeVal)}.`, 'assets/droppy_happy.png', 'Change Dispensed');
   } else {
-    showToast(`Paid & Stored: ${newOrder.orderNo} • ${State.qty.toLocaleString()} Gal (₱${formatPeso(total)})`);
-    updateDroppyMessage(`Order ${newOrder.orderNo} recorded and stored! ${State.qty.toLocaleString()} gallons logged.`, 'assets/droppy_happy.png', 'Order Complete');
+    showToast(`Paid: ${newOrder.orderNo} • ${State.qty.toLocaleString()} Gal (Exact ₱${formatPeso(total)})`);
+    updateDroppyMessage(`Order ${newOrder.orderNo} recorded and stored! Exact ₱${formatPeso(total)} received.`, 'assets/droppy_happy.png', 'Order Complete');
   }
 
   if (State.settings && State.settings.autoPrint) {
@@ -2369,10 +2393,25 @@ function renderStoredOrders() {
     totalCash += paid;
   });
 
+  let totalTendered = 0;
+  let totalChangeDispensed = 0;
+  State.storedOrders.forEach(o => {
+    if (o.status === 'paid') {
+      const tend = typeof o.tendered === 'number' && o.tendered > 0 ? o.tendered : (Number(o.total) || 0);
+      const chg = typeof o.change === 'number' ? o.change : Math.max(0, tend - (Number(o.total) || 0));
+      totalTendered += tend;
+      totalChangeDispensed += chg;
+    }
+  });
+
   const shiftVol = document.getElementById('shiftVolumeVal');
   const shiftCash = document.getElementById('shiftCashVal');
+  const shiftTendered = document.getElementById('shiftTenderedVal');
+  const shiftChange = document.getElementById('shiftChangeVal');
   if (shiftVol) shiftVol.textContent = `${totalGallons.toLocaleString()} Gallons`;
   if (shiftCash) shiftCash.textContent = `₱${formatPeso(totalCash)}`;
+  if (shiftTendered) shiftTendered.textContent = `₱${formatPeso(totalTendered)}`;
+  if (shiftChange) shiftChange.textContent = `₱${formatPeso(totalChangeDispensed)}`;
 
   if (filtered.length === 0) {
     let emptyTitle = 'No Orders Recorded Yet';
@@ -2462,6 +2501,8 @@ function renderStoredOrders() {
   let filteredTotal = 0;
   let paidCount = 0;
   let pendingCount = 0;
+  let filteredTendered = 0;
+  let filteredChange = 0;
 
   let rowsHtml = '';
   filtered.forEach(order => {
@@ -2472,8 +2513,15 @@ function renderStoredOrders() {
 
     filteredGallons += galCount;
     filteredTotal += orderTotal;
-    if (isPending) pendingCount++;
-    else paidCount++;
+    if (isPending) {
+      pendingCount++;
+    } else {
+      paidCount++;
+      const tend = typeof order.tendered === 'number' && order.tendered > 0 ? order.tendered : orderTotal;
+      const chg = typeof order.change === 'number' ? order.change : Math.max(0, tend - orderTotal);
+      filteredTendered += tend;
+      filteredChange += chg;
+    }
 
     const prodTitle = order.prodKey === 'new_container'
       ? `${galCount.toLocaleString()}x New Jug + Water`
@@ -2524,7 +2572,7 @@ function renderStoredOrders() {
         <td class="td-orderno">
           <span class="order-id-badge">${escapeHtml(order.orderNo || '')}</span>
         </td>
-        <td class="td-time font-num">${escapeHtml(order.time || '---')}</td>
+        <td class="td-time font-num">${escapeHtml(order.time || (order.timestamp ? new Date(Number(order.timestamp)).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true }) : (order.created_at ? new Date(order.created_at).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true }) : '---')))}</td>
         <td class="td-customer">
           <div class="customer-location-cell">
             <svg class="ui-icon-xs" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color: var(--text-muted); flex-shrink: 0;"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
@@ -2544,7 +2592,12 @@ function renderStoredOrders() {
         </td>
         <td class="td-amount font-num">
           <div class="table-amount-main"><span class="peso-sign">₱</span>&nbsp;${formatPeso(orderTotal)}</div>
-          ${isPending ? `<div class="table-amount-sub-unpaid">Pending:&nbsp;₱&nbsp;${formatPeso(unpaidVal)}</div>` : ''}
+          ${isPending ? `<div class="table-amount-sub-unpaid">Pending:&nbsp;₱&nbsp;${formatPeso(unpaidVal)}</div>` : `
+            <div class="table-money-flow">
+              <span class="mflow-pill mflow-paid" title="Customer Cash Received">Paid: ₱${formatPeso(order.tendered ?? orderTotal)}</span>
+              ${(order.change && order.change > 0) ? `<span class="mflow-pill mflow-change" title="Change Given (Cashier Spent)">Change: ₱${formatPeso(order.change)}</span>` : `<span class="mflow-pill mflow-exact">Exact</span>`}
+            </div>
+          `}
         </td>
         <td class="td-actions">
           <div class="table-actions-cell">
@@ -2585,7 +2638,13 @@ function renderStoredOrders() {
             <td colspan="3" class="tf-count">Total Filtered: ${filtered.length.toLocaleString()} Orders</td>
             <td class="tf-gallons font-num">${filteredGallons.toLocaleString()} Gallons</td>
             <td colspan="2" class="tf-status-counts">${paidCount.toLocaleString()} Paid • ${pendingCount.toLocaleString()} Pending</td>
-            <td class="tf-total-amount font-num"><span class="peso-sign">₱</span>&nbsp;${formatPeso(filteredTotal)}</td>
+            <td class="tf-total-amount font-num">
+              <div class="tf-net-sales"><span class="peso-sign">₱</span>&nbsp;${formatPeso(filteredTotal)}</div>
+              <div class="tf-money-flow-summary" title="Cash Received vs Change Dispensed">
+                <span class="tf-paid-tag">Paid: ₱${formatPeso(filteredTendered)}</span>
+                <span class="tf-change-tag">Change: ₱${formatPeso(filteredChange)}</span>
+              </div>
+            </td>
             <td class="tf-actions"></td>
           </tr>
         </tfoot>
@@ -3338,7 +3397,19 @@ function renderReportsTable(filteredOrders) {
         </td>
         <td class="td-source"><span class="td-source-pill ${sourceClass}">${sourceLabel}</span></td>
         <td class="td-date">${dateTimeStr}</td>
-        <td class="td-price font-num">₱${formatPeso(priceVal)}</td>
+        <td class="td-price font-num">
+          <div class="report-price-main">₱${formatPeso(priceVal)}</div>
+          ${isPaid ? `
+            <div class="report-money-flow">
+              <span class="report-flow-paid" title="Customer Paid">Paid: ₱${formatPeso(o.tendered ?? priceVal)}</span>
+              ${(o.change && o.change > 0) ? `<span class="report-flow-change" title="Change Given (Cashier Spent)">Change: ₱${formatPeso(o.change)}</span>` : `<span class="report-flow-exact">Exact</span>`}
+            </div>
+          ` : `
+            <div class="report-money-flow">
+              <span class="report-flow-unpaid">Pending: ₱${formatPeso(priceVal)}</span>
+            </div>
+          `}
+        </td>
         <td class="td-status">${statusPill}</td>
         <td class="td-dots">
           <button class="td-action-dots-btn" data-orderno="${escapeHtml(o.orderNo || '')}" title="Order Actions">
@@ -7093,6 +7164,8 @@ function updateStationSummaryDrawer() {
   let todaySales = 0;
   let todayGallons = 0;
   let cashInDrawer = 0;
+  let todayTendered = 0;
+  let todayChangeGiven = 0;
   let uncollected = 0;
   let todayOrdersCount = 0;
   let paidOrdersCount = 0;
@@ -7120,6 +7193,10 @@ function updateStationSummaryDrawer() {
         paidOrdersCount++;
         if (o.paymentMethod === 'cash' || !o.paymentMethod) {
           cashInDrawer += paidAmt;
+          const t = typeof o.tendered === 'number' && o.tendered > 0 ? o.tendered : paidAmt;
+          const c = typeof o.change === 'number' ? o.change : Math.max(0, t - paidAmt);
+          todayTendered += t;
+          todayChangeGiven += c;
         }
       }
     }
@@ -7147,6 +7224,10 @@ function updateStationSummaryDrawer() {
   if (elOrdersCount) elOrdersCount.textContent = `${todayOrdersCount} order${todayOrdersCount === 1 ? '' : 's'} processed today`;
   if (elGallons) elGallons.textContent = `${todayGallons.toLocaleString()} Gals`;
   if (elCash) elCash.textContent = formatPeso(cashInDrawer);
+  const elDrawerTendered = document.getElementById('drawerShiftTendered');
+  const elDrawerChange = document.getElementById('drawerShiftChange');
+  if (elDrawerTendered) elDrawerTendered.textContent = '₱' + formatPeso(todayTendered);
+  if (elDrawerChange) elDrawerChange.textContent = '₱' + formatPeso(todayChangeGiven);
   if (elUncollected) elUncollected.textContent = formatPeso(uncollected);
   if (elPaidPct) elPaidPct.textContent = `${settlementRate}%`;
 
@@ -7550,10 +7631,13 @@ const SupabaseSync = {
         let updated = false;
         cloudOrders.forEach(co => {
           if (!existingMap.has(co.order_no)) {
+            const ts = Number(co.timestamp) || (co.created_at ? new Date(co.created_at).getTime() : Date.now());
+            const timeStr = co.time || (ts ? new Date(ts).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true }) : '---');
             State.storedOrders.push({
               id: co.id,
               orderNo: co.order_no,
-              timestamp: Number(co.timestamp),
+              time: timeStr,
+              timestamp: ts,
               dateStr: co.date_str,
               channel: co.channel,
               gallons: Number(co.gallons),
