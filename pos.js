@@ -210,6 +210,14 @@ class SoundController {
     this.playPaymentChime();
   }
 
+  playSuccess() {
+    this.playPaymentChime();
+  }
+
+  playSuccessChime() {
+    this.playPaymentChime();
+  }
+
   playDrawerChime() {
     if (!State.soundEnabled) return;
     try {
@@ -284,7 +292,7 @@ const Telemetry = {
     } catch (e) {}
 
     // 4. Send to Node server if active
-    if (window.location.protocol.startsWith('http')) {
+    if (window.location && typeof window.location.protocol === 'string' && window.location.protocol.startsWith('http')) {
       fetch('/api/telemetry', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -331,7 +339,7 @@ const Telemetry = {
       } catch (e) {}
     }
 
-    if (window.location.protocol.startsWith('http')) {
+    if (window.location && typeof window.location.protocol === 'string' && window.location.protocol.startsWith('http')) {
       fetch('/api/telemetry/active', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -2135,8 +2143,8 @@ function processPaymentAndStoreOrder() {
     paymentMethod: State.paymentMethod || 'cash',
     gcashRef: (document.getElementById('registerGcashRefInput') ? document.getElementById('registerGcashRefInput').value.trim() : '') || '',
     note: noteText,
-    cashierName: (typeof getCurrentUser === 'function' ? getCurrentUser().name : 'Neil'),
-    cashierRole: (typeof getCurrentUser === 'function' ? getCurrentUser().role : 'manager')
+    cashierName: (typeof getCurrentUser === 'function' && getCurrentUser() ? getCurrentUser().name : (State.settings?.cashierName || 'Cashier')),
+    cashierRole: (typeof getCurrentUser === 'function' && getCurrentUser() ? getCurrentUser().role : 'cashier')
   };
 
   // Prepend to stored orders array (the specific part of the POS)
@@ -4796,7 +4804,14 @@ let lockPinBuffer = '';
 
 
 function applyUserAvatar(element, user) {
-  if (!element || !user) return;
+  if (!element) return;
+  if (!user) {
+    element.textContent = '—';
+    element.style.backgroundImage = 'none';
+    element.style.background = 'var(--border-subtle, #e2e8f0)';
+    element.classList.remove('has-photo');
+    return;
+  }
   if (user.photo) {
     element.textContent = '';
     element.style.backgroundImage = 'url(' + JSON.stringify(user.photo) + ')';
@@ -4862,12 +4877,17 @@ function renderHeaderUser() {
   if (dropdownFull) dropdownFull.textContent = user ? user.name : 'No Active Account';
 
   const dropdownTitle = document.getElementById('dropdownCashierTitle');
-  if (dropdownTitle) dropdownTitle.textContent = user.title || (user.role.toUpperCase());
+  if (dropdownTitle) dropdownTitle.textContent = user ? (user.title || user.role.toUpperCase()) : 'Tap to manage staff';
 
   // Also update standard cashier-avatar elements if present
   document.querySelectorAll('.cashier-avatar:not(#headerCashierAvatar):not(#dropdownCashierAvatar):not(#lockUserAvatar):not(#selectedStaffAvatar)').forEach(el => {
-    el.textContent = user.name.charAt(0).toUpperCase();
-    el.title = `Cashier: ${user.name} (${user.title || user.role})`;
+    if (user) {
+      el.textContent = (user.name || '?').charAt(0).toUpperCase();
+      el.title = `Cashier: ${user.name} (${user.title || user.role})`;
+    } else {
+      el.textContent = '—';
+      el.title = 'No active cashier account';
+    }
   });
 }
 
@@ -5047,8 +5067,9 @@ function unlockTerminal() {
     const overlay = document.getElementById('terminalLockOverlay');
     if (overlay) overlay.style.display = 'none';
     lockPinBuffer = '';
-    showToast(`Welcome back, ${currentUser.name}! Terminal unlocked.`);
-    logSecurityEvent('UNLOCK', `Terminal unlocked by ${currentUser.name}`);
+    const unlockedBy = currentUser ? currentUser.name : (staff.find(s => s.pin === lockPinBuffer)?.name || 'Manager');
+    showToast(`Welcome back, ${unlockedBy}! Terminal unlocked.`);
+    logSecurityEvent('UNLOCK', `Terminal unlocked by ${unlockedBy}`);
   } else {
     soundCtrl.playVoidTone();
     const errorEl = document.getElementById('lockPinError');
@@ -6838,7 +6859,7 @@ function renderThermalReceipt(order) {
     note: State.channel === 'delivery' ? State.deliveryAddress : State.note,
     tendered: State.selectedTender === 'exact' ? calculateTotal() : Number(State.selectedTender) || calculateTotal(),
     change: State.selectedTender === 'exact' ? 0 : Math.max(0, (Number(State.selectedTender) || calculateTotal()) - calculateTotal()),
-    cashierName: (typeof getCurrentUser === 'function' ? getCurrentUser().name : 'Neil')
+    cashierName: (typeof getCurrentUser === 'function' && getCurrentUser() ? getCurrentUser().name : (State.settings?.cashierName || 'Cashier'))
   };
 
   const isPending = o.status === 'pending';
@@ -6962,7 +6983,7 @@ function renderDispatchSlip(order) {
     status: 'pending',
     channel: 'delivery',
     note: State.deliveryAddress || 'Multicab Route #1',
-    cashierName: (typeof getCurrentUser === 'function' ? getCurrentUser().name : 'Neil')
+    cashierName: (typeof getCurrentUser === 'function' && getCurrentUser() ? getCurrentUser().name : (State.settings?.cashierName || 'Cashier'))
   };
 
   const isPending = o.status === 'pending';
@@ -7043,7 +7064,7 @@ function kickCashDrawer() {
   logSecurityEvent(
     'CASH_DRAWER_KICK',
     'Triggered manual ESC/POS hardware cash drawer kick pulse',
-    (typeof getCurrentUser === 'function' ? getCurrentUser().name : 'Neil')
+    (typeof getCurrentUser === 'function' && getCurrentUser() ? getCurrentUser().name : 'Manager')
   );
 }
 
@@ -7605,7 +7626,7 @@ function renderProfileOrdersTable(filter = 'all', sourceOrders = null) {
   if (!tbody) return;
 
   const user = getCurrentUser();
-  const allOrders = sourceOrders || (State.storedOrders || []).filter(o => !o.cashierName || o.cashierName === user.name);
+  const allOrders = sourceOrders || (State.storedOrders || []).filter(o => !o.cashierName || (user && o.cashierName === user.name));
 
   let filtered = allOrders;
   if (filter === 'walkin') {
@@ -7692,7 +7713,8 @@ function bindProfileEvents() {
     btnEndShiftSignOut.addEventListener('click', () => {
       soundCtrl.playTap();
       const user = getCurrentUser();
-      if (confirm(`Close active shift for ${user.name} and return to cashier sign in?`)) {
+      const cashierLabel = user ? user.name : 'current staff';
+      if (confirm(`Close active shift for ${cashierLabel} and return to cashier sign in?`)) {
         lockTerminal();
         openSwitchUserModal();
       }
@@ -7773,7 +7795,7 @@ function handleProfileChangePin() {
 
   const user = getCurrentUser();
 
-  if (currentPin !== user.pin) {
+  if (!user || currentPin !== user.pin) {
     soundCtrl.playVoidTone();
     feedback.className = 'profile-pin-feedback error';
     feedback.textContent = 'Current PIN is incorrect.';
@@ -7828,7 +7850,7 @@ function renderShiftSummaryReceipt(currentUser) {
 
   const user = currentUser || getCurrentUser();
   const allOrders = State.storedOrders || [];
-  const userOrders = allOrders.filter(o => !o.cashierName || o.cashierName === user.name);
+  const userOrders = allOrders.filter(o => !o.cashierName || (user && o.cashierName === user.name));
   const paidOrders = userOrders.filter(o => o.status === 'paid');
   const pendingOrders = userOrders.filter(o => o.status === 'pending');
 
@@ -8766,7 +8788,7 @@ function saveBatchReconciliation() {
 
   // Log Audit Event
   if (typeof logAuditEvent === 'function') {
-    const user = typeof getCurrentUser === 'function' ? getCurrentUser() : { name: 'Neil', role: 'manager' };
+    const user = (typeof getCurrentUser === 'function' && getCurrentUser()) ? getCurrentUser() : { name: 'Neil', role: 'manager' };
     logAuditEvent(
       'MULTICAB_BATCH_RECONCILED',
       `Batch ${order.orderNo} reconciled: ${sold} Sold (₱${formatPeso(totalSales)}), ${left} Left / Returned to Station.`,
@@ -9457,7 +9479,7 @@ function processBayadUtangSubmit() {
     method: payMethod,
     ref: gcashRef,
     remainingDebt: newDebt,
-    cashier: typeof getCurrentUser === 'function' ? getCurrentUser().name : 'Neil'
+    cashier: (typeof getCurrentUser === 'function' && getCurrentUser() ? getCurrentUser().name : 'Cashier')
   });
 
   saveOrders();
@@ -9679,7 +9701,7 @@ function processDriverSettlementConfirm() {
       category: 'fuel',
       note: `Multicab Fuel for ${driver} (Trip Batch ${selectedOrderNo || 'Route'})`,
       source: 'drawer',
-      cashierName: typeof getCurrentUser === 'function' ? getCurrentUser().name : 'Neil'
+      cashierName: typeof getCurrentUser === 'function' && getCurrentUser() ? getCurrentUser().name : 'Cashier'
     };
     State.expenses.unshift(fuelExpense);
     saveExpenses();
@@ -9709,7 +9731,7 @@ function processDriverSettlementConfirm() {
     remitted: actual,
     discrepancy: actual - expectedNet,
     note: notes,
-    cashierName: typeof getCurrentUser === 'function' ? getCurrentUser().name : 'Neil'
+    cashierName: typeof getCurrentUser === 'function' && getCurrentUser() ? getCurrentUser().name : 'Cashier'
   };
   State.driverSettlements.unshift(settlementRecord);
   saveDriverSettlements();
