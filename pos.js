@@ -5847,9 +5847,69 @@ function deleteStaffProfile(staffId) {
 }
 
 // ==========================================================================
-// STATION INITIALIZATION & QUICK SETUP WIZARD CONTROLLER
-// (PIN, Owner Name, Gallon Price, Initial Delivery Driver)
+// STATION INITIALIZATION & QUICK SETUP WIZARD CONTROLLER (STREAMLINED 3 STEPS)
 // ==========================================================================
+let wizardCurrentStep = 1;
+
+function setWizardStep(step) {
+  const inMgrName = document.getElementById('wizardManagerName');
+  const inMgrPin = document.getElementById('wizardManagerPin');
+
+  // Step 1 Validation when advancing forward
+  if (step > 1 && wizardCurrentStep === 1) {
+    const mgrName = inMgrName ? inMgrName.value.trim() : '';
+    const mgrPin = inMgrPin ? inMgrPin.value.trim() : '';
+    if (!mgrName) {
+      alert('Please enter Manager / Owner Name to continue.');
+      if (inMgrName) inMgrName.focus();
+      return;
+    }
+    if (!mgrPin || !/^\d{4}$/.test(mgrPin)) {
+      alert('Security PIN must be exactly 4 numeric digits (0-9).');
+      if (inMgrPin) inMgrPin.focus();
+      return;
+    }
+  }
+
+  // Step 2 Validation when advancing forward
+  if (step > 2 && wizardCurrentStep === 2) {
+    const inPrice = document.getElementById('wizardPricePurified');
+    const pVal = inPrice ? (parseFloat(inPrice.value) || 0) : 0;
+    if (pVal <= 0) {
+      alert('Please enter a valid 1-gallon refill price.');
+      if (inPrice) inPrice.focus();
+      return;
+    }
+  }
+
+  wizardCurrentStep = step;
+
+  // Toggle Step Panes
+  [1, 2, 3].forEach(s => {
+    const pane = document.getElementById(`wizardPane${s}`);
+    const tab = document.getElementById(`wizardTab${s}`);
+    if (pane) {
+      pane.style.display = (s === step) ? 'flex' : 'none';
+      if (s === step) pane.classList.add('active');
+      else pane.classList.remove('active');
+    }
+    if (tab) {
+      tab.classList.toggle('active', s === step);
+      tab.classList.toggle('completed', s < step);
+    }
+  });
+
+  // Auto focus first relevant input in new step
+  if (step === 1 && inMgrName && !inMgrName.value) inMgrName.focus();
+  else if (step === 2) {
+    const inPrice = document.getElementById('wizardPricePurified');
+    if (inPrice) inPrice.focus();
+  } else if (step === 3) {
+    const inStName = document.getElementById('wizardStationName');
+    if (inStName) inStName.focus();
+  }
+}
+
 function openStationSetupWizardModal() {
   const modal = document.getElementById('stationSetupWizardModal');
   if (!modal) return;
@@ -5906,12 +5966,11 @@ function openStationSetupWizardModal() {
     if (inDrvPhone) inDrvPhone.value = '';
   }
 
+  // Reset to Step 1
+  setWizardStep(1);
+
   modal.style.display = 'flex';
   modal.classList.add('show');
-  setTimeout(() => {
-    if (inMgrName && !inMgrName.value) inMgrName.focus();
-    else if (inStName) inStName.focus();
-  }, 100);
 }
 
 function closeStationSetupWizardModal() {
@@ -5959,18 +6018,21 @@ function saveStationSetupWizard() {
   const drvPhone = inDrvPhone ? inDrvPhone.value.trim() : '';
 
   if (!mgrName) {
+    setWizardStep(1);
     alert('Please enter the Station Manager / Owner name.');
     if (inMgrName) inMgrName.focus();
     return;
   }
 
   if (!mgrPin || !/^\d{4}$/.test(mgrPin)) {
+    setWizardStep(1);
     alert('Manager Security PIN must be exactly 4 numeric digits.');
     if (inMgrPin) inMgrPin.focus();
     return;
   }
 
   if (pPurified <= 0) {
+    setWizardStep(2);
     alert('Please enter a valid 1-gallon refill price.');
     if (inPricePurified) inPricePurified.focus();
     return;
@@ -6094,6 +6156,65 @@ function initStationSetupWizardEvents() {
 
   const btnSave = document.getElementById('btnSaveStationWizard');
   if (btnSave) btnSave.addEventListener('click', saveStationSetupWizard);
+
+  // Stepper navigation buttons
+  const btnGo2 = document.getElementById('btnWizardGoStep2');
+  if (btnGo2) btnGo2.addEventListener('click', () => setWizardStep(2));
+
+  const btnGo3 = document.getElementById('btnWizardGoStep3');
+  if (btnGo3) btnGo3.addEventListener('click', () => setWizardStep(3));
+
+  const btnBack1 = document.getElementById('btnWizardBackStep1');
+  if (btnBack1) btnBack1.addEventListener('click', () => setWizardStep(1));
+
+  const btnBack2 = document.getElementById('btnWizardBackStep2');
+  if (btnBack2) btnBack2.addEventListener('click', () => setWizardStep(2));
+
+  // Clickable step indicator tabs
+  [1, 2, 3].forEach(step => {
+    const tab = document.getElementById(`wizardTab${step}`);
+    if (tab) {
+      tab.addEventListener('click', () => {
+        soundCtrl.playTap();
+        setWizardStep(step);
+      });
+    }
+  });
+
+  // PIN eye toggle
+  const pinToggle = document.getElementById('btnToggleWizardPin');
+  const pinInput = document.getElementById('wizardManagerPin');
+  if (pinToggle && pinInput) {
+    pinToggle.addEventListener('click', () => {
+      soundCtrl.playTap();
+      const isPassword = pinInput.type === 'password';
+      pinInput.type = isPassword ? 'text' : 'password';
+      pinToggle.style.color = isPassword ? 'var(--color-primary)' : 'var(--text-muted)';
+    });
+  }
+
+  // Accordion toggles
+  const btnWho = document.getElementById('btnToggleWholesaleOptions');
+  const whoContent = document.getElementById('wizardWholesaleContent');
+  if (btnWho && whoContent) {
+    btnWho.addEventListener('click', () => {
+      soundCtrl.playTap();
+      const isHidden = whoContent.style.display === 'none';
+      whoContent.style.display = isHidden ? 'block' : 'none';
+      btnWho.parentElement.classList.toggle('open', isHidden);
+    });
+  }
+
+  const btnStDetails = document.getElementById('btnToggleStationDetailsOptions');
+  const stDetailsContent = document.getElementById('wizardStationDetailsContent');
+  if (btnStDetails && stDetailsContent) {
+    btnStDetails.addEventListener('click', () => {
+      soundCtrl.playTap();
+      const isHidden = stDetailsContent.style.display === 'none';
+      stDetailsContent.style.display = isHidden ? 'block' : 'none';
+      btnStDetails.parentElement.classList.toggle('open', isHidden);
+    });
+  }
 
   const modal = document.getElementById('stationSetupWizardModal');
   if (modal) {

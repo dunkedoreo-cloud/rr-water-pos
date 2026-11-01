@@ -3135,9 +3135,10 @@
   </div>
 
   <!-- Station Initialization & Quick Setup Wizard Modal -->
+  <!-- Station Quick Setup Wizard Modal (Streamlined 3-Step Setup) -->
   <div class="modal-backdrop" id="stationSetupWizardModal" style="display: none;">
     <div class="modal-card setup-wizard-card">
-      <div class="thermal-modal-header">
+      <div class="thermal-modal-header" style="padding-bottom: 0;">
         <div class="thermal-modal-title">
           <div class="thermal-icon-circle" style="background: rgba(2, 132, 199, 0.12); color: var(--color-primary);">
             <svg class="ui-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
@@ -3145,8 +3146,8 @@
             </svg>
           </div>
           <div class="thermal-modal-title-text">
-            <h3 id="wizardModalTitle">Station Quick Setup Wizard</h3>
-            <p id="wizardModalSubtitle">Configure manager credentials, security PIN, gallon rates, and delivery fleet</p>
+            <h3 id="wizardModalTitle">Station Quick Setup</h3>
+            <p id="wizardModalSubtitle">Configure manager PIN, gallon rates, and station profile</p>
           </div>
         </div>
         <button type="button" class="modal-close-icon" id="btnCloseStationWizard" aria-label="Close" title="Close (Esc)">
@@ -3157,119 +3158,209 @@
         </button>
       </div>
 
-      <div class="setup-wizard-body">
-        
-        <!-- Section 1: Station Business Profile -->
-        <div class="setup-wizard-section">
-          <div class="setup-wizard-section-title">
-            <span class="section-num">1</span>
-            <span>Station Business Details</span>
-          </div>
-          <div class="setting-row-2col">
-            <div class="setting-input-group">
-              <label for="wizardStationName" style="font-size: 0.74rem; font-weight: 700; color: var(--text-muted); display: block; margin-bottom: 3px;">Station Business Name *</label>
-              <input type="text" id="wizardStationName" placeholder="e.g. R&amp;R Water Refilling Station" class="setting-input" value="R&amp;R Water Refilling Station" required>
-            </div>
-            <div class="setting-input-group">
-              <label for="wizardStationBranch" style="font-size: 0.74rem; font-weight: 700; color: var(--text-muted); display: block; margin-bottom: 3px;">Branch / Terminal</label>
-              <input type="text" id="wizardStationBranch" placeholder="e.g. Counter #1 (Main Terminal)" class="setting-input" value="Counter #1 (Main Terminal)">
-            </div>
-          </div>
-          <div class="setting-row-2col">
-            <div class="setting-input-group">
-              <label for="wizardStationPhone" style="font-size: 0.74rem; font-weight: 700; color: var(--text-muted); display: block; margin-bottom: 3px;">Station Contact Phone</label>
-              <input type="tel" id="wizardStationPhone" placeholder="e.g. 0917-829-4102" class="setting-input">
-            </div>
-            <div class="setting-input-group">
-              <label for="wizardStationAddress" style="font-size: 0.74rem; font-weight: 700; color: var(--text-muted); display: block; margin-bottom: 3px;">Station Location / Address</label>
-              <input type="text" id="wizardStationAddress" placeholder="e.g. Purok 1, Main Road" class="setting-input">
-            </div>
-          </div>
-        </div>
-
-        <!-- Section 2: Manager Credentials & Security PIN -->
-        <div class="setup-wizard-section">
-          <div class="setup-wizard-section-title">
-            <span class="section-num">2</span>
-            <span>Station Manager &amp; Security PIN</span>
-          </div>
-          <div class="setting-row-2col">
-            <div class="setting-input-group">
-              <label for="wizardManagerName" style="font-size: 0.74rem; font-weight: 700; color: var(--text-muted); display: block; margin-bottom: 3px;">Manager / Owner Name *</label>
-              <input type="text" id="wizardManagerName" placeholder="e.g. Maria Santos / Station Manager" class="setting-input" required>
-            </div>
-            <div class="setting-input-group">
-              <label for="wizardManagerPin" style="font-size: 0.74rem; font-weight: 700; color: var(--text-muted); display: block; margin-bottom: 3px;">4-Digit Security PIN *</label>
-              <input type="password" id="wizardManagerPin" placeholder="•••• (4 digits)" maxlength="4" pattern="\d{4}" inputmode="numeric" class="setting-input" style="letter-spacing: 3px;" required>
-            </div>
-          </div>
-          <small style="font-size: 0.72rem; color: var(--text-muted); display: block;">This 4-digit PIN authorizes manager overrides: voids, shift resets, and pricing adjustments.</small>
-        </div>
-
-        <!-- Section 3: Gallon Pricing & Rates -->
-        <div class="setup-wizard-section">
-          <div class="setup-wizard-section-title">
-            <span class="section-num">3</span>
-            <span>Gallon Selling Prices</span>
-          </div>
-          <div class="setting-row-2col">
-            <div class="setting-input-group">
-              <label for="wizardPricePurified" style="font-size: 0.74rem; font-weight: 700; color: var(--text-muted); display: block; margin-bottom: 3px;">1-Gallon Refill Price (₱) *</label>
-              <input type="number" id="wizardPricePurified" placeholder="35" class="setting-input num-input" value="35" min="1" step="1" required>
-            </div>
-            <div class="setting-input-group">
-              <label for="wizardPriceNewJug" style="font-size: 0.74rem; font-weight: 700; color: var(--text-muted); display: block; margin-bottom: 3px;">New Container + Water (₱) *</label>
-              <input type="number" id="wizardPriceNewJug" placeholder="250" class="setting-input num-input" value="250" min="1" step="5" required>
-            </div>
-          </div>
-          <div class="setting-row-2col">
-            <div class="setting-input-group">
-              <label for="wizardWholesalePrice" style="font-size: 0.74rem; font-weight: 700; color: var(--text-muted); display: block; margin-bottom: 3px;">Wholesale Bulk Rate (₱ / Gal)</label>
-              <input type="number" id="wizardWholesalePrice" placeholder="30" class="setting-input num-input" value="30" min="1" step="1">
-            </div>
-            <div class="setting-input-group">
-              <label for="wizardMinBatch" style="font-size: 0.74rem; font-weight: 700; color: var(--text-muted); display: block; margin-bottom: 3px;">Min Delivery Batch (Gallons)</label>
-              <input type="number" id="wizardMinBatch" placeholder="10" class="setting-input num-input" value="10" min="1" step="1">
-            </div>
-          </div>
-        </div>
-
-        <!-- Section 4: Initial Delivery Driver & Vehicle -->
-        <div class="setup-wizard-section">
-          <div class="setup-wizard-section-title">
-            <span class="section-num">4</span>
-            <span>Delivery Driver &amp; Multicab (Optional)</span>
-          </div>
-          <div class="setting-row-2col">
-            <div class="setting-input-group">
-              <label for="wizardDriverName" style="font-size: 0.74rem; font-weight: 700; color: var(--text-muted); display: block; margin-bottom: 3px;">Driver / Courier Name</label>
-              <input type="text" id="wizardDriverName" placeholder="e.g. Kuya Jun (optional)" class="setting-input">
-            </div>
-            <div class="setting-input-group">
-              <label for="wizardDriverVehicle" style="font-size: 0.74rem; font-weight: 700; color: var(--text-muted); display: block; margin-bottom: 3px;">Vehicle / Unit</label>
-              <input type="text" id="wizardDriverVehicle" placeholder="e.g. Multicab #1" value="Multicab #1" class="setting-input">
-            </div>
-          </div>
-          <div class="setting-row-2col">
-            <div class="setting-input-group">
-              <label for="wizardDriverPlate" style="font-size: 0.74rem; font-weight: 700; color: var(--text-muted); display: block; margin-bottom: 3px;">Plate Number</label>
-              <input type="text" id="wizardDriverPlate" placeholder="e.g. ABC-1234" class="setting-input" style="text-transform: uppercase;">
-            </div>
-            <div class="setting-input-group">
-              <label for="wizardDriverPhone" style="font-size: 0.74rem; font-weight: 700; color: var(--text-muted); display: block; margin-bottom: 3px;">Driver Mobile #</label>
-              <input type="tel" id="wizardDriverPhone" placeholder="e.g. 0918-555-0192" class="setting-input">
-            </div>
-          </div>
-        </div>
-
-      </div>
-
-      <div class="modal-button-row" style="display: flex; justify-content: flex-end; gap: 10px; border-top: 1px solid var(--border-subtle); padding-top: 14px;">
-        <button type="button" class="btn-modal-cancel" id="btnCancelStationWizard">Cancel</button>
-        <button type="button" class="btn-modal-confirm" id="btnSaveStationWizard" style="background: #0284c7; color: #ffffff; min-width: 170px;">
-          <span>Save &amp; Launch POS</span>
+      <!-- 3-Step Navigation Tabs -->
+      <div class="wizard-stepper">
+        <button type="button" class="wizard-step-tab active" data-step="1" id="wizardTab1">
+          <span class="wizard-step-circle">1</span>
+          <span class="wizard-step-title">Manager &amp; PIN</span>
+        </button>
+        <button type="button" class="wizard-step-tab" data-step="2" id="wizardTab2">
+          <span class="wizard-step-circle">2</span>
+          <span class="wizard-step-title">Gallon Pricing</span>
+        </button>
+        <button type="button" class="wizard-step-tab" data-step="3" id="wizardTab3">
+          <span class="wizard-step-circle">3</span>
+          <span class="wizard-step-title">Station &amp; Fleet</span>
         </button>
       </div>
+
+      <!-- STEP 1: Manager Account & PIN -->
+      <div class="wizard-step-pane active" id="wizardPane1">
+        <div class="wizard-pane-hero">
+          <div class="wizard-hero-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+              <circle cx="12" cy="7" r="4"></circle>
+            </svg>
+          </div>
+          <div class="wizard-hero-text">
+            <h4>Manager Account &amp; Security PIN</h4>
+            <p>Authorizes order voids, shift resets, and pricing changes across terminals.</p>
+          </div>
+        </div>
+
+        <div class="wizard-fields-grid">
+          <div class="wizard-field">
+            <label for="wizardManagerName">Manager / Owner Name <span class="req">*</span></label>
+            <input type="text" id="wizardManagerName" class="wizard-input" placeholder="e.g. Neil" required autocomplete="name">
+          </div>
+          <div class="wizard-field">
+            <label for="wizardManagerPin">4-Digit Security PIN <span class="req">*</span></label>
+            <div class="wizard-pin-wrapper">
+              <input type="password" id="wizardManagerPin" class="wizard-input pin-input" placeholder="••••" maxlength="4" pattern="\d{4}" inputmode="numeric" required autocomplete="off">
+              <button type="button" class="wizard-pin-toggle-btn" id="btnToggleWizardPin" title="Show/Hide PIN" aria-label="Show PIN">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                  <circle cx="12" cy="12" r="3"></circle>
+                </svg>
+              </button>
+            </div>
+            <span class="wizard-field-hint">Choose any 4 numeric digits (e.g. 1234).</span>
+          </div>
+        </div>
+
+        <div class="wizard-actions-bar">
+          <button type="button" class="btn-wizard-ghost" id="btnCancelStationWizard">Cancel</button>
+          <button type="button" class="btn-wizard-next" id="btnWizardGoStep2">
+            <span>Continue to Pricing</span>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
+          </button>
+        </div>
+      </div>
+
+      <!-- STEP 2: Gallon Selling Rates -->
+      <div class="wizard-step-pane" id="wizardPane2" style="display: none;">
+        <div class="wizard-pane-hero">
+          <div class="wizard-hero-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <line x1="12" y1="1" x2="12" y2="23"></line>
+              <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
+            </svg>
+          </div>
+          <div class="wizard-hero-text">
+            <h4>Gallon Selling Prices</h4>
+            <p>Set your primary counter selling rates. Reflected live on register and receipts.</p>
+          </div>
+        </div>
+
+        <div class="wizard-pricing-cards-grid">
+          <div class="wizard-price-card">
+            <div class="wizard-price-header">
+              <span class="price-title">Refill Swap</span>
+              <span class="price-badge">Standard</span>
+            </div>
+            <div class="wizard-price-input-wrap">
+              <span class="peso-sign">₱</span>
+              <input type="number" id="wizardPricePurified" class="wizard-input price-input" value="35" min="1" step="1" required>
+            </div>
+            <span class="price-subtext">Per 5-gallon purified jug refill</span>
+          </div>
+
+          <div class="wizard-price-card">
+            <div class="wizard-price-header">
+              <span class="price-title">New Jug + Water</span>
+              <span class="price-badge secondary">Package</span>
+            </div>
+            <div class="wizard-price-input-wrap">
+              <span class="peso-sign">₱</span>
+              <input type="number" id="wizardPriceNewJug" class="wizard-input price-input" value="250" min="1" step="5" required>
+            </div>
+            <span class="price-subtext">Brand-new jug container + first fill</span>
+          </div>
+        </div>
+
+        <!-- Optional Wholesale Accordion -->
+        <div class="wizard-accordion">
+          <button type="button" class="wizard-accordion-toggle" id="btnToggleWholesaleOptions">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
+            <span>Wholesale &amp; Bulk Batch Rates (Optional)</span>
+          </button>
+          <div class="wizard-accordion-content" id="wizardWholesaleContent" style="display: none;">
+            <div class="wizard-fields-grid" style="margin-top: 8px;">
+              <div class="wizard-field">
+                <label for="wizardWholesalePrice">Wholesale Rate (₱ / Gal)</label>
+                <input type="number" id="wizardWholesalePrice" class="wizard-input" value="30" min="1" step="1">
+              </div>
+              <div class="wizard-field">
+                <label for="wizardMinBatch">Min Delivery Batch (Gallons)</label>
+                <input type="number" id="wizardMinBatch" class="wizard-input" value="10" min="1" step="1">
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="wizard-actions-bar">
+          <button type="button" class="btn-wizard-back" id="btnWizardBackStep1">← Back</button>
+          <button type="button" class="btn-wizard-next" id="btnWizardGoStep3">
+            <span>Continue to Station</span>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
+          </button>
+        </div>
+      </div>
+
+      <!-- STEP 3: Station Profile & Delivery Driver -->
+      <div class="wizard-step-pane" id="wizardPane3" style="display: none;">
+        <div class="wizard-pane-hero">
+          <div class="wizard-hero-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="1" y="3" width="15" height="13"></rect>
+              <polygon points="16 8 20 8 23 11 23 16 16 16 16 8"></polygon>
+              <circle cx="5.5" cy="18.5" r="2.5"></circle>
+              <circle cx="18.5" cy="18.5" r="2.5"></circle>
+            </svg>
+          </div>
+          <div class="wizard-hero-text">
+            <h4>Station Profile &amp; Delivery Fleet</h4>
+            <p>Customize your receipts header and assign an optional route courier.</p>
+          </div>
+        </div>
+
+        <div class="wizard-fields-grid">
+          <div class="wizard-field">
+            <label for="wizardStationName">Station Business Name</label>
+            <input type="text" id="wizardStationName" class="wizard-input" value="R&amp;R Water Refilling Station" placeholder="Station Business Name">
+          </div>
+          <div class="wizard-field">
+            <label for="wizardDriverName">Delivery Driver (Optional)</label>
+            <input type="text" id="wizardDriverName" class="wizard-input" placeholder="e.g. Kuya Jun (or leave blank)">
+          </div>
+        </div>
+
+        <!-- Optional Contact & Vehicle Accordion -->
+        <div class="wizard-accordion">
+          <button type="button" class="wizard-accordion-toggle" id="btnToggleStationDetailsOptions">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
+            <span>Branch, Phone, Address &amp; Vehicle Info (Optional)</span>
+          </button>
+          <div class="wizard-accordion-content" id="wizardStationDetailsContent" style="display: none;">
+            <div class="wizard-fields-grid" style="margin-top: 8px;">
+              <div class="wizard-field">
+                <label for="wizardStationBranch">Branch / Counter</label>
+                <input type="text" id="wizardStationBranch" class="wizard-input" value="Counter #1 (Main Terminal)">
+              </div>
+              <div class="wizard-field">
+                <label for="wizardStationPhone">Station Contact Phone</label>
+                <input type="tel" id="wizardStationPhone" class="wizard-input" placeholder="e.g. 0917-829-4102">
+              </div>
+              <div class="wizard-field" style="grid-column: span 2;">
+                <label for="wizardStationAddress">Station Address</label>
+                <input type="text" id="wizardStationAddress" class="wizard-input" placeholder="e.g. Purok 1, Main Road">
+              </div>
+              <div class="wizard-field">
+                <label for="wizardDriverVehicle">Vehicle / Unit</label>
+                <input type="text" id="wizardDriverVehicle" class="wizard-input" value="Multicab #1">
+              </div>
+              <div class="wizard-field">
+                <label for="wizardDriverPlate">Vehicle Plate #</label>
+                <input type="text" id="wizardDriverPlate" class="wizard-input" placeholder="e.g. ABC-1234" style="text-transform: uppercase;">
+              </div>
+              <div class="wizard-field" style="grid-column: span 2;">
+                <label for="wizardDriverPhone">Driver Mobile #</label>
+                <input type="tel" id="wizardDriverPhone" class="wizard-input" placeholder="e.g. 0918-555-0192">
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="wizard-actions-bar">
+          <button type="button" class="btn-wizard-back" id="btnWizardBackStep2">← Back</button>
+          <button type="button" class="btn-wizard-save" id="btnSaveStationWizard">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+            <span>Complete Setup &amp; Launch POS</span>
+          </button>
+        </div>
+      </div>
+
     </div>
   </div>
 
