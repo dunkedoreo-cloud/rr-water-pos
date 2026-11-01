@@ -40,17 +40,10 @@ function generateRandomOrderNo() {
 }
 
 // --- SECURITY & STAFF ROLES ---
-const DEFAULT_STAFF = [
-  { id: 'usr_1', name: 'Neil', role: 'manager', pin: '1234', title: 'Station Manager', avatarColor: 'linear-gradient(135deg, #0284c7 0%, #0369a1 100%)' },
-  { id: 'usr_2', name: 'Sarah', role: 'cashier', pin: '2222', title: 'Front-Desk Cashier', avatarColor: '#0284c7' },
-  { id: 'usr_3', name: 'Kuya Jun', role: 'driver', pin: '3333', title: 'Multicab Driver / Courier', avatarColor: '#0369a1' }
-];
+const DEFAULT_STAFF = [];
 
 // --- DELIVERY FLEET & DRIVER ROSTER ---
-const DEFAULT_FLEET = [
-  { id: 'flt_1', name: 'Kuya Jun', vehicle: 'Multicab #1', plate: 'ABC-1234', phone: '0917-829-4102', status: 'active' },
-  { id: 'flt_2', name: 'Kuya Mario', vehicle: 'Multicab #2', plate: 'XYZ-5678', phone: '0918-555-6789', status: 'standby' }
-];
+const DEFAULT_FLEET = [];
 
 // --- APPLICATION STATE ---
 const State = {
@@ -85,14 +78,14 @@ const State = {
   reportFavorite: false,           // star toggle
   staff: DEFAULT_STAFF,
   fleet: DEFAULT_FLEET,
-  currentUserId: 'usr_1',
+  currentUserId: null,
   isTerminalLocked: false,
   auditLogs: [],
   inventory: {
-    ready: 150,                    // Full clean carboys ready on rack
-    returned: 34,                  // Empty jugs returned awaiting sanitizing
-    tds: 8,                        // TDS Water Purity (PPM)
-    tankLiters: 1760,              // Current filtration tank volume
+    ready: 0,                      // Full clean carboys ready on rack
+    returned: 0,                   // Empty jugs returned awaiting sanitizing
+    tds: 0,                        // TDS Water Purity (PPM)
+    tankLiters: 0,                 // Current filtration tank volume
     maxTank: 2000                  // Max tank capacity (Liters)
   },
   settings: {
@@ -102,10 +95,10 @@ const State = {
     wholesalePrice: 30,
     stationName: 'R&R Water Refilling Station',
     stationBranch: 'Counter #1 (Main Terminal)',
-    stationPhone: '0917-829-4102',
-    stationAddress: 'Purok 1, Main Road',
+    stationPhone: '',
+    stationAddress: '',
     autoPrint: false,
-    cashierName: 'Neil'
+    cashierName: ''
   },
   theme: 'light',                  // 'light' | 'dark'
   soundEnabled: true,
@@ -372,6 +365,12 @@ document.addEventListener('DOMContentLoaded', () => {
   initBayadUtangEvents();
   initDriverSettlementEvents();
   initFleetEvents();
+  initStaffManagementEvents();
+  setTimeout(() => {
+    if (!State.staff || State.staff.length === 0) {
+      openStaffModal();
+    }
+  }, 450);
   initQuickExpenseEvents();
   initGcashSettingsUI();
   SupabaseSync.init();
@@ -409,15 +408,28 @@ function isMockOrder(o) {
 }
 
 function loadSavedData() {
-  // Purge any legacy mock or test data for production deployment (Start 0)
-  const cleanSlateVersion = '2026_10_29_clean_zero';
+  // Purge all legacy or mock data for pristine client deployment (Absolute Zero)
+  const cleanSlateVersion = '2026_11_02_absolute_zero_v5';
   const currentSlate = localStorage.getItem('rr_pos_deployment_slate');
   
   if (currentSlate !== cleanSlateVersion) {
-    localStorage.removeItem('rr_pos_stored_orders');
-    localStorage.setItem('rr_pos_stored_orders', '[]');
+    localStorage.clear();
     localStorage.setItem('rr_pos_deployment_slate', cleanSlateVersion);
+    localStorage.setItem('rr_pos_stored_orders', '[]');
+    localStorage.setItem('rr_pos_staff', '[]');
+    localStorage.setItem('rr_pos_fleet', '[]');
+    localStorage.setItem('rr_pos_customers', '[]');
+    localStorage.setItem('rr_pos_expenses', '[]');
+    localStorage.setItem('rr_pos_driver_settlements', '[]');
+    localStorage.setItem('rr_pos_audit_logs', '[]');
     State.storedOrders = [];
+    State.staff = [];
+    State.fleet = [];
+    State.customers = [];
+    State.expenses = [];
+    State.driverSettlements = [];
+    State.auditLogs = [];
+    State.currentUserId = null;
   } else {
     const savedOrders = localStorage.getItem('rr_pos_stored_orders');
     if (savedOrders !== null) {
@@ -541,10 +553,7 @@ function loadSavedData() {
       }
     } catch (e) {}
   }
-  const neilUser = (State.staff || []).find(s => s.id === 'usr_1');
-  if (neilUser) {
-    neilUser.avatarColor = 'linear-gradient(135deg, #0284c7 0%, #0369a1 100%)';
-  }
+
 
   const savedUserId = localStorage.getItem('rr_pos_current_user_id');
   if (savedUserId && State.staff.some(s => s.id === savedUserId)) {
@@ -4345,7 +4354,7 @@ const DROPPY_CYCLE_STATES = [
   {
     avatar: 'assets/droppy_love.png',
     badge: 'Community Care',
-    text: 'Great work, Neil! Every bottle refilled provides clean, dependable hydration for our families.'
+    text: 'Great work, Station Team! Every bottle refilled provides clean, dependable hydration for our families.'
   },
   {
     avatar: 'assets/droppy_question.png',
@@ -4800,39 +4809,54 @@ function applyUserAvatar(element, user) {
 }
 
 function getCurrentUser() {
-  const staff = State.staff || DEFAULT_STAFF;
-  return staff.find(s => s.id === State.currentUserId) || staff[0];
+  const staff = State.staff || [];
+  if (!staff.length) return null;
+  return staff.find(s => s.id === State.currentUserId) || staff[0] || null;
 }
 
 function renderHeaderUser() {
   const user = getCurrentUser();
   const welcomeTitle = document.querySelector('.welcome-title');
   if (welcomeTitle) {
-    welcomeTitle.textContent = `Welcome, ${user.name}`;
+    welcomeTitle.textContent = user ? `Welcome, ${user.name}` : 'Welcome, Operator';
   }
 
   const headerAvatar = document.getElementById('headerCashierAvatar');
   if (headerAvatar) {
-    applyUserAvatar(headerAvatar, user);
-    headerAvatar.title = `Cashier: ${user.name} (${user.title || user.role})`;
+    if (user) {
+      applyUserAvatar(headerAvatar, user);
+      headerAvatar.title = `Cashier: ${user.name} (${user.title || user.role})`;
+    } else {
+      headerAvatar.textContent = '+';
+      headerAvatar.style.background = 'var(--border-subtle)';
+      headerAvatar.title = 'No active cashier account. Tap to create or login.';
+    }
   }
 
   const headerName = document.getElementById('headerCashierName');
-  if (headerName) headerName.textContent = user.name;
+  if (headerName) headerName.textContent = user ? user.name : 'No Account';
 
   const headerRole = document.getElementById('headerRole') || document.getElementById('headerCashierRole');
   if (headerRole) {
-    headerRole.textContent = user.role.toUpperCase();
-    headerRole.className = `cashier-role-badge role-${user.role}`;
+    if (user) {
+      headerRole.textContent = user.role.toUpperCase();
+      headerRole.className = `cashier-role-badge role-${user.role}`;
+      headerRole.style.display = '';
+    } else {
+      headerRole.textContent = 'NO ACCOUNT';
+      headerRole.className = 'cashier-role-badge';
+      headerRole.style.display = 'none';
+    }
   }
 
   const dropdownAvatar = document.getElementById('dropdownCashierAvatar');
   if (dropdownAvatar) {
-    applyUserAvatar(dropdownAvatar, user);
+    if (user) applyUserAvatar(dropdownAvatar, user);
+    else dropdownAvatar.textContent = '—';
   }
 
   const dropdownFull = document.getElementById('dropdownCashierFull');
-  if (dropdownFull) dropdownFull.textContent = user.name;
+  if (dropdownFull) dropdownFull.textContent = user ? user.name : 'No Active Account';
 
   const dropdownTitle = document.getElementById('dropdownCashierTitle');
   if (dropdownTitle) dropdownTitle.textContent = user.title || (user.role.toUpperCase());
@@ -5000,9 +5024,17 @@ function unlockTerminal() {
     return;
   }
 
-  const staff = State.staff || DEFAULT_STAFF;
+  const staff = State.staff || [];
   const currentUser = getCurrentUser();
-  const authorized = (currentUser.pin === lockPinBuffer) ||
+  if (!currentUser && staff.length === 0) {
+    State.isTerminalLocked = false;
+    localStorage.removeItem('rr_pos_terminal_locked');
+    const overlay = document.getElementById('terminalLockOverlay');
+    if (overlay) overlay.style.display = 'none';
+    lockPinBuffer = '';
+    return;
+  }
+  const authorized = (currentUser && currentUser.pin === lockPinBuffer) ||
     staff.some(s => s.role === 'manager' && s.pin === lockPinBuffer);
 
   if (authorized) {
@@ -5041,11 +5073,11 @@ function updateLockScreenInfo() {
   const timeEl = document.getElementById('lockTimeDisplay');
   const dateEl = document.getElementById('lockDateDisplay');
 
-  if (userNameEl) userNameEl.textContent = user.name;
-  if (userRoleEl) userRoleEl.textContent = user.title || (user.role.toUpperCase());
+  if (userNameEl) userNameEl.textContent = user ? user.name : 'Station Operator';
+  if (userRoleEl) userRoleEl.textContent = user ? (user.title || user.role.toUpperCase()) : 'No Active Account';
   if (userAvatarEl) {
-    userAvatarEl.textContent = user.name.charAt(0).toUpperCase();
-    userAvatarEl.style.background = user.avatarColor || '#0284c7';
+    userAvatarEl.textContent = user ? user.name.charAt(0).toUpperCase() : 'O';
+    userAvatarEl.style.background = (user && user.avatarColor) || '#0284c7';
   }
 
   const now = new Date();
@@ -5093,7 +5125,16 @@ function closeSwitchUserModal() {
 function renderStaffPickerCards() {
   const listEl = document.getElementById('staffPickerList');
   if (!listEl) return;
-  const staff = State.staff || DEFAULT_STAFF;
+  const staff = State.staff || [];
+
+  if (!staff.length) {
+    listEl.innerHTML = `
+      <div style="text-align: center; padding: 32px 16px; color: var(--text-muted); width: 100%;">
+        <p style="font-size: 0.88rem; margin-bottom: 10px;">No staff accounts registered yet.</p>
+        <button type="button" class="btn-fleet-add" onclick="closeSwitchUserModal(); openStaffModal();" style="margin: 0 auto;">+ Create First Staff Account</button>
+      </div>`;
+    return;
+  }
 
   let html = '';
   staff.forEach(s => {
@@ -5263,9 +5304,9 @@ function logSecurityEvent(action, details, managerOverrideName = null) {
     timestamp: now.getTime(),
     timeStr: timeStr,
     action: action,
-    user: user.name,
-    role: user.role,
-    manager: managerOverrideName || (user.role === 'manager' ? user.name : '—'),
+    user: user ? user.name : 'System',
+    role: user ? user.role : 'system',
+    manager: managerOverrideName || (user && user.role === 'manager' ? user.name : '—'),
     details: details
   };
   if (!Array.isArray(State.auditLogs)) State.auditLogs = [];
@@ -5561,34 +5602,266 @@ function initFleetEvents() {
 function renderStaffSettingsList() {
   const container = document.getElementById('settingsStaffList');
   if (!container) return;
-  const staff = State.staff || DEFAULT_STAFF;
+  const staff = State.staff || [];
+
+  if (!staff.length) {
+    container.innerHTML = `
+      <div class="empty-staff-state" style="text-align: center; padding: 24px 10px; color: var(--text-muted); background: var(--bg-surface); border: 1px dashed var(--border-subtle); border-radius: var(--radius-md);">
+        <p style="font-size: 0.82rem; margin-bottom: 8px;">No staff accounts configured yet.</p>
+        <button type="button" class="btn-fleet-add" onclick="openStaffModal()">+ Add First Staff Member</button>
+      </div>`;
+    return;
+  }
 
   let html = '';
   staff.forEach(s => {
+    const initial = s.name ? s.name.trim().charAt(0).toUpperCase() : 'S';
+    const roleClass = s.role || 'cashier';
+    const roleLabel = (s.role || 'cashier').toUpperCase();
+    const titleText = [s.title || s.role, 'PIN: ••••'].filter(Boolean).join(' • ');
+
     html += `
-      <div class="staff-setting-row" data-staffid="${s.id}">
+      <div class="staff-setting-row" data-staffid="${escapeHtml(s.id)}">
         <div class="staff-row-left">
-          <div class="cashier-avatar sm" style="${s.photo ? `background-image: url('${s.photo}'); background-size: cover; background-position: center;` : `background: ${s.avatarColor || '#0284c7'};`} ">${s.photo ? '' : s.name.charAt(0).toUpperCase()}</div>
+          <div class="cashier-avatar sm" style="${s.photo ? `background-image: url('${s.photo}'); background-size: cover; background-position: center;` : `background: ${s.avatarColor || '#0284c7'};`}">${s.photo ? '' : initial}</div>
           <div class="staff-row-details">
             <strong>${escapeHtml(s.name)}</strong>
-            <span>${escapeHtml(s.title || s.role)} • PIN: ••••</span>
+            <span>${escapeHtml(titleText)}</span>
           </div>
         </div>
         <div class="staff-row-right">
-          <span class="staff-picker-role-tag ${s.role}">${s.role}</span>
-          <button class="btn-edit-staff-pin" data-staffid="${s.id}">Change PIN</button>
+          <span class="staff-picker-role-tag ${roleClass}">${roleLabel}</span>
+          <button type="button" class="btn-fleet-action edit btn-edit-staff" data-staffid="${escapeHtml(s.id)}" title="Edit staff profile, role, title, and PIN">
+            <svg class="ui-icon-xs" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+            <span>Edit</span>
+          </button>
+          <button type="button" class="btn-fleet-action delete btn-delete-staff" data-staffid="${escapeHtml(s.id)}" title="Delete staff profile">
+            <svg class="ui-icon-xs" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+            <span>Delete</span>
+          </button>
         </div>
       </div>
     `;
   });
   container.innerHTML = html;
 
-  container.querySelectorAll('.btn-edit-staff-pin').forEach(btn => {
-    btn.addEventListener('click', () => {
+  container.querySelectorAll('.btn-edit-staff').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
       const id = btn.getAttribute('data-staffid');
-      promptChangeStaffPin(id);
+      openStaffModal(id);
     });
   });
+
+  container.querySelectorAll('.btn-delete-staff').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const id = btn.getAttribute('data-staffid');
+      deleteStaffProfile(id);
+    });
+  });
+}
+
+function openStaffModal(staffId) {
+  const modal = document.getElementById('staffModal');
+  if (!modal) return;
+  soundCtrl.playTap();
+
+  const inputId = document.getElementById('inputStaffId');
+  const inputName = document.getElementById('inputStaffName');
+  const inputRole = document.getElementById('inputStaffRole');
+  const inputTitle = document.getElementById('inputStaffTitle');
+  const inputPin = document.getElementById('inputStaffPin');
+  const modalTitle = document.getElementById('staffModalTitle');
+  const modalSub = document.getElementById('staffModalSubtitle');
+
+  if (staffId) {
+    const staff = (State.staff || []).find(s => s.id === staffId);
+    if (staff) {
+      if (inputId) inputId.value = staff.id;
+      if (inputName) inputName.value = staff.name || '';
+      if (inputRole) inputRole.value = staff.role || 'cashier';
+      if (inputTitle) inputTitle.value = staff.title || '';
+      if (inputPin) inputPin.value = staff.pin || '';
+      if (modalTitle) modalTitle.textContent = `Edit Staff Profile: ${staff.name}`;
+      if (modalSub) modalSub.textContent = 'Update cashier credentials, operational roles, and access PIN.';
+    }
+  } else {
+    if (inputId) inputId.value = '';
+    if (inputName) inputName.value = '';
+    if (inputRole) inputRole.value = (State.staff && State.staff.length > 0) ? 'cashier' : 'manager';
+    if (inputTitle) inputTitle.value = (State.staff && State.staff.length > 0) ? 'Front-Desk Cashier' : 'Station Manager';
+    if (inputPin) inputPin.value = '';
+    if (modalTitle) modalTitle.textContent = (State.staff && State.staff.length > 0) ? 'Add Staff Member' : 'Setup Station Manager Account';
+    if (modalSub) modalSub.textContent = (State.staff && State.staff.length > 0) ? 'Register a new staff account and assign an access PIN.' : 'Set up your primary manager profile to begin terminal operations.';
+  }
+
+  modal.style.display = 'flex';
+  modal.classList.add('show');
+  setTimeout(() => {
+    if (inputName) inputName.focus();
+  }, 100);
+}
+
+function closeStaffModal() {
+  const modal = document.getElementById('staffModal');
+  if (!modal) return;
+  soundCtrl.playTap();
+  modal.classList.remove('show');
+  setTimeout(() => {
+    modal.style.display = 'none';
+  }, 200);
+}
+
+function saveStaffMemberFromModal() {
+  const inputId = document.getElementById('inputStaffId');
+  const inputName = document.getElementById('inputStaffName');
+  const inputRole = document.getElementById('inputStaffRole');
+  const inputTitle = document.getElementById('inputStaffTitle');
+  const inputPin = document.getElementById('inputStaffPin');
+
+  const name = inputName ? inputName.value.trim() : '';
+  const role = inputRole ? inputRole.value : 'cashier';
+  let title = inputTitle ? inputTitle.value.trim() : '';
+  const pin = inputPin ? inputPin.value.trim() : '';
+  const targetId = inputId ? inputId.value.trim() : '';
+
+  if (!name) {
+    alert('Please enter staff name.');
+    if (inputName) inputName.focus();
+    return;
+  }
+
+  if (!pin || !/^\d{4}$/.test(pin)) {
+    alert('PIN must be exactly 4 numeric digits.');
+    if (inputPin) inputPin.focus();
+    return;
+  }
+
+  if (!title) {
+    title = role === 'manager' ? 'Station Manager' : (role === 'driver' ? 'Delivery Courier' : 'Front-Desk Cashier');
+  }
+
+  if (!Array.isArray(State.staff)) State.staff = [];
+
+  if (targetId) {
+    const existing = State.staff.find(s => s.id === targetId);
+    if (existing) {
+      const oldName = existing.name;
+      existing.name = name;
+      existing.role = role;
+      existing.title = title;
+      existing.pin = pin;
+
+      if (existing.id === State.currentUserId) {
+        if (State.settings) State.settings.cashierName = name;
+        renderHeaderUser();
+      }
+
+      if (role === 'driver' && Array.isArray(State.fleet)) {
+        const matchingFleet = State.fleet.find(f => f.name === oldName);
+        if (matchingFleet) {
+          matchingFleet.name = name;
+          saveFleet();
+        }
+      }
+
+      logSecurityEvent('STAFF_EDIT', `Updated staff profile: ${name} (${role})`);
+      showToast(`Staff profile updated: ${name}`);
+    }
+  } else {
+    const newStaff = {
+      id: 'usr_' + Date.now(),
+      name: name,
+      role: role,
+      title: title,
+      pin: pin,
+      avatarColor: role === 'manager' ? 'linear-gradient(135deg, #0284c7 0%, #0369a1 100%)' : '#0284c7'
+    };
+    State.staff.push(newStaff);
+
+    if (!State.currentUserId || State.staff.length === 1) {
+      State.currentUserId = newStaff.id;
+      if (State.settings) State.settings.cashierName = newStaff.name;
+    }
+
+    logSecurityEvent('STAFF_ADD', `Added new staff member: ${name} (${role})`);
+    showToast(`Staff member registered: ${name}`);
+  }
+
+  saveStaff();
+  renderStaffSettingsList();
+  renderHeaderUser();
+  renderStaffPickerCards();
+  updateStationSummaryDrawer();
+  soundCtrl.playSuccess();
+  closeStaffModal();
+}
+
+function deleteStaffProfile(staffId) {
+  if (!Array.isArray(State.staff)) return;
+  const target = State.staff.find(s => s.id === staffId);
+  if (!target) return;
+
+  if (confirm(`Permanently remove staff member "${target.name}" (${target.role.toUpperCase()}) from the station?`)) {
+    soundCtrl.playTap();
+    State.staff = State.staff.filter(s => s.id !== staffId);
+
+    if (State.currentUserId === staffId) {
+      State.currentUserId = State.staff.length > 0 ? State.staff[0].id : null;
+      if (State.settings) State.settings.cashierName = State.currentUserId ? State.staff[0].name : '';
+    }
+
+    saveStaff();
+    renderStaffSettingsList();
+    renderHeaderUser();
+    renderStaffPickerCards();
+    updateStationSummaryDrawer();
+    logSecurityEvent('STAFF_DELETE', `Deleted staff profile for ${target.name}`);
+    showToast(`Removed ${target.name} from staff`);
+  }
+}
+
+function initStaffManagementEvents() {
+  const btnAdd = document.getElementById('btnAddStaffMember');
+  if (btnAdd) {
+    btnAdd.addEventListener('click', (e) => {
+      e.stopPropagation();
+      openStaffModal();
+    });
+  }
+
+  const btnClose = document.getElementById('btnCloseStaffModal');
+  if (btnClose) btnClose.addEventListener('click', closeStaffModal);
+
+  const btnCancel = document.getElementById('btnCancelStaffModal');
+  if (btnCancel) btnCancel.addEventListener('click', closeStaffModal);
+
+  const btnSave = document.getElementById('btnSaveStaffModal');
+  if (btnSave) btnSave.addEventListener('click', saveStaffMemberFromModal);
+
+  const modal = document.getElementById('staffModal');
+  if (modal) {
+    modal.addEventListener('click', (e) => {
+      if (e.target === modal) closeStaffModal();
+    });
+  }
+
+  window.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && modal && modal.classList.contains('show')) {
+      closeStaffModal();
+    }
+  });
+
+  const btnZero = document.getElementById('btnFactoryZeroDeployment');
+  if (btnZero) {
+    btnZero.addEventListener('click', () => {
+      if (confirm('FACTORY RESET: Wipe all station records, accounts, fleet, and settings to Absolute Zero for client deployment?')) {
+        localStorage.clear();
+        window.location.reload();
+      }
+    });
+  }
 }
 
 function promptChangeStaffPin(staffId) {
@@ -6923,7 +7196,20 @@ let profileActiveFilter = 'all';
 
 function renderProfileView() {
   const user = getCurrentUser();
-  if (!user) return;
+  if (!user) {
+    const opName = document.getElementById('profileOperatorName');
+    if (opName) opName.textContent = 'No Active Profile';
+    const roleBadge = document.getElementById('profileRoleBadge');
+    if (roleBadge) {
+      roleBadge.textContent = 'NO ACCOUNT';
+      roleBadge.className = 'cashier-role-badge';
+    }
+    const staffIdEl = document.getElementById('profileStaffId');
+    if (staffIdEl) staffIdEl.textContent = 'Staff ID: —';
+    const tbody = document.getElementById('profileOrdersTbody');
+    if (tbody) tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; padding: 24px; color: var(--text-muted);">No active staff profile. Please add an account in Settings → Staff &amp; Security.</td></tr>';
+    return;
+  }
 
   // 1. Hero Operator Elements
   const heroAvatar = document.getElementById('profileHeroAvatar');
@@ -7327,11 +7613,11 @@ function renderShiftSummaryReceipt(currentUser) {
       </div>
       <div class="receipt-meta-row">
         <span>Operator:</span>
-        <span><strong>${escapeHtml(user.name)}</strong> (${escapeHtml(user.role.toUpperCase())})</span>
+        <span><strong>${escapeHtml(user ? user.name : 'Cashier')}</strong> (${escapeHtml(user ? user.role.toUpperCase() : 'STAFF')})</span>
       </div>
       <div class="receipt-meta-row">
         <span>Staff ID:</span>
-        <span>${escapeHtml((user.id || 'usr_1').toUpperCase().replace('_', '-'))}</span>
+        <span>${escapeHtml(((user && user.id) || 'usr_1').toUpperCase().replace('_', '-'))}</span>
       </div>
       <div class="receipt-meta-row">
         <span>Shift Duration:</span>
@@ -7536,23 +7822,26 @@ function updateStationSummaryDrawer() {
   if (elPaidPct) elPaidPct.textContent = `${settlementRate}%`;
 
   // DOM Updates - Active Personnel
-  const cashierName = State.currentUser && State.currentUser.name ? State.currentUser.name : 'Neil';
-  const cashierRole = State.currentUser && State.currentUser.role ? State.currentUser.role : 'Manager';
+  const currentUser = getCurrentUser();
+  const cashierName = currentUser ? currentUser.name : 'No Active Cashier';
+  const cashierRole = currentUser ? currentUser.role : 'Offline';
   const elCashierName = document.getElementById('drawerCashierName');
   const elCashierAvatar = document.getElementById('drawerAvatarChar');
   const elCashierStatus = document.getElementById('drawerCashierStatus');
 
   if (elCashierName) elCashierName.textContent = cashierName;
-  if (elCashierAvatar) elCashierAvatar.textContent = cashierName.charAt(0).toUpperCase();
+  if (elCashierAvatar) elCashierAvatar.textContent = currentUser ? cashierName.charAt(0).toUpperCase() : '—';
   if (elCashierStatus) {
-    elCashierStatus.textContent = `● On Duty • Counter #1 (${cashierRole})`;
+    elCashierStatus.textContent = currentUser ? `● On Duty • Counter #1 (${cashierRole.toUpperCase()})` : '● Terminal Idle • No Account';
   }
 
   // DOM Updates - Delivery Drivers
-  const fleet = State.fleet || DEFAULT_FLEET;
-  const d1 = fleet[0] || { name: 'Kuya Jun', vehicle: 'Multicab #1', plate: 'ABC-1234', status: 'active' };
-  const d2 = fleet[1] || { name: 'Kuya Mario', vehicle: 'Multicab #2', plate: 'XYZ-5678', status: 'standby' };
+  const fleet = State.fleet || [];
+  const d1 = fleet[0] || null;
+  const d2 = fleet[1] || null;
 
+  const elDriver1Row = document.getElementById('drawerDriver1Row');
+  const elDriver2Row = document.getElementById('drawerDriver2Row');
   const elDriver1Name = document.getElementById('drawerDriver1Name');
   const elDriver1Vehicle = document.getElementById('drawerDriver1Vehicle');
   const elDriver1Status = document.getElementById('drawerDriver1Status');
@@ -7561,34 +7850,47 @@ function updateStationSummaryDrawer() {
   const elDriver2Vehicle = document.getElementById('drawerDriver2Vehicle');
   const elDriver2Status = document.getElementById('drawerDriver2Status');
 
-  if (elDriver1Name) elDriver1Name.textContent = d1.name;
-  if (elDriver1Vehicle) elDriver1Vehicle.textContent = `${d1.vehicle || 'Multicab'}${d1.plate ? ' • Plate: ' + d1.plate : ''}`;
-
-  if (elDriver1Status) {
-    if (d1.status === 'standby') {
-      elDriver1Status.textContent = '● Route Standby';
+  if (d1) {
+    if (elDriver1Row) elDriver1Row.style.display = 'flex';
+    if (elDriver1Name) elDriver1Name.textContent = d1.name;
+    if (elDriver1Vehicle) elDriver1Vehicle.textContent = `${d1.vehicle || 'Multicab'}${d1.plate ? ' • Plate: ' + d1.plate : ''}`;
+    if (elDriver1Status) {
+      if (d1.status === 'standby') {
+        elDriver1Status.textContent = '● Route Standby';
+        elDriver1Status.className = 'person-sub-status standby';
+      } else if (pendingDelivCount > 0) {
+        const routeText = pendingDelivRoutes.length > 0 ? ` (${pendingDelivRoutes.join(', ')})` : '';
+        elDriver1Status.textContent = `● En Route • ${pendingDelivCount} delivery drop${pendingDelivCount === 1 ? '' : 's'} pending${routeText}`;
+        elDriver1Status.className = 'person-sub-status en-route';
+      } else {
+        elDriver1Status.textContent = '● Available at Station • Ready for dispatch';
+        elDriver1Status.className = 'person-sub-status ready';
+      }
+    }
+  } else {
+    if (elDriver1Name) elDriver1Name.textContent = 'No Fleet Registered';
+    if (elDriver1Vehicle) elDriver1Vehicle.textContent = 'Add vehicles in Settings → Fleet';
+    if (elDriver1Status) {
+      elDriver1Status.textContent = '● Fleet Standby (0 units)';
       elDriver1Status.className = 'person-sub-status standby';
-    } else if (pendingDelivCount > 0) {
-      const routeText = pendingDelivRoutes.length > 0 ? ` (${pendingDelivRoutes.join(', ')})` : '';
-      elDriver1Status.textContent = `● En Route • ${pendingDelivCount} delivery drop${pendingDelivCount === 1 ? '' : 's'} pending${routeText}`;
-      elDriver1Status.className = 'person-sub-status en-route';
-    } else {
-      elDriver1Status.textContent = '● Available at Station • Ready for dispatch';
-      elDriver1Status.className = 'person-sub-status ready';
     }
   }
 
-  if (elDriver2Name) elDriver2Name.textContent = d2.name;
-  if (elDriver2Vehicle) elDriver2Vehicle.textContent = `${d2.vehicle || 'Multicab'}${d2.plate ? ' • Plate: ' + d2.plate : ''}`;
-
-  if (elDriver2Status) {
-    if (d2.status === 'standby') {
-      elDriver2Status.textContent = `● Route Standby • ${d2.vehicle || 'Multicab #2'}`;
-      elDriver2Status.className = 'person-sub-status standby';
-    } else {
-      elDriver2Status.textContent = '● Available at Station • Ready for dispatch';
-      elDriver2Status.className = 'person-sub-status ready';
+  if (d2) {
+    if (elDriver2Row) elDriver2Row.style.display = 'flex';
+    if (elDriver2Name) elDriver2Name.textContent = d2.name;
+    if (elDriver2Vehicle) elDriver2Vehicle.textContent = `${d2.vehicle || 'Multicab'}${d2.plate ? ' • Plate: ' + d2.plate : ''}`;
+    if (elDriver2Status) {
+      if (d2.status === 'standby') {
+        elDriver2Status.textContent = `● Route Standby • ${d2.vehicle || 'Multicab #2'}`;
+        elDriver2Status.className = 'person-sub-status standby';
+      } else {
+        elDriver2Status.textContent = '● Available at Station • Ready for dispatch';
+        elDriver2Status.className = 'person-sub-status ready';
+      }
     }
+  } else {
+    if (elDriver2Row) elDriver2Row.style.display = 'none';
   }
 }
 

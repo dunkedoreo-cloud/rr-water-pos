@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>R&R Water - Station POS</title>
-  <link rel="stylesheet" href="pos.css?v=2.8.36">
+  <link rel="stylesheet" href="pos.css?v=2.8.37">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700;800&display=swap" rel="stylesheet">
@@ -111,7 +111,7 @@
       <!-- Top Greeting & Header Bar (With Distinct Divider Line) -->
       <header class="top-header">
         <div class="welcome-box">
-          <h2 class="welcome-title">Welcome, Neil</h2>
+          <h2 class="welcome-title">Welcome, Operator</h2>
         </div>
 
         <div class="header-right-actions">
@@ -152,8 +152,8 @@
             <button class="cashier-profile-btn" id="cashierProfileBtn" title="Current Staff Profile &amp; Station Actions">
               <div class="cashier-avatar" id="headerCashierAvatar">N</div>
               <div class="cashier-profile-meta">
-                <span class="cashier-name-text" id="headerCashierName">Neil</span>
-                <span class="cashier-role-badge role-manager" id="headerCashierRole">Manager</span>
+                <span class="cashier-name-text" id="headerCashierName">No Account</span>
+                <span class="cashier-role-badge" id="headerCashierRole" style="display: none;">NO ACCOUNT</span>
               </div>
               <svg class="cashier-chevron-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
                 <polyline points="6 9 12 15 18 9"></polyline>
@@ -166,8 +166,8 @@
                 <div class="dropdown-header-top">
                   <div class="cashier-avatar sm" id="dropdownCashierAvatar">N</div>
                   <div>
-                    <strong id="dropdownCashierFull">Neil</strong>
-                    <span id="dropdownCashierTitle">Station Manager</span>
+                    <strong id="dropdownCashierFull">No Active Account</strong>
+                    <span id="dropdownCashierTitle">Tap to manage staff</span>
                   </div>
                 </div>
               </div>
@@ -1846,7 +1846,7 @@
                   <div class="setting-row-2col">
                     <div class="setting-field">
                       <label for="settingGcashName">GCash Account Name</label>
-                      <input type="text" id="settingGcashName" class="setting-input" placeholder="e.g. R&amp;R Water Station / Neil O." value="R&amp;R Water Station">
+                      <input type="text" id="settingGcashName" class="setting-input" placeholder="e.g. R&amp;R Water Station / Juan D." value="R&amp;R Water Station">
                     </div>
                     <div class="setting-field">
                       <label for="settingGcashPhone">GCash Mobile Number</label>
@@ -1909,212 +1909,12 @@
                 </div>
 
                 <div class="fleet-roster-list" id="settingsFleetList">
-                  <div class="driver-item-card" data-fleetid="flt_1">
-                    <div class="driver-avatar-box">J</div>
-                    <div class="driver-meta">
-                      <strong>Kuya Jun</strong>
-                      <span>Multicab #1 • Plate: ABC-1234</span>
-                    </div>
-                    <div class="driver-card-actions">
-                      <button type="button" class="driver-status-pill online btn-toggle-fleet-status" data-fleetid="flt_1" title="Click to toggle Active / Standby">● Active Fleet</button>
-                      <button type="button" class="btn-fleet-action edit btn-edit-fleet-driver" data-fleetid="flt_1" title="Edit driver &amp; vehicle details">
-                        <svg class="ui-icon-xs" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
-                        <span>Edit</span>
-                      </button>
-                      <button type="button" class="btn-fleet-action delete btn-delete-fleet-driver" data-fleetid="flt_1" title="Remove vehicle from fleet">
-                        <svg class="ui-icon-xs" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
-                      </button>
-                    </div>
-                  </div>
-
-                  <div class="driver-item-card" data-fleetid="flt_2">
-                    <div class="driver-avatar-box orange">M</div>
-                    <div class="driver-meta">
-                      <strong>Kuya Mario</strong>
-                      <span>Multicab #2 • Plate: XYZ-5678</span>
-                    </div>
-                    <div class="driver-card-actions">
-                      <button type="button" class="driver-status-pill standby btn-toggle-fleet-status" data-fleetid="flt_2" title="Click to toggle Active / Standby">● Route Standby</button>
-                      <button type="button" class="btn-fleet-action edit btn-edit-fleet-driver" data-fleetid="flt_2" title="Edit driver &amp; vehicle details">
-                        <svg class="ui-icon-xs" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
-                        <span>Edit</span>
-                      </button>
-                      <button type="button" class="btn-fleet-action delete btn-delete-fleet-driver" data-fleetid="flt_2" title="Remove vehicle from fleet">
-                        <svg class="ui-icon-xs" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
-                      </button>
-                    </div>
+                  <div class="empty-fleet-state" style="text-align: center; padding: 24px 10px; color: var(--text-muted); background: var(--bg-surface); border: 1px dashed var(--border-subtle); border-radius: var(--radius-md);">
+                    <p style="font-size: 0.82rem; margin-bottom: 8px;">No delivery fleet vehicles configured yet.</p>
+                    <button type="button" class="btn-fleet-add" onclick="openFleetDriverModal()">+ Add First Fleet Vehicle</button>
                   </div>
                 </div>
               </div>
-
-              <!-- Card 4: Delivery Fees & Purok Zones -->
-              <div class="setting-card">
-                <div class="setting-card-header">
-                  <div class="card-icon-tag">
-                    <svg class="ui-icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
-                  </div>
-                  <div>
-                    <h4>Delivery Zones &amp; Flat Surcharges</h4>
-                    <p>Configured delivery routes across barangay puroks</p>
-                  </div>
-                </div>
-
-                <div class="setting-inputs-list">
-                  <div class="setting-row">
-                    <div class="setting-meta">
-                      <strong>Purok 1 (Central Station Zone)</strong>
-                      <span class="setting-desc">0-1 km radius from refilling station</span>
-                    </div>
-                    <span class="zone-fee-badge free">FREE Delivery</span>
-                  </div>
-
-                  <div class="setting-row">
-                    <div class="setting-meta">
-                      <strong>Purok 2 (Residential Heights)</strong>
-                      <span class="setting-desc">1-2 km radius</span>
-                    </div>
-                    <span class="zone-fee-badge free">FREE Delivery</span>
-                  </div>
-
-                  <div class="setting-row">
-                    <div class="setting-meta">
-                      <strong>Purok 3 (Riverside &amp; Outer Zone)</strong>
-                      <span class="setting-desc">2-4 km radius (remote drops)</span>
-                    </div>
-                    <span class="zone-fee-badge free">FREE Delivery</span>
-                  </div>
-                </div>
-              </div>
-
-            </div>
-          </div>
-
-
-          <!-- Tab Content 3: Terminal & Data Tools -->
-          <div class="settings-tab-pane" id="paneSystem">
-            <div class="settings-cards-grid">
-              
-              <!-- Card 7: POS Station Identity & Diagnostics -->
-              <div class="setting-card">
-                <div class="setting-card-header">
-                  <div class="card-icon-tag">
-                    <svg class="ui-icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect><line x1="8" y1="21" x2="16" y2="21"></line><line x1="12" y1="17" x2="12" y2="21"></line></svg>
-                  </div>
-                  <div>
-                    <h4>POS Terminal Diagnostics</h4>
-                    <p>Software build version and local storage cache</p>
-                  </div>
-                </div>
-
-                <div class="setting-inputs-list">
-                  <div class="data-tool-action">
-                    <div>
-                      <strong>Application Build &amp; Cache</strong>
-                      <p>Clean Pure Station POS Engine • Tap to force refresh</p>
-                    </div>
-                    <div style="display: flex; gap: 8px; align-items: center;">
-                      <span class="meta-badge" id="appBuildVersionBadge">v2.8.35 Stable</span>
-                      <button type="button" class="btn-sub-action" id="btnForceCheckUpdate" title="Clear Cache &amp; Reload Latest Build">
-                        <svg class="ui-icon-xs" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><polyline points="23 4 23 10 17 10"></polyline><polyline points="1 20 1 14 7 14"></polyline><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path></svg>
-                        <span>Force Reload</span>
-                      </button>
-                    </div>
-                  </div>
-
-                  <div class="data-tool-action">
-                    <div>
-                      <strong>Local Database Engine</strong>
-                      <p>Browser LocalStorage encrypted cache</p>
-                    </div>
-                    <span class="meta-badge">Indexed Ready</span>
-                  </div>
-
-                  <div class="data-tool-action">
-                    <div>
-                      <strong>Station Sound Effects</strong>
-                      <p>HTML5 audio chime synthesizer</p>
-                    </div>
-                    <button class="btn-sub-action" id="btnTestSoundFx" title="Test Station Audio">
-                      <svg class="ui-icon-xs" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"></path></svg>
-                      <span>Test Chime</span>
-                    </button>
-                  </div>
-
-                  <div class="data-tool-action">
-                    <div>
-                      <strong>Offline Capability</strong>
-                      <p>Zero external network connection required</p>
-                    </div>
-                    <span class="meta-badge">
-                      <span class="pulse-indicator"></span> 100% Offline Ready
-                    </span>
-                  </div>
-
-                  <div class="data-tool-action">
-                    <div>
-                      <strong>Persistent Storage Cache</strong>
-                      <p>Data persists across browser reloads &amp; sessions</p>
-                    </div>
-                    <span class="meta-badge" id="badgePersistenceStatus">Active &amp; Persisted</span>
-                  </div>
-                </div>
-              </div>
-
-              <!-- Card: Supabase Cloud Database Synchronization -->
-              <div class="setting-card" id="supabaseSettingCard">
-                <div class="setting-card-header">
-                  <div class="card-icon-tag">
-                    <svg class="ui-icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-                      <ellipse cx="12" cy="5" rx="9" ry="3"></ellipse>
-                      <path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"></path>
-                      <path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"></path>
-                    </svg>
-                  </div>
-                  <div>
-                    <h4>Supabase Cloud Database</h4>
-                    <p>Live real-time sync across laptops, phones, and tablets</p>
-                  </div>
-                </div>
-
-                <div class="setting-inputs-list">
-                  <div class="data-tool-action">
-                    <div>
-                      <strong>Cloud Sync Status</strong>
-                      <p id="supabaseStatusDesc">Cloud database credentials not configured</p>
-                    </div>
-                    <span class="meta-badge disconnected" id="supabaseStatusBadge">
-                      <span class="dot-disconnected">○</span> Disconnected
-                    </span>
-                  </div>
-
-                  <div class="setting-input-group">
-                    <label for="settingSupabaseUrl">Supabase Project URL</label>
-                    <input type="url" id="settingSupabaseUrl" placeholder="https://xyzcompany.supabase.co" autocomplete="off" spellcheck="false">
-                  </div>
-
-                  <div class="setting-input-group">
-                    <label for="settingSupabaseKey">Supabase Anon Public API Key</label>
-                    <div style="display: flex; gap: 8px;">
-                      <input type="password" id="settingSupabaseKey" placeholder="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..." style="flex: 1;" autocomplete="off" spellcheck="false">
-                      <button type="button" class="btn-sub-action" id="btnToggleSupabaseKey" title="Show/Hide Key">
-                        <svg class="ui-icon-xs" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
-                      </button>
-                    </div>
-                  </div>
-
-                  <div style="display: flex; gap: 10px; flex-wrap: wrap; margin-top: 6px;">
-                    <button type="button" class="btn-sub-action primary" id="btnConnectSupabase">
-                      <svg class="ui-icon-xs" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"></polyline></svg>
-                      <span>Connect &amp; Test</span>
-                    </button>
-                    <button type="button" class="btn-sub-action" id="btnSyncSupabaseNow">
-                      <svg class="ui-icon-xs" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"></polyline><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path></svg>
-                      <span>Upload &amp; Sync Local Data</span>
-                    </button>
-                  </div>
-                </div>
-              </div>
-
               <!-- Card 8: Data Backup & Reset Actions -->
               <div class="setting-card setting-card-full">
                 <div class="setting-card-header">
@@ -2212,15 +2012,22 @@
                     <h4>Staff Accounts &amp; Access PINs</h4>
                     <p>Configure cashier roles, permissions, and 4-digit security PINs</p>
                   </div>
+                  <button type="button" class="btn-sub-action btn-fleet-add" id="btnAddStaffMember" title="Register a new staff member" style="margin-left: auto;">
+                    <svg class="ui-icon-xs" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+                    <span>+ Add Staff</span>
+                  </button>
                 </div>
 
                 <div class="staff-management-list" id="settingsStaffList">
-                  <!-- Dynamically rendered staff rows with change PIN buttons -->
+                  <div class="empty-staff-state" style="text-align: center; padding: 24px 10px; color: var(--text-muted); background: var(--bg-surface); border: 1px dashed var(--border-subtle); border-radius: var(--radius-md);">
+                    <p style="font-size: 0.82rem; margin-bottom: 8px;">No staff accounts configured yet.</p>
+                    <button type="button" class="btn-fleet-add" onclick="openStaffModal()">+ Add First Staff Member</button>
+                  </div>
                 </div>
 
                 <div class="settings-security-notice">
                   <svg class="ui-icon-xs" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
-                  <span>Manager PIN (Default: <strong>1234</strong>) is required to authorize order voids, shift resets, and pricing changes.</span>
+                  <span>Manager PIN is required to authorize order voids, shift resets, and pricing changes. Configure your manager credentials above.</span>
                 </div>
               </div>
 
@@ -2321,7 +2128,7 @@
               </div>
               <div class="profile-hero-details">
                 <div class="profile-hero-title-row">
-                  <h2 class="profile-operator-name" id="profileOperatorName">Neil</h2>
+                  <h2 class="profile-operator-name" id="profileOperatorName">No Active Account</h2>
                   <span class="cashier-role-badge role-manager" id="profileRoleBadge">Manager</span>
                   <span class="profile-status-pill">
                     <span class="pulse-indicator"></span>
@@ -2457,7 +2264,7 @@
               <div class="profile-card-header">
                 <div>
                   <h4 class="profile-card-title">Shift Activity &amp; Transaction Log</h4>
-                  <p class="profile-card-sub" id="profileActivitySub">Orders processed by Neil during this active session</p>
+                  <p class="profile-card-sub" id="profileActivitySub">Orders processed during this active session</p>
                 </div>
                 <div class="profile-activity-filters">
                   <button type="button" class="profile-filter-btn active" data-filter="all" id="profileFilterAll">All</button>
@@ -2764,13 +2571,13 @@
         <div class="staff-selected-banner">
           <div class="cashier-avatar sm" id="selectedStaffAvatar">N</div>
           <div>
-            <strong id="selectedStaffName">Neil</strong>
+            <strong id="selectedStaffName">—</strong>
             <span id="selectedStaffRoleTitle">Station Manager</span>
           </div>
           <button class="btn-change-staff-pick" id="btnBackToStaffList">Change</button>
         </div>
 
-        <p class="staff-pin-prompt">Enter 4-digit PIN for <span id="staffPromptName">Neil</span>:</p>
+        <p class="staff-pin-prompt">Enter 4-digit PIN for <span id="staffPromptName">—</span>:</p>
 
         <div class="pin-display-wrapper">
           <div class="pin-display-dots" id="staffLoginPinDots">
@@ -2835,7 +2642,7 @@
         <div class="cashier-avatar" id="lockUserAvatar">N</div>
         <div class="lock-user-info">
           <span class="lock-user-label">Current Operator</span>
-          <strong class="lock-user-name" id="lockUserName">Neil</strong>
+          <strong class="lock-user-name" id="lockUserName">Station Operator</strong>
           <span class="lock-user-role" id="lockUserRole">Station Manager</span>
         </div>
       </div>
@@ -3157,7 +2964,7 @@
         <div class="edit-profile-form">
           <div class="setting-input-group" style="margin-bottom: 12px;">
             <label for="inputEditProfileName">Operator Display Name</label>
-            <input type="text" id="inputEditProfileName" placeholder="e.g. Neil" style="width: 100%; padding: 8px 10px; font-size: 0.85rem; border-radius: var(--radius-sm); border: 1px solid var(--border-subtle); background: var(--bg-card); color: var(--text-main);">
+            <input type="text" id="inputEditProfileName" placeholder="e.g. Maria Santos" style="width: 100%; padding: 8px 10px; font-size: 0.85rem; border-radius: var(--radius-sm); border: 1px solid var(--border-subtle); background: var(--bg-card); color: var(--text-main);">
           </div>
 
           <div class="setting-input-group" style="margin-bottom: 12px;">
@@ -3252,6 +3059,70 @@
         <button type="button" class="btn-modal-cancel" id="btnCancelFleetModal">Cancel</button>
         <button type="button" class="btn-modal-confirm" id="btnSaveFleetModal" style="background: #0284c7; color: #ffffff; min-width: 140px;">
           <span>Save Driver</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Staff Member Profile Edit / Add Modal -->
+  <div class="modal-backdrop" id="staffModal" style="display: none;">
+    <div class="modal-card fleet-driver-modal-card">
+      <div class="thermal-modal-header">
+        <div class="thermal-modal-title">
+          <div class="thermal-icon-circle" style="background: rgba(2, 132, 199, 0.12); color: var(--color-primary);">
+            <svg class="ui-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+              <circle cx="9" cy="7" r="4"></circle>
+              <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+              <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+            </svg>
+          </div>
+          <div class="thermal-modal-title-text">
+            <h3 id="staffModalTitle">Edit Staff Profile</h3>
+            <p id="staffModalSubtitle">Configure cashier credentials, roles, and 4-digit PIN</p>
+          </div>
+        </div>
+        <button type="button" class="modal-close-icon" id="btnCloseStaffModal" aria-label="Close" title="Close (Esc)">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+        </button>
+      </div>
+
+      <div class="fleet-modal-body" style="padding: 16px 0;">
+        <input type="hidden" id="inputStaffId" value="">
+
+        <div class="setting-input-group" style="margin-bottom: 12px;">
+          <label for="inputStaffName" style="font-size: 0.78rem; font-weight: 700; color: var(--text-muted); display: block; margin-bottom: 4px;">Staff / Cashier Name *</label>
+          <input type="text" id="inputStaffName" placeholder="e.g. Maria Santos" style="width: 100%; padding: 8px 10px; font-size: 0.85rem; border-radius: var(--radius-sm); border: 1px solid var(--border-subtle); background: var(--bg-card); color: var(--text-main);" required>
+        </div>
+
+        <div class="setting-input-group" style="margin-bottom: 12px;">
+          <label for="inputStaffRole" style="font-size: 0.78rem; font-weight: 700; color: var(--text-muted); display: block; margin-bottom: 4px;">Station Role &amp; Permissions *</label>
+          <select id="inputStaffRole" style="width: 100%; padding: 8px 10px; font-size: 0.85rem; border-radius: var(--radius-sm); border: 1px solid var(--border-subtle); background: var(--bg-card); color: var(--text-main);">
+            <option value="manager">Station Manager (Full System &amp; Void Authorization)</option>
+            <option value="cashier" selected>Cashier (Front-Desk Register &amp; Sales)</option>
+            <option value="driver">Driver / Courier (Delivery &amp; Remittance)</option>
+          </select>
+        </div>
+
+        <div class="setting-input-group" style="margin-bottom: 12px;">
+          <label for="inputStaffTitle" style="font-size: 0.78rem; font-weight: 700; color: var(--text-muted); display: block; margin-bottom: 4px;">Job Title / Designation</label>
+          <input type="text" id="inputStaffTitle" placeholder="e.g. Front-Desk Cashier" style="width: 100%; padding: 8px 10px; font-size: 0.85rem; border-radius: var(--radius-sm); border: 1px solid var(--border-subtle); background: var(--bg-card); color: var(--text-main);">
+        </div>
+
+        <div class="setting-input-group">
+          <label for="inputStaffPin" style="font-size: 0.78rem; font-weight: 700; color: var(--text-muted); display: block; margin-bottom: 4px;">4-Digit Security PIN *</label>
+          <input type="password" id="inputStaffPin" placeholder="•••• (4 digits)" maxlength="4" pattern="\d{4}" inputmode="numeric" style="width: 100%; padding: 8px 10px; font-size: 0.85rem; border-radius: var(--radius-sm); border: 1px solid var(--border-subtle); background: var(--bg-card); color: var(--text-main); letter-spacing: 3px;" required>
+          <small style="font-size: 0.72rem; color: var(--text-muted); display: block; margin-top: 4px;">Used to unlock the terminal and switch cashier accounts</small>
+        </div>
+      </div>
+
+      <div class="modal-button-row" style="margin-top: 14px; display: flex; justify-content: flex-end; gap: 10px;">
+        <button type="button" class="btn-modal-cancel" id="btnCancelStaffModal">Cancel</button>
+        <button type="button" class="btn-modal-confirm" id="btnSaveStaffModal" style="background: #0284c7; color: #ffffff; min-width: 140px;">
+          <span>Save Staff</span>
         </button>
       </div>
     </div>
@@ -3357,7 +3228,7 @@
           <div class="person-avatar-circle" id="drawerAvatarChar">N</div>
           <div class="person-info-content">
             <div class="person-title-row">
-              <strong class="person-name" id="drawerCashierName">Neil</strong>
+              <strong class="person-name" id="drawerCashierName">No Active Cashier</strong>
               <span class="person-badge cashier">Cashier / Lead</span>
             </div>
             <span class="person-sub-status" id="drawerCashierStatus">● On Duty • Counter #1</span>
@@ -3371,10 +3242,10 @@
           </div>
           <div class="person-info-content">
             <div class="person-title-row">
-              <strong class="person-name" id="drawerDriver1Name">Kuya Jun</strong>
+              <strong class="person-name" id="drawerDriver1Name">—</strong>
               <span class="person-badge driver" id="drawerDriver1Badge">Lead Driver</span>
             </div>
-            <div class="driver-vehicle-line" id="drawerDriver1Vehicle">Multicab #1 • Plate: ABC-1234</div>
+            <div class="driver-vehicle-line" id="drawerDriver1Vehicle">No vehicle assigned</div>
             <span class="person-sub-status en-route" id="drawerDriver1Status">● Available at Station • Ready for dispatch</span>
           </div>
         </div>
@@ -3386,10 +3257,10 @@
           </div>
           <div class="person-info-content">
             <div class="person-title-row">
-              <strong class="person-name" id="drawerDriver2Name">Kuya Mario</strong>
+              <strong class="person-name" id="drawerDriver2Name">—</strong>
               <span class="person-badge driver" id="drawerDriver2Badge">Backup Driver</span>
             </div>
-            <div class="driver-vehicle-line" id="drawerDriver2Vehicle">Multicab #2 • Plate: XYZ-5678</div>
+            <div class="driver-vehicle-line" id="drawerDriver2Vehicle">No vehicle assigned</div>
             <span class="person-sub-status standby" id="drawerDriver2Status">● Route Standby</span>
           </div>
         </div>
@@ -3524,8 +3395,8 @@
   </aside>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="supabase_config.js?v=2.8.36"></script>
-  <script src="pos.js?v=2.8.36"></script>
+  <script src="supabase_config.js?v=2.8.37"></script>
+  <script src="pos.js?v=2.8.37"></script>
 
   <!-- ====================================================================
        MODAL 1: BAYAD UTANG (CUSTOMER DEBT COLLECTION & PARTIAL PAYMENT)

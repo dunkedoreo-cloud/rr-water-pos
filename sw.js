@@ -2,17 +2,17 @@
 // R&R Water Refilling Station - Service Worker (Offline-First PWA)
 // ==========================================================================
 
-const CACHE_NAME = 'rr-water-pos-v2.8.36';
+const CACHE_NAME = 'rr-water-pos-v2.8.37';
 const STATIC_ASSETS = [
   './',
   './index.html',
   './pos.html',
   './dev.html',
-  './dev.css?v=2.8.36',
-  './dev.js?v=2.8.36',
-  './pos.css?v=2.8.36',
-  './supabase_config.js?v=2.8.36',
-  './pos.js?v=2.8.36',
+  './dev.css?v=2.8.37',
+  './dev.js?v=2.8.37',
+  './pos.css?v=2.8.37',
+  './supabase_config.js?v=2.8.37',
+  './pos.js?v=2.8.37',
   './manifest.json',
   './assets/droppy_happy.png',
   './assets/droppy_love.png',

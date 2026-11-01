@@ -133,43 +133,8 @@ class StationDatabase {
   }
 
   seedDefaults() {
-    // Seed Staff if empty
-    const staffCount = this.db.prepare('SELECT COUNT(*) as count FROM staff').get().count;
-    if (staffCount === 0) {
-      const insertStaff = this.db.prepare(`
-        INSERT INTO staff (id, name, role, title, pin, avatar_color, created_at)
-        VALUES (?, ?, ?, ?, ?, ?, ?)
-      `);
-      insertStaff.run('usr_1', 'Neil', 'manager', 'Station Manager', '1234', '#0284c7', Date.now());
-      insertStaff.run('usr_2', 'Sarah', 'cashier', 'Front-Desk Cashier', '2222', '#10b981', Date.now());
-      insertStaff.run('usr_3', 'Kuya Jun', 'driver', 'Multicab Driver / Courier', '3333', '#8b5cf6', Date.now());
-    }
-
-    // Seed Inventory if empty
-    const invCount = this.db.prepare('SELECT COUNT(*) as count FROM inventory').get().count;
-    if (invCount === 0) {
-      const insertInv = this.db.prepare(`
-        INSERT INTO inventory (key, name, current_stock, unit, reorder_level, updated_at)
-        VALUES (?, ?, ?, ?, ?, ?)
-      `);
-      insertInv.run('cap_seals', '5-Gallon Non-Spill Cap Seals', 450, 'pcs', 100, Date.now());
-      insertInv.run('heat_wraps', 'Tamper-Evident Heat Shrink Neck Sleeves', 600, 'pcs', 150, Date.now());
-      insertInv.run('blue_carboys', '5-Gallon Polycarbonate Blue Carboys (Rack Ready)', 150, 'units', 30, Date.now());
-      insertInv.run('sediment_filter', '5-Micron Polypropylene Sediment Filter', 8, 'cartridges', 2, Date.now());
-      insertInv.run('carbon_filter', 'Activated Carbon Block Filter', 4, 'cartridges', 1, Date.now());
-    }
-
-    // Seed default customers if empty
-    const custCount = this.db.prepare('SELECT COUNT(*) as count FROM customers').get().count;
-    if (custCount === 0) {
-      const insertCust = this.db.prepare(`
-        INSERT INTO customers (id, name, contact_no, address, carboy_balance, notes, created_at, updated_at)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-      `);
-      insertCust.run('cust_1', 'Aling Tess Sari-Sari Store', '0917-888-1234', 'Purok 2, Near Chapel', 4, 'Weekly delivery regular', Date.now(), Date.now());
-      insertCust.run('cust_2', 'Mang Carlos Vulcanizing', '0922-555-6789', 'Main Highway, Corner Purok 1', 2, 'Borrowed 2 blue carboys', Date.now(), Date.now());
-      insertCust.run('cust_3', 'Bgy. Hall Health Center', '0999-333-4567', 'Municipal Road', 6, 'Dispenser refill on Mondays', Date.now(), Date.now());
-    }
+    // Production Deployment: Initialized to Absolute Zero.
+    // No mock staff, inventory, or customers seeded.
   }
 
   // --- ORDERS API ---
