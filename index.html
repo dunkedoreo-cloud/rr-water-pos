@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>R&R Water - Station POS</title>
-  <link rel="stylesheet" href="pos.css?v=2.8.35">
+  <link rel="stylesheet" href="pos.css?v=2.8.36">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700;800&display=swap" rel="stylesheet">
@@ -1892,33 +1892,57 @@
               
               <!-- Card 3: Multicab Drivers & Fleet Roster -->
               <div class="setting-card">
-                <div class="setting-card-header">
-                  <div class="card-icon-tag">
-                    <svg class="ui-icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="3" width="15" height="13"></rect><polygon points="16 8 20 8 23 11 23 16 16 8"></polygon><circle cx="5.5" cy="18.5" r="2.5"></circle><circle cx="18.5" cy="18.5" r="2.5"></circle></svg>
+                <div class="setting-card-header" style="display: flex; justify-content: space-between; align-items: center;">
+                  <div style="display: flex; align-items: center; gap: 12px;">
+                    <div class="card-icon-tag">
+                      <svg class="ui-icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="3" width="15" height="13"></rect><polygon points="16 8 20 8 23 11 23 16 16 8"></polygon><circle cx="5.5" cy="18.5" r="2.5"></circle><circle cx="18.5" cy="18.5" r="2.5"></circle></svg>
+                    </div>
+                    <div>
+                      <h4>Delivery Fleet &amp; Driver Roster</h4>
+                      <p>Active vehicles and assigned delivery personnel</p>
+                    </div>
                   </div>
-                  <div>
-                    <h4>Delivery Fleet &amp; Driver Roster</h4>
-                    <p>Active vehicles and assigned delivery personnel</p>
-                  </div>
+                  <button type="button" class="btn-sub-action btn-fleet-add" id="btnAddFleetDriver" title="Register a new multicab vehicle &amp; driver" style="margin-left: auto;">
+                    <svg class="ui-icon-xs" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+                    <span>+ Add Driver</span>
+                  </button>
                 </div>
 
-                <div class="fleet-roster-list">
-                  <div class="driver-item-card">
+                <div class="fleet-roster-list" id="settingsFleetList">
+                  <div class="driver-item-card" data-fleetid="flt_1">
                     <div class="driver-avatar-box">J</div>
                     <div class="driver-meta">
                       <strong>Kuya Jun</strong>
                       <span>Multicab #1 • Plate: ABC-1234</span>
                     </div>
-                    <span class="driver-status-pill online">● Active Fleet</span>
+                    <div class="driver-card-actions">
+                      <button type="button" class="driver-status-pill online btn-toggle-fleet-status" data-fleetid="flt_1" title="Click to toggle Active / Standby">● Active Fleet</button>
+                      <button type="button" class="btn-fleet-action edit btn-edit-fleet-driver" data-fleetid="flt_1" title="Edit driver &amp; vehicle details">
+                        <svg class="ui-icon-xs" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+                        <span>Edit</span>
+                      </button>
+                      <button type="button" class="btn-fleet-action delete btn-delete-fleet-driver" data-fleetid="flt_1" title="Remove vehicle from fleet">
+                        <svg class="ui-icon-xs" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+                      </button>
+                    </div>
                   </div>
 
-                  <div class="driver-item-card">
-                    <div class="driver-avatar-box">M</div>
+                  <div class="driver-item-card" data-fleetid="flt_2">
+                    <div class="driver-avatar-box orange">M</div>
                     <div class="driver-meta">
                       <strong>Kuya Mario</strong>
                       <span>Multicab #2 • Plate: XYZ-5678</span>
                     </div>
-                    <span class="driver-status-pill standby">● Route Standby</span>
+                    <div class="driver-card-actions">
+                      <button type="button" class="driver-status-pill standby btn-toggle-fleet-status" data-fleetid="flt_2" title="Click to toggle Active / Standby">● Route Standby</button>
+                      <button type="button" class="btn-fleet-action edit btn-edit-fleet-driver" data-fleetid="flt_2" title="Edit driver &amp; vehicle details">
+                        <svg class="ui-icon-xs" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+                        <span>Edit</span>
+                      </button>
+                      <button type="button" class="btn-fleet-action delete btn-delete-fleet-driver" data-fleetid="flt_2" title="Remove vehicle from fleet">
+                        <svg class="ui-icon-xs" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+                      </button>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -3165,6 +3189,74 @@
     </div>
   </div>
 
+  <!-- Fleet Driver & Vehicle Edit / Add Modal -->
+  <div class="modal-backdrop" id="fleetDriverModal" style="display: none;">
+    <div class="modal-card fleet-driver-modal-card">
+      <div class="thermal-modal-header">
+        <div class="thermal-modal-title">
+          <div class="thermal-icon-circle" style="background: rgba(2, 132, 199, 0.12); color: var(--color-primary);">
+            <svg class="ui-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="1" y="3" width="15" height="13"></rect>
+              <polygon points="16 8 20 8 23 11 23 16 16 8"></polygon>
+              <circle cx="5.5" cy="18.5" r="2.5"></circle>
+              <circle cx="18.5" cy="18.5" r="2.5"></circle>
+            </svg>
+          </div>
+          <div class="thermal-modal-title-text">
+            <h3 id="fleetModalTitle">Edit Fleet Driver &amp; Vehicle</h3>
+            <p id="fleetModalSubtitle">Configure driver profile, multicab vehicle, and operational status</p>
+          </div>
+        </div>
+        <button type="button" class="modal-close-icon" id="btnCloseFleetModal" aria-label="Close" title="Close (Esc)">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+        </button>
+      </div>
+
+      <div class="fleet-modal-body" style="padding: 16px 0;">
+        <input type="hidden" id="inputFleetDriverId" value="">
+
+        <div class="setting-input-group" style="margin-bottom: 12px;">
+          <label for="inputFleetDriverName" style="font-size: 0.78rem; font-weight: 700; color: var(--text-muted); display: block; margin-bottom: 4px;">Driver / Courier Name</label>
+          <input type="text" id="inputFleetDriverName" placeholder="e.g. Kuya Jun" style="width: 100%; padding: 8px 10px; font-size: 0.85rem; border-radius: var(--radius-sm); border: 1px solid var(--border-subtle); background: var(--bg-card); color: var(--text-main);" required>
+        </div>
+
+        <div class="setting-input-group" style="margin-bottom: 12px;">
+          <label for="inputFleetVehicle" style="font-size: 0.78rem; font-weight: 700; color: var(--text-muted); display: block; margin-bottom: 4px;">Assigned Vehicle / Unit</label>
+          <input type="text" id="inputFleetVehicle" placeholder="e.g. Multicab #1" style="width: 100%; padding: 8px 10px; font-size: 0.85rem; border-radius: var(--radius-sm); border: 1px solid var(--border-subtle); background: var(--bg-card); color: var(--text-main);" required>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 12px;">
+          <div class="setting-input-group">
+            <label for="inputFleetPlate" style="font-size: 0.78rem; font-weight: 700; color: var(--text-muted); display: block; margin-bottom: 4px;">License Plate Number</label>
+            <input type="text" id="inputFleetPlate" placeholder="e.g. ABC-1234" style="width: 100%; padding: 8px 10px; font-size: 0.85rem; border-radius: var(--radius-sm); border: 1px solid var(--border-subtle); background: var(--bg-card); color: var(--text-main); text-transform: uppercase;">
+          </div>
+          <div class="setting-input-group">
+            <label for="inputFleetPhone" style="font-size: 0.78rem; font-weight: 700; color: var(--text-muted); display: block; margin-bottom: 4px;">Contact / Mobile #</label>
+            <input type="tel" id="inputFleetPhone" placeholder="e.g. 0917-829-4102" style="width: 100%; padding: 8px 10px; font-size: 0.85rem; border-radius: var(--radius-sm); border: 1px solid var(--border-subtle); background: var(--bg-card); color: var(--text-main);">
+          </div>
+        </div>
+
+        <div class="setting-input-group">
+          <label for="inputFleetStatus" style="font-size: 0.78rem; font-weight: 700; color: var(--text-muted); display: block; margin-bottom: 4px;">Fleet Deployment Status</label>
+          <select id="inputFleetStatus" style="width: 100%; padding: 8px 10px; font-size: 0.85rem; border-radius: var(--radius-sm); border: 1px solid var(--border-subtle); background: var(--bg-card); color: var(--text-main);">
+            <option value="active">Active Fleet (Dispatched &amp; Available for routes)</option>
+            <option value="standby">Route Standby (Idle / On-call / Maintenance)</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="modal-button-row" style="margin-top: 14px; display: flex; justify-content: flex-end; gap: 10px;">
+        <button type="button" class="btn-modal-cancel" id="btnCancelFleetModal">Cancel</button>
+        <button type="button" class="btn-modal-confirm" id="btnSaveFleetModal" style="background: #0284c7; color: #ffffff; min-width: 140px;">
+          <span>Save Driver</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
   <!-- Floating Side Minitab on Screen Edge (Press to open Station Summary) -->
   <button type="button" class="floating-side-minitab" id="floatingSideMinitab" title="Station Live Summary (Press for all functions &amp; live sales)" aria-label="Open Station Summary">
     <div class="side-tab-pill">
@@ -3273,32 +3365,32 @@
         </div>
 
         <!-- Driver 1 Row -->
-        <div class="person-row-item driver-item">
-          <div class="person-avatar-circle driver-avatar">
+        <div class="person-row-item driver-item" id="drawerDriver1Row">
+          <div class="person-avatar-circle driver-avatar" id="drawerDriver1Avatar">
             <svg class="ui-icon-xs" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="3" width="15" height="13"></rect><polygon points="16 8 20 8 23 11 23 16 16 8"></polygon><circle cx="5.5" cy="18.5" r="2.5"></circle><circle cx="18.5" cy="18.5" r="2.5"></circle></svg>
           </div>
           <div class="person-info-content">
             <div class="person-title-row">
-              <strong class="person-name">Kuya Jun</strong>
-              <span class="person-badge driver">Lead Driver</span>
+              <strong class="person-name" id="drawerDriver1Name">Kuya Jun</strong>
+              <span class="person-badge driver" id="drawerDriver1Badge">Lead Driver</span>
             </div>
-            <div class="driver-vehicle-line">Multicab #1 • Plate: ABC-1234</div>
+            <div class="driver-vehicle-line" id="drawerDriver1Vehicle">Multicab #1 • Plate: ABC-1234</div>
             <span class="person-sub-status en-route" id="drawerDriver1Status">● Available at Station • Ready for dispatch</span>
           </div>
         </div>
 
         <!-- Driver 2 Row -->
-        <div class="person-row-item driver-item">
-          <div class="person-avatar-circle driver-avatar">
+        <div class="person-row-item driver-item" id="drawerDriver2Row">
+          <div class="person-avatar-circle driver-avatar" id="drawerDriver2Avatar">
             <svg class="ui-icon-xs" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="3" width="15" height="13"></rect><polygon points="16 8 20 8 23 11 23 16 16 8"></polygon><circle cx="5.5" cy="18.5" r="2.5"></circle><circle cx="18.5" cy="18.5" r="2.5"></circle></svg>
           </div>
           <div class="person-info-content">
             <div class="person-title-row">
-              <strong class="person-name">Mark R.</strong>
-              <span class="person-badge driver">Relief Driver</span>
+              <strong class="person-name" id="drawerDriver2Name">Kuya Mario</strong>
+              <span class="person-badge driver" id="drawerDriver2Badge">Backup Driver</span>
             </div>
-            <div class="driver-vehicle-line">Multicab #2 • Plate: XYZ-7890</div>
-            <span class="person-sub-status ready" id="drawerDriver2Status">● Available at Station • Ready for dispatch</span>
+            <div class="driver-vehicle-line" id="drawerDriver2Vehicle">Multicab #2 • Plate: XYZ-5678</div>
+            <span class="person-sub-status standby" id="drawerDriver2Status">● Route Standby</span>
           </div>
         </div>
       </div>
@@ -3432,8 +3524,8 @@
   </aside>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="supabase_config.js?v=2.8.35"></script>
-  <script src="pos.js?v=2.8.35"></script>
+  <script src="supabase_config.js?v=2.8.36"></script>
+  <script src="pos.js?v=2.8.36"></script>
 
   <!-- ====================================================================
        MODAL 1: BAYAD UTANG (CUSTOMER DEBT COLLECTION & PARTIAL PAYMENT)

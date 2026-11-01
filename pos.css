@@ -25,17 +25,17 @@
   --brand-primary-hover: #0369a1;
   --color-sidebar-active: #dcfce7; /* Soft neon highlight */
   --color-sidebar-active-text: #15803d;
-  --color-payment-btn: linear-gradient(135deg, #8b5cf6 0%, #6366f1 100%);
-  --color-payment-hover: linear-gradient(135deg, #7c3aed 0%, #4f46e5 100%);
-  --color-payment-shadow: rgba(99, 102, 241, 0.4);
+  --color-payment-btn: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);
+  --color-payment-hover: linear-gradient(135deg, #0369a1 0%, #075985 100%);
+  --color-payment-shadow: rgba(2, 132, 199, 0.35);
 
   --color-success: #10b981;
   --color-success-bg: #ecfdf5;
   --color-warning: #f59e0b;
   --color-danger: #ef4444;
   --color-danger-bg: #fef2f2;
-  --color-purple: #8b5cf6;
-  --color-purple-bg: #f5f3ff;
+  --color-purple: #0284c7;
+  --color-purple-bg: rgba(2, 132, 199, 0.12);
 
   --text-main: #1e293b;
   --text-muted: #64748b;
@@ -78,17 +78,17 @@ body:not(.light-mode) {
   --color-accent: #38bdf8;
   --color-sidebar-active: #1e3a5f;
   --color-sidebar-active-text: #38bdf8;
-  --color-payment-btn: linear-gradient(135deg, #7c3aed 0%, #3b82f6 100%);
-  --color-payment-hover: linear-gradient(135deg, #8b5cf6 0%, #0284c7 100%);
-  --color-payment-shadow: rgba(59, 130, 246, 0.4);
+  --color-payment-btn: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);
+  --color-payment-hover: linear-gradient(135deg, #0369a1 0%, #075985 100%);
+  --color-payment-shadow: rgba(2, 132, 199, 0.4);
 
   --color-success: #10b981;
   --color-success-bg: rgba(16, 185, 129, 0.15);
   --color-warning: #f59e0b;
   --color-danger: #ef4444;
   --color-danger-bg: rgba(239, 68, 68, 0.15);
-  --color-purple: #a855f7;
-  --color-purple-bg: rgba(168, 85, 247, 0.15);
+  --color-purple: #38bdf8;
+  --color-purple-bg: rgba(56, 189, 248, 0.15);
 
   --text-main: #f8fafc;
   --text-muted: #94a3b8;
@@ -194,7 +194,7 @@ body:not(.light-mode) .kp-mode-tab.active .ui-icon-xs {
 }
 
 /* ==========================================================================
-   STATIC WATER BACKGROUND (Non-moving Crystalline Water Texture)
+   SIMPLIFIED MODERN AMBIENT BACKGROUND (Clean, Minimalist, Distraction-Free)
    ========================================================================== */
 .static-water-bg {
   position: fixed;
@@ -204,35 +204,28 @@ body:not(.light-mode) .kp-mode-tab.active .ui-icon-xs {
   pointer-events: none;
   z-index: 0;
   overflow: hidden;
-  background-image: url('assets/water_static_bg.jpg');
-  background-size: cover;
-  background-position: center center;
-  background-repeat: no-repeat;
-  opacity: 0.88;
-  transition: background-image 0.3s ease, opacity 0.3s ease;
-  will-change: transform;
-  transform: translateZ(0);
-  backface-visibility: hidden;
+  background-color: var(--bg-app);
+  background: radial-gradient(circle at 50% 0%, rgba(2, 132, 199, 0.04) 0%, transparent 65%), var(--bg-app);
+  opacity: 1;
+  transition: background-color 0.3s ease;
 }
 
-/* Soft translucent gradient veil ensuring maximum contrast and legibility */
+/* Subtle clean top ambient light to elevate card contrast */
 .static-water-bg::after {
   content: '';
   position: absolute;
   inset: 0;
-  background: radial-gradient(circle at 50% 35%, rgba(255, 255, 255, 0.12) 0%, rgba(240, 242, 247, 0.48) 100%);
+  background: radial-gradient(ellipse 80% 50% at 50% -20%, rgba(2, 132, 199, 0.06), transparent 70%);
   pointer-events: none;
 }
 
-/* Dark Mode Non-moving Water Background (Cohesive Deep Sapphire Theme) */
+/* Dark Mode Clean Ambient Background */
 body:not(.light-mode) .static-water-bg {
-  background-image: url('assets/water_static_bg_dark.jpg');
-  opacity: 0.50;
-  filter: saturate(0.9) brightness(0.85);
+  background: radial-gradient(circle at 50% 0%, rgba(2, 132, 199, 0.08) 0%, transparent 70%), var(--bg-app);
 }
 
 body:not(.light-mode) .static-water-bg::after {
-  background: radial-gradient(circle at 50% 35%, rgba(8, 13, 26, 0.45) 0%, rgba(8, 13, 26, 0.88) 100%);
+  background: radial-gradient(ellipse 80% 50% at 50% -20%, rgba(56, 189, 248, 0.08), transparent 70%);
 }
 
 /* Overall App Flex Container */
@@ -6537,6 +6530,75 @@ body:not(.light-mode) .driver-status-pill.online {
   color: var(--text-muted);
 }
 
+.driver-card-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.btn-fleet-action {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 5px 10px;
+  font-size: 0.74rem;
+  font-weight: 700;
+  border-radius: var(--radius-sm);
+  background: var(--bg-card);
+  border: 1px solid var(--border-card);
+  color: var(--text-main);
+  cursor: pointer;
+  transition: all 0.12s ease;
+}
+
+.btn-fleet-action:hover {
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+  background: rgba(2, 132, 199, 0.06);
+}
+
+.btn-fleet-action.delete {
+  padding: 5px 8px;
+  color: var(--text-muted);
+}
+
+.btn-fleet-action.delete:hover {
+  border-color: #ef4444;
+  color: #ef4444;
+  background: rgba(239, 68, 68, 0.08);
+}
+
+.btn-fleet-add {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  font-size: 0.76rem;
+  font-weight: 700;
+  border-radius: var(--radius-sm);
+  background: rgba(2, 132, 199, 0.08);
+  border: 1px solid rgba(2, 132, 199, 0.25);
+  color: var(--color-primary);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.btn-fleet-add:hover {
+  background: var(--color-primary);
+  color: #ffffff;
+  border-color: var(--color-primary);
+}
+
+.fleet-driver-modal-card {
+  max-width: 480px;
+  width: 92%;
+  padding: 22px 24px;
+  align-items: stretch;
+  text-align: left;
+  gap: 14px;
+  box-sizing: border-box;
+}
+
 .fleet-actions-row {
   margin-top: 4px;
 }
@@ -8638,7 +8700,10 @@ body:not(.light-mode) .btn-sub-action.primary:hover {
 }
 
 .cashier-role-badge.role-driver {
-  color: #8b5cf6;
+  color: #0284c7;
+}
+body:not(.light-mode) .cashier-role-badge.role-driver {
+  color: #38bdf8;
 }
 
 .cashier-chevron-icon {
@@ -9077,8 +9142,12 @@ body:not(.light-mode) .btn-sub-action.primary:hover {
 }
 
 .staff-picker-role-tag.driver {
-  background: rgba(139, 92, 246, 0.12);
-  color: #8b5cf6;
+  background: rgba(2, 132, 199, 0.12);
+  color: #0284c7;
+}
+body:not(.light-mode) .staff-picker-role-tag.driver {
+  background: rgba(56, 189, 248, 0.18);
+  color: #38bdf8;
 }
 
 .staff-selected-banner {
@@ -9476,8 +9545,12 @@ body:not(.light-mode) .btn-sub-action.primary:hover {
 }
 
 .badge-audit.price {
-  background: rgba(139, 92, 246, 0.12);
-  color: #8b5cf6;
+  background: rgba(2, 132, 199, 0.12);
+  color: #0284c7;
+}
+body:not(.light-mode) .badge-audit.price {
+  background: rgba(56, 189, 248, 0.18);
+  color: #38bdf8;
 }
 
 /* ==========================================================================
@@ -10095,13 +10168,13 @@ body:not(.light-mode) .modal-close-icon:hover {
 }
 
 .btn-thermal-slip {
-  background-color: #8b5cf6;
-  border: 1px solid #8b5cf6;
+  background-color: #0284c7;
+  border: 1px solid #0284c7;
   color: #ffffff;
 }
 
 .btn-thermal-slip:hover {
-  background-color: #7c3aed;
+  background-color: #0369a1;
   transform: translateY(-1px);
 }
 
@@ -10739,8 +10812,8 @@ body:not(.light-mode) .kpi-tag {
 }
 
 .profile-channel-badge.delivery {
-  background: rgba(139, 92, 246, 0.1);
-  color: #8b5cf6;
+  background: rgba(2, 132, 199, 0.1);
+  color: #0284c7;
 }
 
 .profile-order-total {

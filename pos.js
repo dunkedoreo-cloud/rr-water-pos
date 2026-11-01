@@ -46,6 +46,12 @@ const DEFAULT_STAFF = [
   { id: 'usr_3', name: 'Kuya Jun', role: 'driver', pin: '3333', title: 'Multicab Driver / Courier', avatarColor: '#0369a1' }
 ];
 
+// --- DELIVERY FLEET & DRIVER ROSTER ---
+const DEFAULT_FLEET = [
+  { id: 'flt_1', name: 'Kuya Jun', vehicle: 'Multicab #1', plate: 'ABC-1234', phone: '0917-829-4102', status: 'active' },
+  { id: 'flt_2', name: 'Kuya Mario', vehicle: 'Multicab #2', plate: 'XYZ-5678', phone: '0918-555-6789', status: 'standby' }
+];
+
 // --- APPLICATION STATE ---
 const State = {
   activeView: 'pos',                // 'pos' | 'orders' | 'delivered' | 'reports' | 'dashboard' | 'settings' | 'profile'
@@ -78,6 +84,7 @@ const State = {
   reportPageSize: 7,               // 7 items per page (matching Fixoria SaaS UI)
   reportFavorite: false,           // star toggle
   staff: DEFAULT_STAFF,
+  fleet: DEFAULT_FLEET,
   currentUserId: 'usr_1',
   isTerminalLocked: false,
   auditLogs: [],
@@ -364,6 +371,7 @@ document.addEventListener('DOMContentLoaded', () => {
   initGcashCheckoutEvents();
   initBayadUtangEvents();
   initDriverSettlementEvents();
+  initFleetEvents();
   initQuickExpenseEvents();
   initGcashSettingsUI();
   SupabaseSync.init();
@@ -511,6 +519,16 @@ function loadSavedData() {
         lowStockThreshold: 20,
         tdsBaseline: 10
       }, JSON.parse(savedSettings));
+    } catch (e) {}
+  }
+
+  const savedFleet = localStorage.getItem('rr_pos_fleet');
+  if (savedFleet) {
+    try {
+      const parsed = JSON.parse(savedFleet);
+      if (Array.isArray(parsed) && parsed.length > 0) {
+        State.fleet = parsed;
+      }
     } catch (e) {}
   }
 
@@ -5257,6 +5275,289 @@ function logSecurityEvent(action, details, managerOverrideName = null) {
   renderAuditLogTable();
 }
 
+function saveFleet() {
+  if (!Array.isArray(State.fleet)) State.fleet = DEFAULT_FLEET.slice();
+  localStorage.setItem('rr_pos_fleet', JSON.stringify(State.fleet));
+  renderFleetSettingsList();
+  updateFleetDropdowns();
+  updateStationSummaryDrawer();
+  if (typeof SupabaseSync !== 'undefined' && SupabaseSync.pushSettings) {
+    SupabaseSync.pushSettings();
+  }
+}
+
+function renderFleetSettingsList() {
+  const container = document.getElementById('settingsFleetList');
+  if (!container) return;
+  const fleet = State.fleet || DEFAULT_FLEET;
+
+  if (!fleet.length) {
+    container.innerHTML = `
+      <div class="empty-fleet-state" style="text-align: center; padding: 20px 10px; color: var(--text-muted); background: var(--bg-surface); border: 1px dashed var(--border-subtle); border-radius: var(--radius-md);">
+        <p style="font-size: 0.82rem; margin-bottom: 8px;">No delivery fleet vehicles configured yet.</p>
+        <button type="button" class="btn-fleet-add" onclick="openFleetDriverModal()">+ Add First Fleet Vehicle</button>
+      </div>`;
+    return;
+  }
+
+  let html = '';
+  fleet.forEach(d => {
+    const initial = d.name ? d.name.trim().charAt(0).toUpperCase() : 'D';
+    const isStandby = d.status === 'standby';
+    const statusClass = isStandby ? 'standby' : 'online';
+    const statusLabel = isStandby ? '● Route Standby' : '● Active Fleet';
+    const avatarColorClass = isStandby ? 'orange' : '';
+    const details = [d.vehicle || 'Multicab', d.plate ? `Plate: ${d.plate}` : '', d.phone ? d.phone : ''].filter(Boolean).join(' • ');
+
+    html += `
+      <div class="driver-item-card" data-fleetid="${escapeHtml(d.id)}">
+        <div class="driver-avatar-box ${avatarColorClass}">${initial}</div>
+        <div class="driver-meta">
+          <strong>${escapeHtml(d.name)}</strong>
+          <span>${escapeHtml(details)}</span>
+        </div>
+        <div class="driver-card-actions">
+          <button type="button" class="driver-status-pill ${statusClass} btn-toggle-fleet-status" data-fleetid="${escapeHtml(d.id)}" title="Click to toggle Active / Standby">
+            ${statusLabel}
+          </button>
+          <button type="button" class="btn-fleet-action edit btn-edit-fleet-driver" data-fleetid="${escapeHtml(d.id)}" title="Edit driver &amp; vehicle details">
+            <svg class="ui-icon-xs" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+            <span>Edit</span>
+          </button>
+          <button type="button" class="btn-fleet-action delete btn-delete-fleet-driver" data-fleetid="${escapeHtml(d.id)}" title="Remove vehicle from fleet">
+            <svg class="ui-icon-xs" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+          </button>
+        </div>
+      </div>
+    `;
+  });
+
+  container.innerHTML = html;
+
+  container.querySelectorAll('.btn-edit-fleet-driver').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const id = btn.getAttribute('data-fleetid');
+      openFleetDriverModal(id);
+    });
+  });
+
+  container.querySelectorAll('.btn-delete-fleet-driver').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const id = btn.getAttribute('data-fleetid');
+      deleteFleetDriver(id);
+    });
+  });
+
+  container.querySelectorAll('.btn-toggle-fleet-status').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const id = btn.getAttribute('data-fleetid');
+      toggleFleetDriverStatus(id);
+    });
+  });
+}
+
+function openFleetDriverModal(fleetId) {
+  const modal = document.getElementById('fleetDriverModal');
+  if (!modal) return;
+  soundCtrl.playTap();
+
+  const inputId = document.getElementById('inputFleetDriverId');
+  const inputName = document.getElementById('inputFleetDriverName');
+  const inputVehicle = document.getElementById('inputFleetVehicle');
+  const inputPlate = document.getElementById('inputFleetPlate');
+  const inputPhone = document.getElementById('inputFleetPhone');
+  const inputStatus = document.getElementById('inputFleetStatus');
+  const modalTitle = document.getElementById('fleetModalTitle');
+  const modalSub = document.getElementById('fleetModalSubtitle');
+
+  if (fleetId) {
+    const driver = (State.fleet || []).find(d => d.id === fleetId);
+    if (driver) {
+      if (inputId) inputId.value = driver.id;
+      if (inputName) inputName.value = driver.name || '';
+      if (inputVehicle) inputVehicle.value = driver.vehicle || '';
+      if (inputPlate) inputPlate.value = driver.plate || '';
+      if (inputPhone) inputPhone.value = driver.phone || '';
+      if (inputStatus) inputStatus.value = driver.status || 'active';
+      if (modalTitle) modalTitle.textContent = `Edit Fleet Driver: ${driver.name}`;
+      if (modalSub) modalSub.textContent = 'Update multicab driver information, vehicle assignment, and active status.';
+    }
+  } else {
+    const nextNum = (State.fleet || []).length + 1;
+    if (inputId) inputId.value = '';
+    if (inputName) inputName.value = '';
+    if (inputVehicle) inputVehicle.value = `Multicab #${nextNum}`;
+    if (inputPlate) inputPlate.value = '';
+    if (inputPhone) inputPhone.value = '';
+    if (inputStatus) inputStatus.value = 'active';
+    if (modalTitle) modalTitle.textContent = 'Add Fleet Driver & Vehicle';
+    if (modalSub) modalSub.textContent = 'Register a new multicab vehicle and assign a delivery driver.';
+  }
+
+  modal.style.display = 'flex';
+  modal.classList.add('show');
+  setTimeout(() => {
+    if (inputName) inputName.focus();
+  }, 100);
+}
+
+function closeFleetDriverModal() {
+  const modal = document.getElementById('fleetDriverModal');
+  if (!modal) return;
+  soundCtrl.playTap();
+  modal.classList.remove('show');
+  setTimeout(() => {
+    modal.style.display = 'none';
+  }, 200);
+}
+
+function saveFleetDriverFromModal() {
+  const inputId = document.getElementById('inputFleetDriverId');
+  const inputName = document.getElementById('inputFleetDriverName');
+  const inputVehicle = document.getElementById('inputFleetVehicle');
+  const inputPlate = document.getElementById('inputFleetPlate');
+  const inputPhone = document.getElementById('inputFleetPhone');
+  const inputStatus = document.getElementById('inputFleetStatus');
+
+  const name = inputName ? inputName.value.trim() : '';
+  const vehicle = inputVehicle ? inputVehicle.value.trim() : '';
+  const plate = inputPlate ? inputPlate.value.trim().toUpperCase() : '';
+  const phone = inputPhone ? inputPhone.value.trim() : '';
+  const status = inputStatus ? inputStatus.value : 'active';
+  const targetId = inputId ? inputId.value.trim() : '';
+
+  if (!name) {
+    alert('Please enter a driver name.');
+    if (inputName) inputName.focus();
+    return;
+  }
+
+  if (!vehicle) {
+    alert('Please enter a vehicle or multicab name.');
+    if (inputVehicle) inputVehicle.focus();
+    return;
+  }
+
+  if (!Array.isArray(State.fleet)) State.fleet = DEFAULT_FLEET.slice();
+
+  if (targetId) {
+    const existing = State.fleet.find(d => d.id === targetId);
+    if (existing) {
+      const oldName = existing.name;
+      existing.name = name;
+      existing.vehicle = vehicle;
+      existing.plate = plate;
+      existing.phone = phone;
+      existing.status = status;
+
+      if (Array.isArray(State.staff)) {
+        const matchingStaff = State.staff.find(s => s.name === oldName && s.role === 'driver');
+        if (matchingStaff) {
+          matchingStaff.name = name;
+          matchingStaff.title = `${vehicle} Driver / Courier`;
+          saveStaff();
+        }
+      }
+
+      logSecurityEvent('FLEET_EDIT', `Updated fleet driver: ${name} (${vehicle} • Plate: ${plate || 'N/A'})`);
+      showToast(`Driver updated: ${name} (${vehicle})`);
+    }
+  } else {
+    const newDriver = {
+      id: 'flt_' + Date.now(),
+      name: name,
+      vehicle: vehicle,
+      plate: plate,
+      phone: phone,
+      status: status
+    };
+    State.fleet.push(newDriver);
+    logSecurityEvent('FLEET_ADD', `Added new fleet vehicle & driver: ${name} (${vehicle})`);
+    showToast(`Added to fleet: ${name} (${vehicle})`);
+  }
+
+  saveFleet();
+  soundCtrl.playSuccess();
+  closeFleetDriverModal();
+}
+
+function toggleFleetDriverStatus(fleetId) {
+  if (!Array.isArray(State.fleet)) return;
+  const driver = State.fleet.find(d => d.id === fleetId);
+  if (!driver) return;
+  soundCtrl.playTap();
+  driver.status = driver.status === 'active' ? 'standby' : 'active';
+  saveFleet();
+  showToast(`${driver.name} is now ${driver.status === 'active' ? 'Active Fleet' : 'Route Standby'}`);
+}
+
+function deleteFleetDriver(fleetId) {
+  if (!Array.isArray(State.fleet)) return;
+  if (State.fleet.length <= 1) {
+    alert('You must have at least one delivery vehicle configured in the fleet roster.');
+    return;
+  }
+  const driver = State.fleet.find(d => d.id === fleetId);
+  if (!driver) return;
+
+  if (confirm(`Remove ${driver.name} (${driver.vehicle}) from the delivery fleet roster?`)) {
+    soundCtrl.playTap();
+    State.fleet = State.fleet.filter(d => d.id !== fleetId);
+    saveFleet();
+    logSecurityEvent('FLEET_DELETE', `Removed driver ${driver.name} from fleet roster`);
+    showToast(`Removed ${driver.name} from fleet`);
+  }
+}
+
+function updateFleetDropdowns() {
+  const driverSelect = document.getElementById('settleDriverSelect');
+  if (driverSelect && Array.isArray(State.fleet)) {
+    const curVal = driverSelect.value;
+    driverSelect.innerHTML = State.fleet.map(d => {
+      const label = `${escapeHtml(d.name)} • ${escapeHtml(d.vehicle || 'Multicab')}`;
+      return `<option value="${escapeHtml(d.name)}">${label}</option>`;
+    }).join('');
+    if (curVal && State.fleet.some(d => d.name === curVal)) {
+      driverSelect.value = curVal;
+    }
+  }
+}
+
+function initFleetEvents() {
+  const btnAdd = document.getElementById('btnAddFleetDriver');
+  if (btnAdd) {
+    btnAdd.addEventListener('click', (e) => {
+      e.stopPropagation();
+      openFleetDriverModal();
+    });
+  }
+
+  const btnClose = document.getElementById('btnCloseFleetModal');
+  if (btnClose) btnClose.addEventListener('click', closeFleetDriverModal);
+
+  const btnCancel = document.getElementById('btnCancelFleetModal');
+  if (btnCancel) btnCancel.addEventListener('click', closeFleetDriverModal);
+
+  const btnSave = document.getElementById('btnSaveFleetModal');
+  if (btnSave) btnSave.addEventListener('click', saveFleetDriverFromModal);
+
+  const modal = document.getElementById('fleetDriverModal');
+  if (modal) {
+    modal.addEventListener('click', (e) => {
+      if (e.target === modal) closeFleetDriverModal();
+    });
+  }
+
+  window.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && modal && modal.classList.contains('show')) {
+      closeFleetDriverModal();
+    }
+  });
+}
+
 function renderStaffSettingsList() {
   const container = document.getElementById('settingsStaffList');
   if (!container) return;
@@ -5379,6 +5680,9 @@ function activateSettingsTab(tabKey) {
   document.querySelectorAll('.settings-tab-pane').forEach(p => p.classList.remove('active'));
   const targetPane = document.getElementById('pane' + tabKey.charAt(0).toUpperCase() + tabKey.slice(1));
   if (targetPane) targetPane.classList.add('active');
+  if (tabKey === 'fleet') {
+    renderFleetSettingsList();
+  }
   if (tabKey === 'security') {
     renderStaffSettingsList();
     renderAuditLogTable();
@@ -7245,11 +7549,26 @@ function updateStationSummaryDrawer() {
   }
 
   // DOM Updates - Delivery Drivers
+  const fleet = State.fleet || DEFAULT_FLEET;
+  const d1 = fleet[0] || { name: 'Kuya Jun', vehicle: 'Multicab #1', plate: 'ABC-1234', status: 'active' };
+  const d2 = fleet[1] || { name: 'Kuya Mario', vehicle: 'Multicab #2', plate: 'XYZ-5678', status: 'standby' };
+
+  const elDriver1Name = document.getElementById('drawerDriver1Name');
+  const elDriver1Vehicle = document.getElementById('drawerDriver1Vehicle');
   const elDriver1Status = document.getElementById('drawerDriver1Status');
+
+  const elDriver2Name = document.getElementById('drawerDriver2Name');
+  const elDriver2Vehicle = document.getElementById('drawerDriver2Vehicle');
   const elDriver2Status = document.getElementById('drawerDriver2Status');
 
+  if (elDriver1Name) elDriver1Name.textContent = d1.name;
+  if (elDriver1Vehicle) elDriver1Vehicle.textContent = `${d1.vehicle || 'Multicab'}${d1.plate ? ' • Plate: ' + d1.plate : ''}`;
+
   if (elDriver1Status) {
-    if (pendingDelivCount > 0) {
+    if (d1.status === 'standby') {
+      elDriver1Status.textContent = '● Route Standby';
+      elDriver1Status.className = 'person-sub-status standby';
+    } else if (pendingDelivCount > 0) {
       const routeText = pendingDelivRoutes.length > 0 ? ` (${pendingDelivRoutes.join(', ')})` : '';
       elDriver1Status.textContent = `● En Route • ${pendingDelivCount} delivery drop${pendingDelivCount === 1 ? '' : 's'} pending${routeText}`;
       elDriver1Status.className = 'person-sub-status en-route';
@@ -7259,9 +7578,17 @@ function updateStationSummaryDrawer() {
     }
   }
 
+  if (elDriver2Name) elDriver2Name.textContent = d2.name;
+  if (elDriver2Vehicle) elDriver2Vehicle.textContent = `${d2.vehicle || 'Multicab'}${d2.plate ? ' • Plate: ' + d2.plate : ''}`;
+
   if (elDriver2Status) {
-    elDriver2Status.textContent = '● Available at Station • Multicab #2 Standby';
-    elDriver2Status.className = 'person-sub-status ready';
+    if (d2.status === 'standby') {
+      elDriver2Status.textContent = `● Route Standby • ${d2.vehicle || 'Multicab #2'}`;
+      elDriver2Status.className = 'person-sub-status standby';
+    } else {
+      elDriver2Status.textContent = '● Available at Station • Ready for dispatch';
+      elDriver2Status.className = 'person-sub-status ready';
+    }
   }
 }
 
