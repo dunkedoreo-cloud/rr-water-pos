@@ -1799,24 +1799,14 @@
                 </div>
 
                 <div class="setting-inputs-list">
-                  <div class="setting-field">
-                    <label for="settingStationName">Station Business Name</label>
-                    <input type="text" id="settingStationName" class="setting-input" value="R&amp;R Water Refilling Station">
-                  </div>
-
-                  <div class="setting-field">
-                    <label for="settingStationBranch">Terminal / Counter Label</label>
-                    <input type="text" id="settingStationBranch" class="setting-input" value="Counter #1 (Main Terminal)">
-                  </div>
-
                   <div class="setting-row-2col">
+                    <div class="setting-field">
+                      <label for="settingStationName">Station Business Name</label>
+                      <input type="text" id="settingStationName" class="setting-input" value="R&amp;R Water Refilling Station">
+                    </div>
                     <div class="setting-field">
                       <label for="settingStationPhone">Contact Number</label>
                       <input type="text" id="settingStationPhone" class="setting-input" value="0917-829-4102">
-                    </div>
-                    <div class="setting-field">
-                      <label for="settingStationAddress">Station Location</label>
-                      <input type="text" id="settingStationAddress" class="setting-input" value="Purok 1, Main Road">
                     </div>
                   </div>
 
@@ -3320,21 +3310,13 @@
         <div class="wizard-accordion">
           <button type="button" class="wizard-accordion-toggle" id="btnToggleStationDetailsOptions">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
-            <span>Branch, Phone, Address &amp; Vehicle Info (Optional)</span>
+            <span>Station Phone &amp; Vehicle Info (Optional)</span>
           </button>
           <div class="wizard-accordion-content" id="wizardStationDetailsContent" style="display: none;">
             <div class="wizard-fields-grid" style="margin-top: 8px;">
-              <div class="wizard-field">
-                <label for="wizardStationBranch">Branch / Counter</label>
-                <input type="text" id="wizardStationBranch" class="wizard-input" value="Counter #1 (Main Terminal)">
-              </div>
-              <div class="wizard-field">
+              <div class="wizard-field" style="grid-column: span 2;">
                 <label for="wizardStationPhone">Station Contact Phone</label>
                 <input type="tel" id="wizardStationPhone" class="wizard-input" placeholder="e.g. 0917-829-4102">
-              </div>
-              <div class="wizard-field" style="grid-column: span 2;">
-                <label for="wizardStationAddress">Station Address</label>
-                <input type="text" id="wizardStationAddress" class="wizard-input" placeholder="e.g. Purok 1, Main Road">
               </div>
               <div class="wizard-field">
                 <label for="wizardDriverVehicle">Vehicle / Unit</label>

@@ -1744,9 +1744,9 @@ function saveSettings() {
   State.settings.minBatch = Math.round(getNum('settingMinBatch', 10));
   State.settings.wholesalePrice = getNum('settingWholesalePrice', 30);
   State.settings.stationName = getStr('settingStationName', 'R&R Water Refilling Station');
-  State.settings.stationBranch = getStr('settingStationBranch', 'Counter #1 (Main Terminal)');
+  State.settings.stationBranch = getStr('settingStationBranch', State.settings.stationBranch || 'Counter #1');
   State.settings.stationPhone = getStr('settingStationPhone', '0917-829-4102');
-  State.settings.stationAddress = getStr('settingStationAddress', 'Purok 1, Main Road');
+  State.settings.stationAddress = getStr('settingStationAddress', State.settings.stationAddress || '');
   State.settings.cashierName = getStr('settingCashierName', 'Neil');
   State.settings.autoPrint = getBool('settingAutoPrintToggle');
   State.settings.lowStockThreshold = Math.round(getNum('settingLowStockThreshold', 20));
@@ -6000,9 +6000,9 @@ function saveStationSetupWizard() {
   const inDrvPhone = document.getElementById('wizardDriverPhone');
 
   const stName = inStName ? inStName.value.trim() : 'R&R Water Refilling Station';
-  const stBranch = inStBranch ? inStBranch.value.trim() : 'Counter #1 (Main Terminal)';
+  const stBranch = inStBranch ? inStBranch.value.trim() : (State.settings.stationBranch || 'Counter #1');
   const stPhone = inStPhone ? inStPhone.value.trim() : '';
-  const stAddr = inStAddr ? inStAddr.value.trim() : '';
+  const stAddr = inStAddr ? inStAddr.value.trim() : (State.settings.stationAddress || '');
 
   const mgrName = inMgrName ? inMgrName.value.trim() : '';
   const mgrPin = inMgrPin ? inMgrPin.value.trim() : '';
