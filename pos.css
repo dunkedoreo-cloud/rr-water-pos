@@ -5,7 +5,7 @@
    Icons: Minimalist Monochrome Vector Icons (Flaticon Style)
    ========================================================================== */
 
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700;800&display=swap');
+/* Google Fonts loaded via preconnected link tags in HTML for zero-lag rendering */
 
 :root {
   /* Default: Soft Slate Light Mode (Matching reference image) */
@@ -245,8 +245,8 @@ body:not(.light-mode) .static-water-bg::after {
 .sidebar {
   width: 220px;
   background-color: rgba(229, 232, 240, 0.85);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
+  /* blur removed for 60fps scrolling */
+  -webkit-/* blur removed for 60fps scrolling */
   border-right: 1px solid var(--border-subtle);
   display: flex;
   flex-direction: column;
@@ -438,7 +438,7 @@ body:not(.light-mode) .nav-item.active .nav-badge {
   border-radius: var(--radius-lg);
   padding: 12px;
   box-shadow: var(--shadow-sm);
-  backdrop-filter: blur(8px);
+  /* blur removed */
 }
 
 body:not(.light-mode) .sidebar-droppy-card {
@@ -1192,7 +1192,7 @@ body:not(.light-mode) .product-gallon-img {
   border-radius: var(--radius-full);
   text-transform: uppercase;
   letter-spacing: 0.04em;
-  backdrop-filter: blur(4px);
+  /* blur removed */
   transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
 }
 
@@ -3412,7 +3412,7 @@ body:not(.light-mode) .orders-data-table tbody tr.row-pending:hover {
   align-items: center;
   text-align: center;
   transition: all 0.25s ease;
-  backdrop-filter: blur(8px);
+  /* blur removed */
 }
 
 .empty-mascot-wrapper {
@@ -4183,7 +4183,7 @@ body:not(.light-mode) .kpi-subtext {
   padding: 16px 20px;
   margin-top: 4px;
   margin-bottom: 6px;
-  backdrop-filter: blur(8px);
+  /* blur removed */
   transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }
 
@@ -5969,8 +5969,8 @@ body:not(.light-mode) .dd-growth-stat {
 .modal-backdrop {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.7);
-  backdrop-filter: blur(4px);
+  background: rgba(15, 23, 42, 0.78); will-change: opacity; transform: translateZ(0);
+  /* blur removed */
   display: none;
   align-items: center;
   justify-content: center;
@@ -7600,8 +7600,8 @@ body:not(.light-mode) .btn-sub-action.primary:hover {
 
   body:not(.light-mode) .sidebar {
     background-color: rgba(14, 22, 40, 0.96) !important;
-    backdrop-filter: blur(12px) !important;
-    -webkit-backdrop-filter: blur(12px) !important;
+    /* blur removed */
+    -webkit-/* blur removed */
     border-top: 1px solid rgba(56, 189, 248, 0.16) !important;
     box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.5) !important;
   }
@@ -8296,7 +8296,7 @@ body:not(.light-mode) .btn-sub-action.primary:hover {
   position: fixed;
   inset: 0;
   background-color: rgba(15, 23, 42, 0.45);
-  backdrop-filter: blur(4px);
+  /* blur removed */
   z-index: 998;
   opacity: 0;
   pointer-events: none;
@@ -9197,8 +9197,8 @@ body:not(.light-mode) .staff-picker-role-tag.driver {
   position: fixed;
   inset: 0;
   background: rgba(15, 23, 42, 0.94);
-  backdrop-filter: blur(14px);
-  -webkit-backdrop-filter: blur(14px);
+  /* blur removed */
+  -webkit-/* blur removed */
   z-index: 9999;
   display: flex;
   align-items: center;
@@ -11209,8 +11209,8 @@ body:not(.light-mode) .floating-side-minitab {
   position: fixed;
   inset: 0;
   background: rgba(15, 23, 42, 0.45);
-  backdrop-filter: blur(4px);
-  -webkit-backdrop-filter: blur(4px);
+  /* blur removed */
+  -webkit-/* blur removed */
   z-index: 1050;
   opacity: 0;
   pointer-events: none;
@@ -13520,7 +13520,7 @@ body:not(.light-mode) .report-flow-unpaid {
   border-radius: var(--radius-xl);
   background: var(--bg-surface);
   border: 1px solid var(--border-card);
-  box-shadow: 0 20px 45px rgba(0, 0, 0, 0.45);
+  box-shadow: 0 12px 32px -4px rgba(0, 0, 0, 0.32); will-change: transform, opacity; transform: translateZ(0);
 }
 
 .wizard-stepper {
@@ -13679,7 +13679,7 @@ body:not(.light-mode) .report-flow-unpaid {
   font-size: 0.86rem;
   outline: none;
   box-sizing: border-box;
-  transition: all 0.15s ease;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
 }
 
 .wizard-input:focus {
@@ -13929,5 +13929,328 @@ body:not(.light-mode) .report-flow-unpaid {
   }
   .wizard-step-tab {
     padding: 6px 10px;
+  }
+}
+
+/* ==========================================================================
+   DROPPY MASCOT STATION ALERT & CONFIRMATION MODALS
+   ========================================================================== */
+#stationAlertModal,
+#confirmModal {
+  z-index: 3500;
+}
+
+.station-alert-card {
+  max-width: 380px;
+  width: 90%;
+  text-align: center;
+  padding: 26px 24px 22px 24px;
+  gap: 12px;
+  box-shadow: 0 25px 60px rgba(0, 0, 0, 0.55);
+}
+
+.station-alert-avatar-bubble {
+  width: 76px;
+  height: 76px;
+  border-radius: 50%;
+  background: rgba(2, 132, 199, 0.1);
+  border: 2px solid rgba(2, 132, 199, 0.22);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 2px;
+}
+
+.station-alert-avatar-bubble .modal-avatar {
+  width: 56px;
+  height: 56px;
+  object-fit: contain;
+}
+
+.droppy-pop-anim {
+  animation: droppyBounce 0.38s cubic-bezier(0.175, 0.885, 0.32, 1.275) both;
+}
+
+@keyframes droppyBounce {
+  0% { transform: scale(0.6); opacity: 0; }
+  70% { transform: scale(1.1); }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+/* ==========================================================================
+   INTERACTIVE DROPPY MASCOT COMPANION (BESIDE / OUTSIDE SETUP WIZARD BOX)
+   ========================================================================== */
+.wizard-dialog-layout {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 20px;
+  max-width: 860px;
+  width: 95%;
+  margin: auto;
+  position: relative;
+  z-index: 2005;
+  will-change: transform, opacity;
+  transform: translateZ(0);
+}
+
+.wizard-droppy-companion {
+  width: 230px;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+  position: relative;
+  user-select: none;
+  will-change: transform;
+  animation: companionFloat 3.5s ease-in-out infinite alternate;
+}
+
+@keyframes companionFloat {
+  0% { transform: translateY(0); }
+  100% { transform: translateY(-8px); }
+}
+
+.droppy-guide-bubble {
+  position: relative;
+  background: var(--bg-surface);
+  border: 1.5px solid var(--border-card);
+  border-radius: var(--radius-lg);
+  padding: 14px 16px;
+  box-shadow: 0 10px 25px -4px rgba(15, 23, 42, 0.15);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 100%;
+  box-sizing: border-box;
+  transition: transform 0.2s ease, border-color 0.2s ease;
+}
+
+/* Comic Speech Bubble Triangle Pointer pointing left toward Setup Card */
+.droppy-guide-bubble::before {
+  content: '';
+  position: absolute;
+  left: -12px;
+  top: 34px;
+  border-width: 8px 12px 8px 0;
+  border-style: solid;
+  border-color: transparent var(--border-card) transparent transparent;
+}
+
+.droppy-guide-bubble::after {
+  content: '';
+  position: absolute;
+  left: -10px;
+  top: 35px;
+  border-width: 7px 11px 7px 0;
+  border-style: solid;
+  border-color: transparent var(--bg-surface) transparent transparent;
+}
+
+.droppy-guide-bubble-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+}
+
+.droppy-guide-name {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 0.76rem;
+  font-weight: 800;
+  color: var(--color-primary);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.droppy-guide-name svg {
+  width: 14px;
+  height: 14px;
+  color: var(--color-primary);
+}
+
+.droppy-step-pill {
+  font-size: 0.68rem;
+  font-weight: 700;
+  padding: 2px 7px;
+  border-radius: var(--radius-full);
+  background: rgba(2, 132, 199, 0.1);
+  color: var(--color-primary);
+  border: 1px solid rgba(2, 132, 199, 0.2);
+}
+
+.droppy-guide-text {
+  margin: 0;
+  font-size: 0.81rem;
+  line-height: 1.45;
+  color: var(--text-main);
+  font-weight: 500;
+}
+
+.droppy-fun-tip-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 6px 12px;
+  background: var(--bg-card-subtle);
+  border: 1px dashed var(--color-primary);
+  border-radius: var(--radius-md);
+  color: var(--color-primary);
+  font-size: 0.74rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: border-color 0.15s ease, background-color 0.15s ease, transform 0.15s ease;
+  margin-top: 2px;
+}
+
+.droppy-fun-tip-btn:hover {
+  background: rgba(2, 132, 199, 0.12);
+  transform: translateY(-1px);
+}
+
+.droppy-guide-avatar-container {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  cursor: pointer;
+  padding: 4px;
+  transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.droppy-guide-avatar-container:hover {
+  transform: scale(1.08) rotate(-3deg);
+}
+
+.droppy-guide-avatar-container:active {
+  transform: scale(0.95);
+}
+
+.droppy-guide-avatar-bubble {
+  width: 88px;
+  height: 88px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 30%, #e0f2fe 0%, #bae6fd 60%, #7dd3fc 100%);
+  border: 3px solid #0284c7;
+  box-shadow: 0 10px 25px -4px rgba(2, 132, 199, 0.35);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  position: relative;
+  z-index: 2;
+}
+
+.droppy-guide-avatar-img {
+  width: 72px;
+  height: 72px;
+  object-fit: contain;
+  filter: drop-shadow(0 3px 6px rgba(0, 0, 0, 0.15));
+  transition: transform 0.2s ease;
+}
+
+.droppy-poke-pill {
+  position: absolute;
+  bottom: -4px;
+  font-size: 0.68rem;
+  font-weight: 800;
+  padding: 3px 9px;
+  border-radius: var(--radius-full);
+  background: var(--color-primary);
+  color: #ffffff;
+  box-shadow: 0 3px 10px rgba(2, 132, 199, 0.4);
+  z-index: 3;
+  letter-spacing: 0.03em;
+  white-space: nowrap;
+  animation: pulsePill 2s infinite ease-in-out;
+}
+
+@keyframes pulsePill {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.06); }
+}
+
+/* Interactive hop and bounce on click */
+.droppy-bounce-hop {
+  animation: droppyHopBounce 0.45s cubic-bezier(0.175, 0.885, 0.32, 1.275) both;
+}
+
+@keyframes droppyHopBounce {
+  0% { transform: scale(0.8) translateY(0); }
+  45% { transform: scale(1.15) translateY(-14px) rotate(6deg); }
+  75% { transform: scale(0.95) translateY(2px) rotate(-3deg); }
+  100% { transform: scale(1) translateY(0) rotate(0); }
+}
+
+/* Dark Mode styling for Companion */
+body:not(.light-mode) .droppy-guide-bubble {
+  background: var(--bg-surface);
+  border-color: var(--border-card);
+  box-shadow: 0 10px 25px -4px rgba(0, 0, 0, 0.45);
+}
+
+body:not(.light-mode) .droppy-guide-bubble::after {
+  border-color: transparent var(--bg-surface) transparent transparent;
+}
+
+body:not(.light-mode) .droppy-fun-tip-btn {
+  background: rgba(2, 132, 199, 0.15);
+  border-color: var(--color-primary);
+}
+
+/* Mobile & Tablet Responsiveness */
+@media (max-width: 820px) {
+  .wizard-dialog-layout {
+    flex-direction: column-reverse;
+    align-items: center;
+    gap: 12px;
+    max-height: 94vh;
+    overflow-y: auto;
+    padding: 10px 0;
+  }
+
+  .wizard-droppy-companion {
+    width: 100%;
+    max-width: 530px;
+    flex-direction: row;
+    justify-content: space-between;
+    gap: 12px;
+    animation: none;
+  }
+
+  .droppy-guide-bubble {
+    order: 2;
+    flex: 1;
+    padding: 10px 12px;
+  }
+
+  .droppy-guide-bubble::before,
+  .droppy-guide-bubble::after {
+    display: none;
+  }
+
+  .droppy-guide-avatar-container {
+    order: 1;
+    flex-shrink: 0;
+  }
+
+  .droppy-guide-avatar-bubble {
+    width: 62px;
+    height: 62px;
+  }
+
+  .droppy-guide-avatar-img {
+    width: 50px;
+    height: 50px;
+  }
+
+  .droppy-poke-pill {
+    font-size: 0.60rem;
+    padding: 2px 6px;
+    bottom: -3px;
   }
 }

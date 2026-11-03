@@ -301,7 +301,15 @@ const Telemetry = {
     }
   },
 
+  _syncTimeout: null,
   syncRegisterInputs() {
+    if (this._syncTimeout) clearTimeout(this._syncTimeout);
+    this._syncTimeout = setTimeout(() => {
+      this._doSyncRegisterInputs();
+    }, 200);
+  },
+
+  _doSyncRegisterInputs() {
     const product = PRODUCTS[State.prodKey] || PRODUCTS.purified;
     const unitPrice = product ? product.price : 35;
     const total = unitPrice * (State.qty || 1);
@@ -375,6 +383,8 @@ document.addEventListener('DOMContentLoaded', () => {
   initFleetEvents();
   initStaffManagementEvents();
   initStationSetupWizardEvents();
+  initWizardDroppyCompanion();
+  initStationAlertEvents();
   setTimeout(() => {
     if (!State.staff || State.staff.length === 0) {
       openStationSetupWizardModal();
@@ -4591,6 +4601,84 @@ function showToast(msg) {
   }, 2600);
 }
 
+let stationAlertCallback = null;
+
+function showStationAlert(title, message, avatarSrc = 'assets/droppy_question.png', onDismiss = null) {
+  if (!message) {
+    message = title;
+    title = 'Station Notice';
+  }
+
+  soundCtrl.playTap();
+
+  const modal = document.getElementById('stationAlertModal');
+  const titleEl = document.getElementById('stationAlertTitle');
+  const msgEl = document.getElementById('stationAlertMessage');
+  const avatarEl = document.getElementById('stationAlertAvatar');
+
+  if (!modal) {
+    if (typeof showToast === 'function') showToast(message);
+    if (typeof onDismiss === 'function') onDismiss();
+    return;
+  }
+
+  if (titleEl) titleEl.textContent = title;
+  if (msgEl) msgEl.textContent = message;
+  if (avatarEl) avatarEl.src = avatarSrc;
+
+  stationAlertCallback = onDismiss;
+
+  modal.style.display = 'flex';
+  modal.classList.add('show');
+
+  // Trigger pop bounce
+  if (avatarEl) {
+    avatarEl.classList.remove('droppy-pop-anim');
+    void avatarEl.offsetWidth;
+    avatarEl.classList.add('droppy-pop-anim');
+  }
+
+  const okBtn = document.getElementById('btnStationAlertOk');
+  if (okBtn) {
+    setTimeout(() => okBtn.focus(), 60);
+  }
+}
+
+function closeStationAlert() {
+  const modal = document.getElementById('stationAlertModal');
+  if (modal) {
+    modal.classList.remove('show');
+    setTimeout(() => {
+      modal.style.display = 'none';
+    }, 150);
+  }
+  const cb = stationAlertCallback;
+  stationAlertCallback = null;
+  if (typeof cb === 'function') {
+    cb();
+  }
+}
+
+function initStationAlertEvents() {
+  const okBtn = document.getElementById('btnStationAlertOk');
+  if (okBtn) okBtn.addEventListener('click', closeStationAlert);
+
+  const modal = document.getElementById('stationAlertModal');
+  if (modal) {
+    modal.addEventListener('click', (e) => {
+      if (e.target === modal) closeStationAlert();
+    });
+  }
+
+  window.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && modal && modal.classList.contains('show')) {
+      closeStationAlert();
+    } else if (e.key === 'Enter' && modal && modal.classList.contains('show')) {
+      closeStationAlert();
+    }
+  });
+}
+
 function openConfirmModal(title, message, onConfirm, avatarSrc = 'assets/droppy_question.png') {
   const modal = document.getElementById('confirmModal');
   const titleEl = document.getElementById('modalTitle');
@@ -4601,7 +4689,12 @@ function openConfirmModal(title, message, onConfirm, avatarSrc = 'assets/droppy_
   if (!modal) return;
   if (titleEl) titleEl.textContent = title;
   if (msgEl) msgEl.textContent = message;
-  if (avatarEl) avatarEl.src = avatarSrc;
+  if (avatarEl) {
+    avatarEl.src = avatarSrc;
+    avatarEl.classList.remove('droppy-pop-anim');
+    void avatarEl.offsetWidth;
+    avatarEl.classList.add('droppy-pop-anim');
+  }
 
   State.modalCallback = onConfirm;
 
@@ -4610,12 +4703,18 @@ function openConfirmModal(title, message, onConfirm, avatarSrc = 'assets/droppy_
     closeConfirmModal();
   };
 
+  modal.style.display = 'flex';
   modal.classList.add('show');
 }
 
 function closeConfirmModal() {
   const modal = document.getElementById('confirmModal');
-  if (modal) modal.classList.remove('show');
+  if (modal) {
+    modal.classList.remove('show');
+    setTimeout(() => {
+      modal.style.display = 'none';
+    }, 150);
+  }
   State.modalCallback = null;
 }
 
@@ -5495,13 +5594,13 @@ function saveFleetDriverFromModal() {
   const targetId = inputId ? inputId.value.trim() : '';
 
   if (!name) {
-    alert('Please enter a driver name.');
+    showStationAlert('Driver Name Needed', 'Please enter a delivery driver name.', 'assets/droppy_question.png', () => inputName && inputName.focus());
     if (inputName) inputName.focus();
     return;
   }
 
   if (!vehicle) {
-    alert('Please enter a vehicle or multicab name.');
+    showStationAlert('Vehicle Name Needed', 'Please enter a vehicle or multicab name.', 'assets/droppy_question.png', () => inputVehicle && inputVehicle.focus());
     if (inputVehicle) inputVehicle.focus();
     return;
   }
@@ -5562,19 +5661,24 @@ function toggleFleetDriverStatus(fleetId) {
 function deleteFleetDriver(fleetId) {
   if (!Array.isArray(State.fleet)) return;
   if (State.fleet.length <= 1) {
-    alert('You must have at least one delivery vehicle configured in the fleet roster.');
+    showStationAlert('Fleet Required', 'You must have at least one delivery vehicle configured in the fleet roster.', 'assets/droppy_question.png');
     return;
   }
   const driver = State.fleet.find(d => d.id === fleetId);
   if (!driver) return;
 
-  if (confirm(`Remove ${driver.name} (${driver.vehicle}) from the delivery fleet roster?`)) {
-    soundCtrl.playTap();
-    State.fleet = State.fleet.filter(d => d.id !== fleetId);
-    saveFleet();
-    logSecurityEvent('FLEET_DELETE', `Removed driver ${driver.name} from fleet roster`);
-    showToast(`Removed ${driver.name} from fleet`);
-  }
+  openConfirmModal(
+    'Remove Driver?',
+    `Remove ${driver.name} (${driver.vehicle}) from the delivery fleet roster?`,
+    () => {
+      soundCtrl.playTap();
+      State.fleet = State.fleet.filter(d => d.id !== fleetId);
+      saveFleet();
+      logSecurityEvent('FLEET_DELETE', `Removed driver ${driver.name} from fleet roster`);
+      showToast(`Removed ${driver.name} from fleet`);
+    },
+    'assets/droppy_question.png'
+  );
 }
 
 function updateFleetDropdowns() {
@@ -5751,13 +5855,13 @@ function saveStaffMemberFromModal() {
   const targetId = inputId ? inputId.value.trim() : '';
 
   if (!name) {
-    alert('Please enter staff name.');
+    showStationAlert('Staff Name Needed', 'Please enter staff name.', 'assets/droppy_question.png', () => inputName && inputName.focus());
     if (inputName) inputName.focus();
     return;
   }
 
   if (!pin || !/^\d{4}$/.test(pin)) {
-    alert('PIN must be exactly 4 numeric digits.');
+    showStationAlert('4-Digit PIN Required', 'PIN must be exactly 4 numeric digits.', 'assets/droppy_question.png', () => inputPin && inputPin.focus());
     if (inputPin) inputPin.focus();
     return;
   }
@@ -5827,29 +5931,171 @@ function deleteStaffProfile(staffId) {
   const target = State.staff.find(s => s.id === staffId);
   if (!target) return;
 
-  if (confirm(`Permanently remove staff member "${target.name}" (${target.role.toUpperCase()}) from the station?`)) {
-    soundCtrl.playTap();
-    State.staff = State.staff.filter(s => s.id !== staffId);
+  openConfirmModal(
+    'Remove Staff Member?',
+    `Permanently remove staff member "${target.name}" (${target.role.toUpperCase()}) from the station?`,
+    () => {
+      soundCtrl.playTap();
+      State.staff = State.staff.filter(s => s.id !== staffId);
 
-    if (State.currentUserId === staffId) {
-      State.currentUserId = State.staff.length > 0 ? State.staff[0].id : null;
-      if (State.settings) State.settings.cashierName = State.currentUserId ? State.staff[0].name : '';
-    }
+      if (State.currentUserId === staffId) {
+        State.currentUserId = State.staff.length > 0 ? State.staff[0].id : null;
+        if (State.settings) State.settings.cashierName = State.currentUserId ? State.staff[0].name : '';
+      }
 
-    saveStaff();
-    renderStaffSettingsList();
-    renderHeaderUser();
-    renderStaffPickerCards();
-    updateStationSummaryDrawer();
-    logSecurityEvent('STAFF_DELETE', `Deleted staff profile for ${target.name}`);
-    showToast(`Removed ${target.name} from staff`);
-  }
+      saveStaff();
+      renderStaffSettingsList();
+      renderHeaderUser();
+      renderStaffPickerCards();
+      updateStationSummaryDrawer();
+      logSecurityEvent('STAFF_DELETE', `Deleted staff profile for ${target.name}`);
+      showToast(`Removed ${target.name} from staff`);
+    },
+    'assets/droppy_question.png'
+  );
 }
 
 // ==========================================================================
 // STATION INITIALIZATION & QUICK SETUP WIZARD CONTROLLER (STREAMLINED 3 STEPS)
 // ==========================================================================
 let wizardCurrentStep = 1;
+
+
+// ==========================================================================
+// INTERACTIVE DROPPY MASCOT COMPANION (OUTSIDE SETUP WIZARD BOX)
+// ==========================================================================
+let droppyWizardTipIndex = 0;
+const DROPPY_WIZARD_FUN_TIPS = [
+  {
+    avatar: 'assets/droppy_happy.png',
+    pill: 'Refill Pro-Tip 💡',
+    poke: 'Hehe! 😄',
+    text: 'Did you know? You can adjust gallon prices and wholesale bulk tiers anytime in the Settings tab!'
+  },
+  {
+    avatar: 'assets/droppy_winking.png',
+    pill: 'Security Tip 🛡️',
+    poke: 'Stay Safe! 🔒',
+    text: 'Your 4-digit PIN is your master key: use it to authorize voids, view daily sales, and change prices.'
+  },
+  {
+    avatar: 'assets/droppy_love.png',
+    pill: 'Delivery Fleet 🚚',
+    poke: 'Vroom! 🛵',
+    text: 'Add your multicab or motorcycle in Step 3! You can track loan carboys and driver settlements with 1 tap.'
+  },
+  {
+    avatar: 'assets/droppy_happy.png',
+    pill: 'POS Fast-Fill ⚡',
+    poke: 'Fast! ⚡',
+    text: 'Once setup is done, use the 1, 2, 3, 5-gallon quick preset pills on the POS screen for instant ringing!'
+  },
+  {
+    avatar: 'assets/droppy_winking.png',
+    pill: 'Water Quality 💧',
+    poke: 'Pure & Clean! 💧',
+    text: 'Crystal-clear purified water keeps customers coming back! Keep your filter replacement logs updated.'
+  },
+  {
+    avatar: 'assets/droppy_love.png',
+    pill: 'Station Cheer 🌟',
+    poke: 'You Rock! 🌟',
+    text: "You're all set to make a splash in your neighborhood! R&R Water is ready to flow!"
+  }
+];
+
+function updateWizardDroppy(step, customMessage = null, customAvatar = null, customPill = null) {
+  const avatarEl = document.getElementById('wizardDroppyAvatarImg');
+  const textEl = document.getElementById('wizardDroppyText');
+  const pillEl = document.getElementById('wizardDroppyStepPill');
+  const bubbleEl = document.getElementById('droppyGuideBubble');
+
+  let avatar = customAvatar;
+  let text = customMessage;
+  let pill = customPill;
+
+  if (!customMessage) {
+    if (step === 1) {
+      avatar = avatar || 'assets/droppy_winking.png';
+      pill = pill || 'Step 1 of 3: Manager & PIN';
+      text = 'Welcome, Station Owner! Set your Manager Name and a secret 4-digit PIN to secure your terminal.';
+    } else if (step === 2) {
+      avatar = avatar || 'assets/droppy_happy.png';
+      pill = pill || 'Step 2 of 3: Gallon Pricing';
+      text = 'Great job! Now set your 1-gallon refill price (standard is ₱35) and new bottle price so cashiers can start ringing orders.';
+    } else if (step === 3) {
+      avatar = avatar || 'assets/droppy_love.png';
+      pill = pill || 'Step 3 of 3: Station & Fleet';
+      text = 'Almost finished! Add your station phone and delivery vehicle if you offer carboy deliveries.';
+    }
+  }
+
+  if (avatarEl && avatar) {
+    avatarEl.src = avatar;
+  }
+  if (textEl && text) {
+    textEl.textContent = text;
+  }
+  if (pillEl && pill) {
+    pillEl.textContent = pill;
+  }
+
+  if (bubbleEl) {
+    bubbleEl.style.transform = 'scale(1.02)';
+    setTimeout(() => { bubbleEl.style.transform = 'scale(1)'; }, 180);
+  }
+}
+
+function cycleWizardDroppyTip() {
+  if (typeof soundCtrl !== 'undefined' && soundCtrl && soundCtrl.playTap) {
+    soundCtrl.playTap();
+  }
+  const avatarContainer = document.getElementById('droppyGuideAvatarContainer');
+  const pokePill = document.getElementById('droppyPokePill');
+  const tipBtnText = document.getElementById('droppyFunTipBtnText');
+
+  if (avatarContainer) {
+    avatarContainer.classList.remove('droppy-bounce-hop');
+    void avatarContainer.offsetWidth;
+    avatarContainer.classList.add('droppy-bounce-hop');
+    setTimeout(() => avatarContainer.classList.remove('droppy-bounce-hop'), 500);
+  }
+
+  const tip = DROPPY_WIZARD_FUN_TIPS[droppyWizardTipIndex];
+  droppyWizardTipIndex = (droppyWizardTipIndex + 1) % DROPPY_WIZARD_FUN_TIPS.length;
+
+  updateWizardDroppy(wizardCurrentStep, tip.text, tip.avatar, tip.pill);
+
+  if (pokePill) {
+    pokePill.textContent = tip.poke || 'Splash! 💧';
+  }
+  if (tipBtnText) {
+    tipBtnText.textContent = 'Next Pro Tip ➔';
+  }
+}
+
+function initWizardDroppyCompanion() {
+  const avatarContainer = document.getElementById('droppyGuideAvatarContainer');
+  if (avatarContainer && !avatarContainer._boundCompanion) {
+    avatarContainer._boundCompanion = true;
+    avatarContainer.addEventListener('click', cycleWizardDroppyTip);
+    avatarContainer.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        cycleWizardDroppyTip();
+      }
+    });
+  }
+
+  const tipBtn = document.getElementById('btnDroppyFunTip');
+  if (tipBtn && !tipBtn._boundTip) {
+    tipBtn._boundTip = true;
+    tipBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      cycleWizardDroppyTip();
+    });
+  }
+}
 
 function setWizardStep(step) {
   const inMgrName = document.getElementById('wizardManagerName');
@@ -5860,12 +6106,14 @@ function setWizardStep(step) {
     const mgrName = inMgrName ? inMgrName.value.trim() : '';
     const mgrPin = inMgrPin ? inMgrPin.value.trim() : '';
     if (!mgrName) {
-      alert('Please enter Manager / Owner Name to continue.');
+      updateWizardDroppy(1, 'Please enter your Manager / Owner Name first before continuing!', 'assets/droppy_question.png', 'Name Needed ⚠️');
+      showStationAlert('Manager Name Needed', 'Please enter Manager / Owner Name to continue.', 'assets/droppy_question.png', () => inMgrName && inMgrName.focus());
       if (inMgrName) inMgrName.focus();
       return;
     }
     if (!mgrPin || !/^\d{4}$/.test(mgrPin)) {
-      alert('Security PIN must be exactly 4 numeric digits (0-9).');
+      updateWizardDroppy(1, 'Security check! Your PIN must be exactly 4 numeric digits (0-9).', 'assets/droppy_question.png', '4-Digit PIN ⚠️');
+      showStationAlert('4-Digit PIN Required', 'Security PIN must be exactly 4 numeric digits (0-9).', 'assets/droppy_question.png', () => inMgrPin && inMgrPin.focus());
       if (inMgrPin) inMgrPin.focus();
       return;
     }
@@ -5876,13 +6124,15 @@ function setWizardStep(step) {
     const inPrice = document.getElementById('wizardPricePurified');
     const pVal = inPrice ? (parseFloat(inPrice.value) || 0) : 0;
     if (pVal <= 0) {
-      alert('Please enter a valid 1-gallon refill price.');
+      updateWizardDroppy(2, 'Price check! Please enter a valid refill price (e.g. ₱35).', 'assets/droppy_question.png', 'Price Needed ⚠️');
+      showStationAlert('Valid Price Required', 'Please enter a valid 1-gallon refill price (e.g. ₱35).', 'assets/droppy_question.png', () => inPrice && inPrice.focus());
       if (inPrice) inPrice.focus();
       return;
     }
   }
 
   wizardCurrentStep = step;
+  updateWizardDroppy(step);
 
   // Toggle Step Panes
   [1, 2, 3].forEach(s => {
@@ -5968,6 +6218,8 @@ function openStationSetupWizardModal() {
 
   // Reset to Step 1
   setWizardStep(1);
+  updateWizardDroppy(1);
+  initWizardDroppyCompanion();
 
   modal.style.display = 'flex';
   modal.classList.add('show');
@@ -6019,21 +6271,21 @@ function saveStationSetupWizard() {
 
   if (!mgrName) {
     setWizardStep(1);
-    alert('Please enter the Station Manager / Owner name.');
+    showStationAlert('Manager Name Needed', 'Please enter the Station Manager / Owner name.', 'assets/droppy_question.png', () => inMgrName && inMgrName.focus());
     if (inMgrName) inMgrName.focus();
     return;
   }
 
   if (!mgrPin || !/^\d{4}$/.test(mgrPin)) {
     setWizardStep(1);
-    alert('Manager Security PIN must be exactly 4 numeric digits.');
+    showStationAlert('Security PIN Required', 'Manager Security PIN must be exactly 4 numeric digits (0-9).', 'assets/droppy_question.png', () => inMgrPin && inMgrPin.focus());
     if (inMgrPin) inMgrPin.focus();
     return;
   }
 
   if (pPurified <= 0) {
     setWizardStep(2);
-    alert('Please enter a valid 1-gallon refill price.');
+    showStationAlert('Price Required', 'Please enter a valid 1-gallon refill price (e.g. ₱35).', 'assets/droppy_question.png', () => inPricePurified && inPricePurified.focus());
     if (inPricePurified) inPricePurified.focus();
     return;
   }
@@ -6264,10 +6516,16 @@ function initStaffManagementEvents() {
   const btnZero = document.getElementById('btnFactoryZeroDeployment');
   if (btnZero) {
     btnZero.addEventListener('click', () => {
-      if (confirm('FACTORY RESET: Wipe all station records, accounts, fleet, and settings to Absolute Zero for client deployment?')) {
-        localStorage.clear();
-        window.location.reload();
-      }
+      openConfirmModal(
+        'Factory Reset to Zero?',
+        'Wipe all station records, accounts, fleet, and settings to Absolute Zero for client deployment?',
+        () => {
+          soundCtrl.playTap();
+          localStorage.clear();
+          window.location.reload();
+        },
+        'assets/droppy_sad.png'
+      );
     });
   }
 }
@@ -6290,7 +6548,7 @@ function promptChangeStaffPin(staffId) {
         showToast(`PIN updated for ${target.name}!`);
         logSecurityEvent('PIN_CHANGE', `Updated 4-digit PIN for ${target.name} (${target.role})`);
       } else if (newPin !== null) {
-        alert('PIN must be exactly 4 numeric digits.');
+        showStationAlert('PIN Required', 'PIN must be exactly 4 numeric digits.', 'assets/droppy_question.png');
       }
     }
   });
@@ -7835,10 +8093,16 @@ function bindProfileEvents() {
       soundCtrl.playTap();
       const user = getCurrentUser();
       const cashierLabel = user ? user.name : 'current staff';
-      if (confirm(`Close active shift for ${cashierLabel} and return to cashier sign in?`)) {
-        lockTerminal();
-        openSwitchUserModal();
-      }
+      openConfirmModal(
+        'Close Cashier Shift?',
+        `Close active shift for ${cashierLabel} and return to cashier sign in?`,
+        () => {
+          soundCtrl.playTap();
+          lockTerminal();
+          openSwitchUserModal();
+        },
+        'assets/droppy_winking.png'
+      );
     });
   }
 
@@ -10006,4 +10270,11 @@ function processQuickExpenseSubmit() {
   if (modal) modal.style.display = 'none';
 
   renderAll();
+}
+
+// Route any native window.alert to the custom Droppy modal
+if (typeof window !== 'undefined') {
+  window.alert = function(msg) {
+    showStationAlert('Station Notice', msg, 'assets/droppy_question.png');
+  };
 }

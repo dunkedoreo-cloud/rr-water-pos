@@ -2467,15 +2467,33 @@
     <span class="toast-message" id="toastMessage">Order recorded successfully!</span>
   </div>
 
-  <!-- Confirmation Modal (for Void or New Shift) -->
-  <div class="modal-backdrop" id="confirmModal">
-    <div class="modal-card">
-      <img src="assets/droppy_question.png" alt="Droppy Question" class="modal-avatar" id="modalAvatar">
+  <!-- Confirmation Modal (with Droppy Mascot) -->
+  <div class="modal-backdrop" id="confirmModal" style="display: none;">
+    <div class="modal-card station-alert-card">
+      <div class="station-alert-avatar-bubble">
+        <img src="assets/droppy_question.png" alt="Droppy Mascot" class="modal-avatar droppy-pop-anim" id="modalAvatar">
+      </div>
       <h3 id="modalTitle">Confirm Action</h3>
       <p id="modalMessage">Are you sure you want to proceed?</p>
       <div class="modal-button-row">
-        <button class="btn-modal-cancel" id="btnModalCancel">Cancel</button>
-        <button class="btn-modal-confirm" id="btnModalConfirm">Confirm</button>
+        <button type="button" class="btn-modal-cancel" id="btnModalCancel">Cancel</button>
+        <button type="button" class="btn-modal-confirm" id="btnModalConfirm">Confirm</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Station Alert / Information Modal (Droppy Mascot Notification) -->
+  <div class="modal-backdrop alert-modal-backdrop" id="stationAlertModal" style="display: none;">
+    <div class="modal-card station-alert-card">
+      <div class="station-alert-avatar-bubble">
+        <img src="assets/droppy_question.png" alt="Droppy Mascot" class="modal-avatar droppy-pop-anim" id="stationAlertAvatar">
+      </div>
+      <h3 id="stationAlertTitle">Information Needed</h3>
+      <p id="stationAlertMessage">Please enter Manager / Owner Name to continue.</p>
+      <div class="modal-button-row" style="margin-top: 8px;">
+        <button type="button" class="btn-modal-confirm" id="btnStationAlertOk" style="width: 100%; min-width: 140px; padding: 11px 24px; background: var(--color-primary); color: #ffffff; font-weight: 800; border-radius: var(--radius-md);">
+          <span>Got it!</span>
+        </button>
       </div>
     </div>
   </div>
@@ -3127,7 +3145,8 @@
   <!-- Station Initialization & Quick Setup Wizard Modal -->
   <!-- Station Quick Setup Wizard Modal (Streamlined 3-Step Setup) -->
   <div class="modal-backdrop" id="stationSetupWizardModal" style="display: none;">
-    <div class="modal-card setup-wizard-card">
+    <div class="wizard-dialog-layout">
+      <div class="modal-card setup-wizard-card">
       <div class="thermal-modal-header" style="padding-bottom: 0;">
         <div class="thermal-modal-title">
           <div class="thermal-icon-circle" style="background: rgba(2, 132, 199, 0.12); color: var(--color-primary);">
@@ -3342,9 +3361,35 @@
           </button>
         </div>
       </div>
-
     </div>
+
+    <!-- Interactive Mascot Guide (Droppy) Outside / Beside the Box -->
+    <aside class="wizard-droppy-companion" id="wizardDroppyCompanion" aria-label="Droppy Assistant Guide">
+      <div class="droppy-guide-bubble" id="droppyGuideBubble">
+        <div class="droppy-guide-bubble-header">
+          <span class="droppy-guide-name">
+            <svg class="ui-icon-xs" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"></path></svg>
+            Droppy Guide
+          </span>
+          <span class="droppy-step-pill" id="wizardDroppyStepPill">Step 1 of 3</span>
+        </div>
+        <p class="droppy-guide-text" id="wizardDroppyText">
+          Welcome, Station Owner! Set your Manager Name and a secret 4-digit PIN to secure your terminal.
+        </p>
+        <button type="button" class="droppy-fun-tip-btn" id="btnDroppyFunTip" title="Tap Droppy for quick station tips!">
+          <span class="tip-sparkle">💡</span> <span id="droppyFunTipBtnText">Tap for Pro Tips!</span>
+        </button>
+      </div>
+
+      <div class="droppy-guide-avatar-container" id="droppyGuideAvatarContainer" role="button" tabindex="0" title="Click Droppy to interact and get tips!">
+        <div class="droppy-guide-avatar-bubble">
+          <img src="assets/droppy_winking.png" alt="Droppy Mascot Guide" class="droppy-guide-avatar-img" id="wizardDroppyAvatarImg" decoding="async">
+        </div>
+        <span class="droppy-poke-pill" id="droppyPokePill">Poke Me! 💧</span>
+      </div>
+    </aside>
   </div>
+</div>
 
   <!-- Floating Side Minitab on Screen Edge (Press to open Station Summary) -->
   <button type="button" class="floating-side-minitab" id="floatingSideMinitab" title="Station Live Summary (Press for all functions &amp; live sales)" aria-label="Open Station Summary">
