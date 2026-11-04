@@ -73,6 +73,31 @@ function readJsonBody(req) {
   });
 }
 
+// --- REAL-TIME CROSS-DEVICE EVENT BUS (Server-Sent Events) ---
+const sseClients = new Set();
+
+function broadcastEvent(type, payload) {
+  const message = `data: ${JSON.stringify({ type, payload, timestamp: Date.now() })}\n\n`;
+  for (const client of sseClients) {
+    try {
+      client.write(message);
+    } catch (err) {
+      sseClients.delete(client);
+    }
+  }
+}
+
+// Keep SSE connections active across NAT / WiFi sleep
+setInterval(() => {
+  for (const client of sseClients) {
+    try {
+      client.write(': heartbeat\n\n');
+    } catch (e) {
+      sseClients.delete(client);
+    }
+  }
+}, 25000);
+
 const server = http.createServer(async (req, res) => {
   // CORS Preflight
   if (req.method === 'OPTIONS') {
@@ -100,6 +125,41 @@ const server = http.createServer(async (req, res) => {
           url: process.env.SUPABASE_URL || null,
           anonKey: process.env.SUPABASE_ANON_KEY || null
         });
+      }
+
+      // 0.0 Real-time Event Stream (Server-Sent Events for Cross-Device Sync)
+      if (pathname === '/api/events' && req.method === 'GET') {
+        res.writeHead(200, {
+          'Content-Type': 'text/event-stream; charset=utf-8',
+          'Cache-Control': 'no-cache, no-transform',
+          'Connection': 'keep-alive',
+          'Access-Control-Allow-Origin': '*'
+        });
+        res.write(`data: ${JSON.stringify({ type: 'CONNECTED', timestamp: Date.now() })}\n\n`);
+        sseClients.add(res);
+        req.on('close', () => sseClients.delete(res));
+        return;
+      }
+
+      // 0.01 Station Settings & Pricing API (Cross-Device Sync)
+      if (pathname === '/api/settings') {
+        if (req.method === 'GET') {
+          const settings = db.getSettings();
+          return sendJson(res, 200, { success: true, settings });
+        }
+        if (req.method === 'POST') {
+          const body = await readJsonBody(req);
+          const saved = db.saveAllSettings(body);
+          broadcastEvent('SETTINGS_UPDATED', saved);
+          return sendJson(res, 200, { success: true, settings: saved });
+        }
+      }
+
+      // 0.02 Delta Sync Endpoint for Smart Catch-up
+      if (pathname === '/api/sync/delta' && req.method === 'GET') {
+        const since = parsedUrl.searchParams.get('since') || 0;
+        const delta = db.getSyncDelta(since);
+        return sendJson(res, 200, { success: true, ...delta });
       }
 
       // 0.1 Telemetry Streaming Bus
@@ -151,6 +211,7 @@ const server = http.createServer(async (req, res) => {
             order.cashier_name || 'Neil',
             order.cashier_role || 'manager'
           );
+          broadcastEvent('ORDER_CREATED', order);
           return sendJson(res, 201, { success: true, order });
         }
       }
@@ -163,6 +224,7 @@ const server = http.createServer(async (req, res) => {
         const order = db.collectPayment(orderNo, body.paidAmount);
         if (!order) return sendJson(res, 404, { error: 'Order not found' });
         db.logAuditEvent('PAYMENT_COLLECTED', `Collected ₱${order.total.toFixed(2)} for ${orderNo}`, body.userName || 'Sarah', body.userRole || 'cashier');
+        broadcastEvent('ORDER_UPDATED', order);
         return sendJson(res, 200, { success: true, order });
       }
 
@@ -177,6 +239,7 @@ const server = http.createServer(async (req, res) => {
         }
         const result = db.voidOrder(orderNo, body.reason, body.managerName);
         if (!result) return sendJson(res, 404, { error: 'Order not found' });
+        broadcastEvent('ORDER_VOIDED', { orderNo, reason: body.reason, status: 'voided', is_voided: 1 });
         return sendJson(res, 200, { success: true, result });
       }
 
@@ -219,6 +282,7 @@ const server = http.createServer(async (req, res) => {
         if (req.method === 'POST') {
           const body = await readJsonBody(req);
           const item = db.adjustInventory(body.key, body.delta);
+          broadcastEvent('INVENTORY_UPDATED', item);
           return sendJson(res, 200, { success: true, item });
         }
       }
@@ -274,6 +338,7 @@ const server = http.createServer(async (req, res) => {
         if (req.method === 'POST') {
           const body = await readJsonBody(req);
           const expense = db.addExpense(body);
+          broadcastEvent('EXPENSE_CREATED', expense);
           return sendJson(res, 201, { success: true, expense });
         }
       }
@@ -288,6 +353,7 @@ const server = http.createServer(async (req, res) => {
         if (req.method === 'POST') {
           const body = await readJsonBody(req);
           const settlement = db.addDriverSettlement(body);
+          broadcastEvent('SETTLEMENT_CREATED', settlement);
           return sendJson(res, 201, { success: true, settlement });
         }
       }

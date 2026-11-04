@@ -649,6 +649,7 @@ document.addEventListener('DOMContentLoaded', () => {
   initStationAlertEvents();
   initAndroidBackButtonHandling();
   StationDB.init();
+  StationRealtimeSync.init();
 
   // Quick Cart Add buttons (Multi-item Support - Item 3)
   const btnQuickRefill = document.getElementById('btnAddCartRefill');
@@ -2015,6 +2016,25 @@ function applySettings() {
   if (stationSubTag && s.stationBranch) {
     stationSubTag.textContent = s.stationBranch;
   }
+
+  // Update Multi-Item Quick-Add buttons
+  const btnRefillPill = document.querySelector('#btnAddCartRefill span:not(.pill-plus)');
+  if (btnRefillPill) btnRefillPill.textContent = `Refill (₱${Math.round(PRODUCTS.purified.price)})`;
+  const btnNewPill = document.querySelector('#btnAddCartNewJug span:not(.pill-plus)');
+  if (btnNewPill) btnNewPill.textContent = `New Jug (₱${Math.round(PRODUCTS.new_container.price)})`;
+
+  // Sync unit prices in current cart
+  if (State.cart && State.cart.length > 0) {
+    State.cart.forEach(item => {
+      if (item.prodKey === 'purified') {
+        item.unitPrice = PRODUCTS.purified.price;
+        item.total = item.qty * item.unitPrice;
+      } else if (item.prodKey === 'new_container') {
+        item.unitPrice = PRODUCTS.new_container.price;
+        item.total = item.qty * item.unitPrice;
+      }
+    });
+  }
 }
 
 function saveSettings() {
@@ -2054,8 +2074,16 @@ function saveSettings() {
   renderPresets();
   renderOrderSummary();
 
+  // Multi-Device Real-time Broadcast (Orders, Pricing & Settings Sync)
+  if (typeof StationRealtimeSync !== 'undefined') {
+    StationRealtimeSync.broadcastSettings(State.settings);
+  }
+  if (typeof SupabaseSync !== 'undefined' && SupabaseSync.pushSettings) {
+    SupabaseSync.pushSettings(State.settings);
+  }
+
   soundCtrl.playSuccessTone();
-  showToast('Settings saved successfully!');
+  showToast('Settings saved & broadcasted across terminals!');
 }
 
 // Select Product (Purified / New Container)
@@ -2625,6 +2653,9 @@ function processPaymentAndStoreOrder() {
   State.storedOrders.unshift(newOrder);
   saveOrders();
   SupabaseSync.pushOrder(newOrder);
+  if (typeof StationRealtimeSync !== 'undefined') {
+    StationRealtimeSync.broadcastOrder(newOrder);
+  }
   if (typeof Telemetry !== 'undefined') {
     Telemetry.broadcast('ORDER_SUBMITTED', `New ${newOrder.channel.toUpperCase()} order ${newOrder.orderNo} (${newOrder.gallons} Gal • ₱${formatPeso(total)} • ${isPending ? 'UNPAID' : 'PAID'})`, newOrder);
   }
@@ -9167,6 +9198,361 @@ function initStationSummaryDrawer() {
 
 
 
+
+// ==========================================================================
+// UNIFIED REAL-TIME CROSS-DEVICE SYNC ENGINE
+// Ensures any order, price, or settings update on one device applies to all
+// ==========================================================================
+const StationRealtimeSync = {
+  eventSource: null,
+  broadcastChannel: null,
+  pollTimer: null,
+  lastSyncTimestamp: Date.now() - 60000,
+  isNodeHost: false,
+
+  init() {
+    this.isNodeHost = typeof window !== 'undefined' && 
+      !window.location.hostname.includes('github.io') && 
+      window.location.protocol !== 'file:';
+
+    // 1. Cross-tab instant synchronization via BroadcastChannel
+    if (typeof BroadcastChannel !== 'undefined') {
+      try {
+        this.broadcastChannel = new BroadcastChannel('rr_station_realtime_bus');
+        this.broadcastChannel.onmessage = (e) => {
+          if (e.data && e.data.type) {
+            this.handleIncomingEvent(e.data.type, e.data.payload, 'tab');
+          }
+        };
+      } catch (err) {}
+    }
+
+    // 2. Cross-device synchronization via Node Server SSE stream
+    if (this.isNodeHost) {
+      this.connectSSE();
+      this.startSmartPolling();
+      this.fetchServerSettings();
+    }
+
+    // 3. Listen for online/visibility events to auto catch-up
+    if (typeof window !== 'undefined') {
+      window.addEventListener('online', () => {
+        this.catchUpDelta();
+        if (typeof SupabaseSync !== 'undefined' && SupabaseSync.isConnected) {
+          SupabaseSync.pullAll();
+          SupabaseSync.pullSettings();
+        }
+      });
+      document.addEventListener('visibilitychange', () => {
+        if (document.visibilityState === 'visible') {
+          this.catchUpDelta();
+          if (typeof SupabaseSync !== 'undefined' && SupabaseSync.isConnected) {
+            SupabaseSync.pullSettings();
+          }
+        }
+      });
+    }
+  },
+
+  connectSSE() {
+    if (typeof EventSource === 'undefined') return;
+    try {
+      if (this.eventSource) {
+        this.eventSource.close();
+      }
+      this.eventSource = new EventSource('/api/events');
+      this.eventSource.onmessage = (e) => {
+        try {
+          const data = JSON.parse(e.data);
+          if (data && data.type && data.type !== 'CONNECTED') {
+            this.handleIncomingEvent(data.type, data.payload, 'sse');
+          }
+        } catch (err) {}
+      };
+      this.eventSource.onerror = () => {
+        if (this.eventSource) {
+          this.eventSource.close();
+          this.eventSource = null;
+        }
+        setTimeout(() => this.connectSSE(), 6000);
+      };
+    } catch (e) {}
+  },
+
+  startSmartPolling() {
+    if (this.pollTimer) clearInterval(this.pollTimer);
+    // Non-blocking delta check every 8 seconds (1ms indexed query, zero bottleneck)
+    this.pollTimer = setInterval(() => {
+      this.catchUpDelta();
+    }, 8000);
+  },
+
+  async catchUpDelta() {
+    if (!navigator.onLine || !this.isNodeHost) return;
+    try {
+      const res = await fetch(`/api/sync/delta?since=${this.lastSyncTimestamp}`);
+      if (!res.ok) return;
+      const delta = await res.json();
+      if (delta && delta.success) {
+        this.lastSyncTimestamp = delta.timestamp || Date.now();
+
+        // 1. Settings / Pricing sync
+        if (delta.settings && Object.keys(delta.settings).length > 0) {
+          this.applyIncomingSettings(delta.settings, false);
+        }
+
+        // 2. Orders sync
+        if (Array.isArray(delta.orders) && delta.orders.length > 0) {
+          delta.orders.forEach(o => {
+            this.mergeIncomingOrder(o);
+          });
+          renderAll();
+        }
+
+        // 3. Expenses sync
+        if (Array.isArray(delta.expenses) && delta.expenses.length > 0) {
+          delta.expenses.forEach(exp => {
+            this.mergeIncomingExpense(exp);
+          });
+        }
+
+        // 4. Driver Settlements sync
+        if (Array.isArray(delta.settlements) && delta.settlements.length > 0) {
+          delta.settlements.forEach(stl => {
+            this.mergeIncomingSettlement(stl);
+          });
+        }
+      }
+    } catch (e) {}
+  },
+
+  async fetchServerSettings() {
+    if (!this.isNodeHost) return;
+    try {
+      const res = await fetch('/api/settings');
+      if (!res.ok) return;
+      const data = await res.json();
+      if (data && data.success && data.settings) {
+        this.applyIncomingSettings(data.settings, false);
+      }
+    } catch (e) {}
+  },
+
+  handleIncomingEvent(type, payload, source = 'network') {
+    if (!payload) return;
+
+    if (type === 'SETTINGS_UPDATED') {
+      this.applyIncomingSettings(payload, true);
+    } else if (type === 'ORDER_CREATED') {
+      this.mergeIncomingOrder(payload);
+      if (typeof soundCtrl !== 'undefined') soundCtrl.playTap();
+      if (typeof showToast === 'function') {
+        const galStr = payload.gallons ? `${payload.gallons} Gal` : '';
+        const orderNo = payload.order_no || payload.orderNo || '';
+        showToast(`⚡ Synced: Order ${orderNo} (${galStr}) added from another terminal`);
+      }
+      renderAll();
+    } else if (type === 'ORDER_UPDATED') {
+      const orderNo = payload.order_no || payload.orderNo;
+      const target = State.storedOrders.find(o => o.orderNo === orderNo);
+      if (target) {
+        if (payload.status) target.status = payload.status;
+        if (typeof payload.paid_amount === 'number') target.paidAmount = payload.paid_amount;
+        if (typeof payload.unpaid_amount === 'number') target.unpaidAmount = payload.unpaid_amount;
+        saveOrders();
+        renderAll();
+      }
+    } else if (type === 'ORDER_VOIDED') {
+      const orderNo = payload.orderNo || payload.order_no;
+      const target = State.storedOrders.find(o => o.orderNo === orderNo);
+      if (target) {
+        target.status = 'voided';
+        target.isVoided = true;
+        target.voidReason = payload.reason || 'Manager Override';
+        saveOrders();
+        renderAll();
+        if (typeof showToast === 'function') {
+          showToast(`⚡ Order ${orderNo} voided on another terminal`);
+        }
+      }
+    } else if (type === 'EXPENSE_CREATED') {
+      this.mergeIncomingExpense(payload);
+    } else if (type === 'SETTLEMENT_CREATED') {
+      this.mergeIncomingSettlement(payload);
+    } else if (type === 'INVENTORY_UPDATED') {
+      if (payload && payload.ready !== undefined) {
+        if (!State.inventory) State.inventory = {};
+        State.inventory.ready = payload.ready;
+        saveInventory();
+        renderInventory();
+      }
+    }
+  },
+
+  applyIncomingSettings(newSettings, showNotification = true) {
+    if (!newSettings || typeof newSettings !== 'object') return;
+    const s = State.settings || {};
+    let priceChanged = false;
+
+    if (newSettings.pricePurified !== undefined && newSettings.pricePurified !== s.pricePurified) {
+      s.pricePurified = Number(newSettings.pricePurified) || 35;
+      priceChanged = true;
+    }
+    if (newSettings.priceNewJug !== undefined && newSettings.priceNewJug !== s.priceNewJug) {
+      s.priceNewJug = Number(newSettings.priceNewJug) || 250;
+      priceChanged = true;
+    }
+    if (newSettings.wholesalePrice !== undefined) s.wholesalePrice = Number(newSettings.wholesalePrice) || 30;
+    if (newSettings.minBatch !== undefined) s.minBatch = Number(newSettings.minBatch) || 10;
+    if (newSettings.stationName !== undefined) s.stationName = newSettings.stationName;
+    if (newSettings.stationBranch !== undefined) s.stationBranch = newSettings.stationBranch;
+    if (newSettings.stationPhone !== undefined) s.stationPhone = newSettings.stationPhone;
+    if (newSettings.stationAddress !== undefined) s.stationAddress = newSettings.stationAddress;
+
+    State.settings = s;
+    try {
+      localStorage.setItem('rr_pos_settings', JSON.stringify(State.settings));
+    } catch (e) {}
+
+    // Apply to products and UI
+    applySettings();
+    renderPresets();
+    renderOrderSummary();
+
+    // Sync inputs in settings tab DOM if present
+    const elPur = document.getElementById('settingPricePurified');
+    if (elPur && s.pricePurified) elPur.value = s.pricePurified;
+    const elNew = document.getElementById('settingPriceNewJug');
+    if (elNew && s.priceNewJug) elNew.value = s.priceNewJug;
+    const elWho = document.getElementById('settingWholesalePrice');
+    if (elWho && s.wholesalePrice) elWho.value = s.wholesalePrice;
+    const elName = document.getElementById('settingStationName');
+    if (elName && s.stationName) elName.value = s.stationName;
+
+    if (priceChanged && showNotification && typeof showToast === 'function') {
+      showToast(`⚡ Pricing updated across terminals: Refill ₱${formatPeso(s.pricePurified)} • New Jug ₱${formatPeso(s.priceNewJug)}`);
+    }
+  },
+
+  mergeIncomingOrder(rawOrder) {
+    const orderNo = rawOrder.order_no || rawOrder.orderNo;
+    if (!orderNo) return;
+
+    const exists = State.storedOrders.some(o => o.orderNo === orderNo);
+    if (exists) {
+      const ex = State.storedOrders.find(o => o.orderNo === orderNo);
+      if (ex && rawOrder.status && ex.status !== rawOrder.status) {
+        ex.status = rawOrder.status;
+        ex.paidAmount = Number(rawOrder.paid_amount ?? rawOrder.paidAmount) || ex.paidAmount;
+        ex.unpaidAmount = Number(rawOrder.unpaid_amount ?? rawOrder.unpaidAmount) || ex.unpaidAmount;
+        ex.isVoided = rawOrder.status === 'voided' || Boolean(rawOrder.is_voided);
+      }
+      return;
+    }
+
+    const ts = Number(rawOrder.timestamp) || Date.now();
+    const timeStr = rawOrder.time_str || rawOrder.time || new Date(ts).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true });
+
+    let items = rawOrder.items;
+    if (typeof items === 'string') {
+      try { items = JSON.parse(items); } catch (e) { items = null; }
+    }
+    if (!items || !Array.isArray(items)) {
+      items = [{
+        prodKey: rawOrder.prod_key || rawOrder.prodKey || 'purified',
+        name: rawOrder.prod_name || rawOrder.prodName || '1 Gallon Purified Refill',
+        unitPrice: Number(rawOrder.unit_price || rawOrder.unitPrice) || 35,
+        unit: 'gal',
+        qty: Number(rawOrder.gallons) || 1,
+        total: Number(rawOrder.total) || 35
+      }];
+    }
+
+    const orderObj = {
+      id: rawOrder.id || ('ord_' + ts),
+      orderNo: orderNo,
+      time: timeStr,
+      timestamp: ts,
+      channel: rawOrder.channel || 'walkin',
+      prodKey: rawOrder.prod_key || rawOrder.prodKey || 'purified',
+      prodName: rawOrder.prod_name || rawOrder.prodName || '1 Gallon Purified Refill',
+      items: items,
+      gallons: Number(rawOrder.gallons) || 1,
+      unitPrice: Number(rawOrder.unit_price || rawOrder.unitPrice) || 35,
+      total: Number(rawOrder.total) || 35,
+      paidAmount: Number(rawOrder.paid_amount ?? rawOrder.paidAmount) || 0,
+      unpaidAmount: Number(rawOrder.unpaid_amount ?? rawOrder.unpaidAmount) || 0,
+      status: rawOrder.status || 'paid',
+      paymentMethod: rawOrder.payment_method || rawOrder.paymentMethod || 'cash',
+      cashierName: rawOrder.cashier_name || rawOrder.cashierName || 'Cashier',
+      cashierRole: rawOrder.cashier_role || rawOrder.cashierRole || 'cashier',
+      driverName: rawOrder.driver_name || rawOrder.driverName || null,
+      customerName: rawOrder.customer_name || rawOrder.customerName || null,
+      customerId: rawOrder.customer_id || rawOrder.customerId || null,
+      note: rawOrder.note || '',
+      carboysLoaned: Number(rawOrder.carboys_loaned ?? rawOrder.carboysLoaned) || 0,
+      carboysReturned: Number(rawOrder.carboys_returned ?? rawOrder.carboysReturned) || 0,
+      tendered: Number(rawOrder.tendered) || 0,
+      change: Number(rawOrder.change_amount ?? rawOrder.change) || 0,
+      isVoided: rawOrder.status === 'voided' || Boolean(rawOrder.is_voided)
+    };
+
+    State.storedOrders.unshift(orderObj);
+    saveOrders();
+  },
+
+  mergeIncomingExpense(rawExp) {
+    const id = rawExp.id;
+    if (!id || State.expenses.some(e => e.id === id)) return;
+    const expObj = {
+      id: id,
+      timestamp: Number(rawExp.timestamp) || Date.now(),
+      time: rawExp.time_str || rawExp.time || new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+      amount: Number(rawExp.amount) || 0,
+      category: rawExp.category || 'other',
+      categoryLabel: rawExp.category_label || rawExp.categoryLabel || 'General Expense',
+      note: rawExp.note || '',
+      source: rawExp.source || 'drawer',
+      cashierName: rawExp.cashier_name || rawExp.cashierName || 'Cashier'
+    };
+    State.expenses.unshift(expObj);
+    saveExpenses();
+    renderAll();
+  },
+
+  mergeIncomingSettlement(rawStl) {
+    const id = rawStl.id;
+    if (!id || State.driverSettlements.some(s => s.id === id)) return;
+    State.driverSettlements.unshift(rawStl);
+    saveDriverSettlements();
+    renderAll();
+  },
+
+  broadcastSettings(settings) {
+    if (this.broadcastChannel) {
+      try {
+        this.broadcastChannel.postMessage({ type: 'SETTINGS_UPDATED', payload: settings });
+      } catch (e) {}
+    }
+
+    if (this.isNodeHost) {
+      fetch('/api/settings', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(settings)
+      }).catch(() => {});
+    }
+  },
+
+  broadcastOrder(order) {
+    if (this.broadcastChannel) {
+      try {
+        this.broadcastChannel.postMessage({ type: 'ORDER_CREATED', payload: order });
+      } catch (e) {}
+    }
+  }
+};
+
 // ==========================================================================
 // SUPABASE CLOUD DATABASE CONTROLLER (Real-time Cloud Sync)
 // ==========================================================================
@@ -9305,6 +9691,7 @@ const SupabaseSync = {
       this.updateUI();
       this.setupRealtime();
       this.pullAll();
+      this.pullSettings();
       if (showToasts) showToast('Connected to Supabase! Real-time cloud sync is active.');
     } catch (err) {
       this.isConnected = false;
@@ -9387,6 +9774,40 @@ const SupabaseSync = {
     } catch (e) {
       console.warn('[Supabase] voidOrder error:', e);
     }
+  },
+
+  async pushSettings(settings = State.settings) {
+    if (!this.client || !this.isConnected) return;
+    try {
+      const payload = settings || State.settings || {};
+      const row = {
+        key: 'all_settings',
+        value: JSON.stringify(payload),
+        updated_at: new Date().toISOString()
+      };
+      await this.client.from('station_settings').upsert(row, { onConflict: 'key' });
+    } catch (e) {
+      console.warn('[Supabase] pushSettings error:', e);
+    }
+  },
+
+  async pullSettings() {
+    if (!this.client || !this.isConnected) return;
+    try {
+      const { data } = await this.client
+        .from('station_settings')
+        .select('*')
+        .eq('key', 'all_settings')
+        .maybeSingle();
+      if (data && data.value) {
+        try {
+          const cloudSettings = JSON.parse(data.value);
+          if (cloudSettings && typeof cloudSettings === 'object') {
+            StationRealtimeSync.applyIncomingSettings(cloudSettings, false);
+          }
+        } catch (err) {}
+      }
+    } catch (e) {}
   },
 
   async pushCustomer(cust) {
@@ -9514,10 +9935,18 @@ const SupabaseSync = {
       this.realtimeChannel = this.client
         .channel('rr_station_realtime')
         .on('postgres_changes', { event: '*', schema: 'public', table: 'orders' }, (payload) => {
-          this.pullAll();
+          if (payload && payload.new) {
+            StationRealtimeSync.mergeIncomingOrder(payload.new);
+            renderAll();
+          } else {
+            this.pullAll();
+          }
         })
         .on('postgres_changes', { event: '*', schema: 'public', table: 'customers' }, (payload) => {
           this.pullAll();
+        })
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'station_settings' }, (payload) => {
+          this.pullSettings();
         })
         .subscribe();
     } catch (e) {

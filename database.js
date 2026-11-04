@@ -227,6 +227,80 @@ class StationDatabase {
     return false;
   }
 
+  // --- STATION SETTINGS & PRICING API (Cross-Device Sync) ---
+  getSettings() {
+    try {
+      const rows = this.db.prepare('SELECT key, value FROM settings').all();
+      const settings = {
+        pricePurified: 35,
+        priceNewJug: 250,
+        wholesalePrice: 30,
+        minBatch: 10,
+        stationName: 'R&R Water Refilling Station',
+        stationBranch: 'Counter #1',
+        stationPhone: '0917-829-4102',
+        stationAddress: '',
+        cashierName: 'Neil',
+        autoPrint: false,
+        lowStockThreshold: 20,
+        tdsBaseline: 10
+      };
+      for (const row of rows) {
+        try {
+          settings[row.key] = JSON.parse(row.value);
+        } catch (e) {
+          settings[row.key] = row.value;
+        }
+      }
+      return settings;
+    } catch (e) {
+      console.error('[getSettings error]', e);
+      return {};
+    }
+  }
+
+  saveSetting(key, value) {
+    const valStr = typeof value === 'object' ? JSON.stringify(value) : String(value);
+    const now = Date.now();
+    this.db.prepare(`
+      INSERT INTO settings (key, value, updated_at)
+      VALUES (?, ?, ?)
+      ON CONFLICT(key) DO UPDATE SET value = excluded.value, updated_at = excluded.updated_at
+    `).run(key, valStr, now);
+    return true;
+  }
+
+  saveAllSettings(settingsObj) {
+    if (!settingsObj || typeof settingsObj !== 'object') return false;
+    const now = Date.now();
+    const stmt = this.db.prepare(`
+      INSERT INTO settings (key, value, updated_at)
+      VALUES (?, ?, ?)
+      ON CONFLICT(key) DO UPDATE SET value = excluded.value, updated_at = excluded.updated_at
+    `);
+    for (const [k, v] of Object.entries(settingsObj)) {
+      if (v === undefined || v === null) continue;
+      const valStr = typeof v === 'object' ? JSON.stringify(v) : String(v);
+      stmt.run(k, valStr, now);
+    }
+    return this.getSettings();
+  }
+
+  getSyncDelta(sinceTimestamp = 0) {
+    const since = Number(sinceTimestamp) || 0;
+    const orders = this.db.prepare('SELECT * FROM orders WHERE timestamp > ? OR created_at > ? ORDER BY timestamp ASC').all(since, since);
+    const expenses = this.db.prepare('SELECT * FROM expenses WHERE timestamp > ? OR created_at > ? ORDER BY timestamp ASC').all(since, since);
+    const settlements = this.db.prepare('SELECT * FROM driver_settlements WHERE timestamp > ? OR created_at > ? ORDER BY timestamp ASC').all(since, since);
+    const settings = this.getSettings();
+    return {
+      timestamp: Date.now(),
+      orders,
+      expenses,
+      settlements,
+      settings
+    };
+  }
+
   // --- EXPENSES API (Item 2.3) ---
   getExpenses(filters = {}) {
     let sql = 'SELECT * FROM expenses WHERE 1=1';
