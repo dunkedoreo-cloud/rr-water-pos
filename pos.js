@@ -45,6 +45,264 @@ const DEFAULT_STAFF = [];
 // --- DELIVERY FLEET & DRIVER ROSTER ---
 const DEFAULT_FLEET = [];
 
+
+// ==========================================================================
+// STATION PERSISTENCE & SYNC ENGINES (Items 1.3, 2.1, 2.2)
+// ==========================================================================
+async function hashPinClient(pin) {
+  const pinStr = String(pin || '').trim();
+  if (/^[a-f0-9]{64}$/i.test(pinStr)) return pinStr;
+  try {
+    const salt = 'rr_water_refilling_pos_salt_2026';
+    const msgUint8 = new TextEncoder().encode(pinStr + salt);
+    const hashBuffer = await crypto.subtle.digest('SHA-256', msgUint8);
+    const hashArray = Array.from(new Uint8Array(hashBuffer));
+    return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+  } catch (e) {
+    return pinStr;
+  }
+}
+
+async function verifyPinClient(candidatePin, storedHashOrPin) {
+  if (!storedHashOrPin) return false;
+  const candidateStr = String(candidatePin || '').trim();
+  const storedStr = String(storedHashOrPin || '').trim();
+  if (storedStr === candidateStr) return true;
+  const hashedCandidate = await hashPinClient(candidateStr);
+  return hashedCandidate.toLowerCase() === storedStr.toLowerCase();
+}
+
+const StationDB = {
+  dbName: 'RRWaterPOS_DB',
+  version: 1,
+  _db: null,
+
+  async init() {
+    if (typeof indexedDB === 'undefined') return null;
+    return new Promise((resolve) => {
+      try {
+        const req = indexedDB.open(this.dbName, this.version);
+        req.onupgradeneeded = (e) => {
+          const db = e.target.result;
+          if (!db.objectStoreNames.contains('orders')) {
+            const os = db.createObjectStore('orders', { keyPath: 'orderNo' });
+            os.createIndex('timestamp', 'timestamp', { unique: false });
+          }
+          if (!db.objectStoreNames.contains('expenses')) {
+            const es = db.createObjectStore('expenses', { keyPath: 'id', autoIncrement: true });
+            es.createIndex('timestamp', 'timestamp', { unique: false });
+          }
+          if (!db.objectStoreNames.contains('driver_settlements')) {
+            const ds = db.createObjectStore('driver_settlements', { keyPath: 'id', autoIncrement: true });
+            ds.createIndex('timestamp', 'timestamp', { unique: false });
+          }
+          if (!db.objectStoreNames.contains('outbox')) {
+            const ob = db.createObjectStore('outbox', { keyPath: 'id', autoIncrement: true });
+            ob.createIndex('status', 'status', { unique: false });
+          }
+        };
+        req.onsuccess = (e) => {
+          this._db = e.target.result;
+          resolve(this._db);
+        };
+        req.onerror = () => resolve(null);
+      } catch (err) {
+        resolve(null);
+      }
+    });
+  },
+
+  async saveOrder(order) {
+    if (!this._db) await this.init();
+    if (!this._db) return;
+    try {
+      const tx = this._db.transaction('orders', 'readwrite');
+      tx.objectStore('orders').put(order);
+    } catch (e) {}
+  },
+
+  async getAllOrders() {
+    if (!this._db) await this.init();
+    if (!this._db) return [];
+    return new Promise((resolve) => {
+      try {
+        const tx = this._db.transaction('orders', 'readonly');
+        const req = tx.objectStore('orders').getAll();
+        req.onsuccess = () => resolve(req.result || []);
+        req.onerror = () => resolve([]);
+      } catch (e) {
+        resolve([]);
+      }
+    });
+  },
+
+  async saveExpense(expense) {
+    if (!this._db) await this.init();
+    if (!this._db) return;
+    try {
+      const tx = this._db.transaction('expenses', 'readwrite');
+      tx.objectStore('expenses').add(expense);
+    } catch (e) {}
+  },
+
+  async getAllExpenses() {
+    if (!this._db) await this.init();
+    if (!this._db) return [];
+    return new Promise((resolve) => {
+      try {
+        const tx = this._db.transaction('expenses', 'readonly');
+        const req = tx.objectStore('expenses').getAll();
+        req.onsuccess = () => resolve(req.result || []);
+        req.onerror = () => resolve([]);
+      } catch (e) {
+        resolve([]);
+      }
+    });
+  },
+
+  async saveSettlement(settlement) {
+    if (!this._db) await this.init();
+    if (!this._db) return;
+    try {
+      const tx = this._db.transaction('driver_settlements', 'readwrite');
+      tx.objectStore('driver_settlements').add(settlement);
+    } catch (e) {}
+  },
+
+  async getAllSettlements() {
+    if (!this._db) await this.init();
+    if (!this._db) return [];
+    return new Promise((resolve) => {
+      try {
+        const tx = this._db.transaction('driver_settlements', 'readonly');
+        const req = tx.objectStore('driver_settlements').getAll();
+        req.onsuccess = () => resolve(req.result || []);
+        req.onerror = () => resolve([]);
+      } catch (e) {
+        resolve([]);
+      }
+    });
+  },
+
+  async queueOutbox(action, payload) {
+    if (!this._db) await this.init();
+    if (!this._db) return null;
+    return new Promise((resolve) => {
+      try {
+        const tx = this._db.transaction('outbox', 'readwrite');
+        const req = tx.objectStore('outbox').add({ action, payload, timestamp: Date.now(), status: 'pending' });
+        req.onsuccess = () => resolve(req.result);
+        req.onerror = () => resolve(null);
+      } catch (e) {
+        resolve(null);
+      }
+    });
+  },
+
+  async getPendingOutbox() {
+    if (!this._db) await this.init();
+    if (!this._db) return [];
+    return new Promise((resolve) => {
+      try {
+        const tx = this._db.transaction('outbox', 'readonly');
+        const req = tx.objectStore('outbox').getAll();
+        req.onsuccess = () => {
+          const list = (req.result || []).filter(item => item.status === 'pending');
+          resolve(list);
+        };
+        req.onerror = () => resolve([]);
+      } catch (e) {
+        resolve([]);
+      }
+    });
+  },
+
+  async removeOutbox(id) {
+    if (!this._db) await this.init();
+    if (!this._db) return;
+    try {
+      const tx = this._db.transaction('outbox', 'readwrite');
+      tx.objectStore('outbox').delete(id);
+    } catch (e) {}
+  }
+};
+
+const StationSyncEngine = {
+  _syncTimer: null,
+  _isSyncing: false,
+
+  scheduleSync(delayMs = 1500) {
+    if (this._syncTimer) clearTimeout(this._syncTimer);
+    this._syncTimer = setTimeout(() => {
+      this.flushOutbox();
+    }, delayMs);
+  },
+
+  async queueMutation(action, payload) {
+    try {
+      await StationDB.queueOutbox(action, payload);
+      this.scheduleSync(500);
+    } catch (e) {}
+  },
+
+  async flushOutbox() {
+    if (this._isSyncing) return;
+    if (typeof navigator !== 'undefined' && !navigator.onLine) return;
+
+    const isStaticHost = typeof window !== 'undefined' && (
+      window.location.hostname.includes('github.io') ||
+      window.location.protocol === 'file:'
+    );
+    if (isStaticHost) return;
+
+    this._isSyncing = true;
+    try {
+      const pending = await StationDB.getPendingOutbox();
+      for (const item of pending) {
+        let sent = false;
+        try {
+          if (item.action === 'NEW_ORDER') {
+            const res = await fetch('/api/orders', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify(item.payload)
+            });
+            if (res.ok) sent = true;
+          } else if (item.action === 'NEW_EXPENSE') {
+            const res = await fetch('/api/expenses', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify(item.payload)
+            });
+            if (res.ok) sent = true;
+          } else if (item.action === 'DRIVER_SETTLEMENT') {
+            const res = await fetch('/api/driver-settlements', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify(item.payload)
+            });
+            if (res.ok) sent = true;
+          }
+        } catch (e) {
+          break;
+        }
+
+        if (sent && item.id) {
+          await StationDB.removeOutbox(item.id);
+        }
+      }
+    } finally {
+      this._isSyncing = false;
+    }
+  }
+};
+
+if (typeof window !== 'undefined') {
+  window.addEventListener('online', () => {
+    StationSyncEngine.scheduleSync(500);
+  });
+}
+
 // --- APPLICATION STATE ---
 const State = {
   activeView: 'pos',                // 'pos' | 'orders' | 'delivered' | 'reports' | 'dashboard' | 'settings' | 'profile'
@@ -64,6 +322,10 @@ const State = {
   deliveryAddress: '',             // Delivery destination / customer
   prodKey: 'purified',             // 'purified' | 'new_container'
   qty: 1,                          // number >= 1
+  cart: [                          // MULTI-ITEM CART (Item 3)
+    { prodKey: 'purified', name: '1 Gallon Purified Refill', unitPrice: 35, qty: 1, total: 35 }
+  ],
+  activeCartIndex: 0,
   keypadTarget: 'qty',             // 'qty' (gallons) | 'cash' (cash received)
   keypadBuffer: '',                // temporary string typed on keypad
   note: '',                        // walk-in note
@@ -385,6 +647,20 @@ document.addEventListener('DOMContentLoaded', () => {
   initStationSetupWizardEvents();
   initWizardDroppyCompanion();
   initStationAlertEvents();
+  initAndroidBackButtonHandling();
+  StationDB.init();
+
+  // Quick Cart Add buttons (Multi-item Support - Item 3)
+  const btnQuickRefill = document.getElementById('btnAddCartRefill');
+  if (btnQuickRefill) btnQuickRefill.addEventListener('click', () => addProductToCart('purified', 1));
+  const btnQuickNew = document.getElementById('btnAddCartNewJug');
+  if (btnQuickNew) btnQuickNew.addEventListener('click', () => addProductToCart('new_container', 1));
+
+  // Telegram EOD buttons (Item 4.1)
+  const btnEodSettings = document.getElementById('btnSendEodTelegramNow');
+  if (btnEodSettings) btnEodSettings.addEventListener('click', () => sendEodTelegramReport());
+  const btnEodProfile = document.getElementById('btnProfileSendEodTelegram');
+  if (btnEodProfile) btnEodProfile.addEventListener('click', () => sendEodTelegramReport());
   setTimeout(() => {
     if (!State.staff || State.staff.length === 0) {
       openStationSetupWizardModal();
@@ -608,7 +884,13 @@ function formatPeso(val) {
 }
 
 function saveOrders() {
-  localStorage.setItem('rr_pos_stored_orders', JSON.stringify(State.storedOrders));
+  try {
+    const recent = (State.storedOrders || []).slice(0, 60);
+    localStorage.setItem('rr_pos_stored_orders', JSON.stringify(recent));
+  } catch (e) {}
+  if (typeof StationDB !== 'undefined' && State.storedOrders && State.storedOrders.length > 0) {
+    StationDB.saveOrder(State.storedOrders[0]);
+  }
 }
 
 function saveInventory() {
@@ -1933,7 +2215,181 @@ function handleKeypadInput(key) {
 // ==========================================================================
 // COMPUTATION & RENDERING
 // ==========================================================================
+
+// ==========================================================================
+// MULTI-ITEM CART LOGIC (Item 3: MULTIPLE ITEMS PER SALE)
+// ==========================================================================
+function calculateTotalGallons() {
+  if (State.cart && State.cart.length > 0) {
+    return State.cart.reduce((sum, it) => sum + (Number(it.qty) || 0), 0);
+  }
+  return State.qty || 1;
+}
+
+function addProductToCart(prodKey, qty = 1) {
+  if (typeof soundCtrl !== 'undefined') soundCtrl.playTap();
+  const prod = PRODUCTS[prodKey] || PRODUCTS.purified;
+  if (!State.cart) State.cart = [];
+
+  const existing = State.cart.find(it => it.prodKey === prodKey);
+  if (existing) {
+    existing.qty += qty;
+    existing.total = existing.qty * existing.unitPrice;
+  } else {
+    State.cart.push({
+      prodKey: prodKey,
+      name: prod.name,
+      unitPrice: prod.price,
+      unit: prod.unit || 'gal',
+      qty: qty,
+      total: prod.price * qty
+    });
+  }
+
+  State.qty = calculateTotalGallons();
+  renderOrderSummary();
+  renderCartItems();
+  if (typeof showToast === 'function') {
+    showToast(`Added ${prod.name} (₱${formatPeso(prod.price)}) to order!`);
+  }
+}
+
+function updateCartItemQty(index, delta) {
+  if (typeof soundCtrl !== 'undefined') soundCtrl.playTap();
+  if (!State.cart || !State.cart[index]) return;
+  State.cart[index].qty += delta;
+  if (State.cart[index].qty <= 0) {
+    State.cart.splice(index, 1);
+  } else {
+    State.cart[index].total = State.cart[index].qty * State.cart[index].unitPrice;
+  }
+
+  if (State.cart.length === 0) {
+    State.cart.push({
+      prodKey: 'purified',
+      name: PRODUCTS.purified.name,
+      unitPrice: PRODUCTS.purified.price,
+      unit: 'gal',
+      qty: 1,
+      total: PRODUCTS.purified.price
+    });
+  }
+
+  State.qty = calculateTotalGallons();
+  renderOrderSummary();
+  renderCartItems();
+}
+
+function removeCartItem(index) {
+  if (typeof soundCtrl !== 'undefined') soundCtrl.playTap();
+  if (!State.cart || !State.cart[index]) return;
+  State.cart.splice(index, 1);
+
+  if (State.cart.length === 0) {
+    State.cart.push({
+      prodKey: 'purified',
+      name: PRODUCTS.purified.name,
+      unitPrice: PRODUCTS.purified.price,
+      unit: 'gal',
+      qty: 1,
+      total: PRODUCTS.purified.price
+    });
+  }
+
+  State.qty = calculateTotalGallons();
+  renderOrderSummary();
+  renderCartItems();
+}
+
+function renderCartItems() {
+  const container = document.getElementById('cartItemsContainer');
+  if (!container) return;
+
+  if (!State.cart || State.cart.length <= 1) {
+    const item = (State.cart && State.cart[0]) || {
+      prodKey: State.prodKey || 'purified',
+      name: (PRODUCTS[State.prodKey] || PRODUCTS.purified).name,
+      unitPrice: (PRODUCTS[State.prodKey] || PRODUCTS.purified).price,
+      unit: (PRODUCTS[State.prodKey] || PRODUCTS.purified).unit || 'gal',
+      qty: State.qty || 1,
+      total: ((PRODUCTS[State.prodKey] || PRODUCTS.purified).price) * (State.qty || 1)
+    };
+
+    container.innerHTML = `
+      <div class="selected-item-row">
+        <img src="assets/water_jug.png" alt="Carboy" class="selected-item-img">
+        <div class="selected-item-details">
+          <h5 id="orderItemTitle">${escapeHtml(item.name)}</h5>
+          <span class="selected-item-rate" id="orderItemRate">₱${formatPeso(item.unitPrice)} / ${item.unit}</span>
+        </div>
+      </div>
+      <div class="quantity-stepper-row">
+        <button type="button" class="btn-stepper" id="btnStepperMinus" title="Subtract 1">−</button>
+        <div class="stepper-center-box">
+          <span class="stepper-qty-num" id="orderItemQtyText">${item.qty}</span>
+          <span class="stepper-unit-lbl">${item.unit === 'jug' ? 'Jugs' : 'Gallons'}</span>
+        </div>
+        <button type="button" class="btn-stepper" id="btnStepperPlus" title="Add 1">+</button>
+      </div>
+    `;
+
+    const btnMinus = document.getElementById('btnStepperMinus');
+    const btnPlus = document.getElementById('btnStepperPlus');
+    if (btnMinus) btnMinus.addEventListener('click', () => {
+      if (typeof soundCtrl !== 'undefined') soundCtrl.playTap();
+      if (item.qty > 1) {
+        item.qty -= 1;
+        item.total = item.qty * item.unitPrice;
+        State.qty = item.qty;
+        if (State.cart && State.cart[0]) {
+          State.cart[0].qty = item.qty;
+          State.cart[0].total = item.total;
+        }
+        renderOrderSummary();
+        renderCartItems();
+      }
+    });
+    if (btnPlus) btnPlus.addEventListener('click', () => {
+      if (typeof soundCtrl !== 'undefined') soundCtrl.playTap();
+      item.qty += 1;
+      item.total = item.qty * item.unitPrice;
+      State.qty = item.qty;
+      if (State.cart && State.cart[0]) {
+        State.cart[0].qty = item.qty;
+        State.cart[0].total = item.total;
+      }
+      renderOrderSummary();
+      renderCartItems();
+    });
+    return;
+  }
+
+  // Multi-Item list rendering
+  let html = `<div class="cart-items-list" style="display:flex; flex-direction:column; gap:8px; width:100%; padding:4px 0;">`;
+  State.cart.forEach((item, idx) => {
+    html += `
+      <div class="cart-item-row" style="display:flex; align-items:center; justify-content:space-between; padding:8px 10px; background:rgba(2, 132, 199, 0.05); border:1px solid rgba(2, 132, 199, 0.15); border-radius:8px;">
+        <div style="flex:1; min-width:0; padding-right:8px;">
+          <div style="font-weight:700; font-size:13px; color:var(--text-color);">${escapeHtml(item.name)}</div>
+          <div style="font-size:12px; color:var(--text-muted);">₱${formatPeso(item.unitPrice)} × ${item.qty} = <strong style="color:var(--color-primary);">₱${formatPeso(item.total)}</strong></div>
+        </div>
+        <div style="display:flex; align-items:center; gap:6px;">
+          <button type="button" class="cart-stepper-btn" onclick="updateCartItemQty(${idx}, -1)" style="width:26px; height:26px; border-radius:6px; border:1px solid #cbd5e1; background:#fff; cursor:pointer; font-weight:700;">−</button>
+          <span style="font-weight:800; font-size:13px; min-width:18px; text-align:center;">${item.qty}</span>
+          <button type="button" class="cart-stepper-btn" onclick="updateCartItemQty(${idx}, 1)" style="width:26px; height:26px; border-radius:6px; border:1px solid #cbd5e1; background:#fff; cursor:pointer; font-weight:700;">+</button>
+          <button type="button" onclick="removeCartItem(${idx})" title="Remove item" style="background:none; border:none; color:#ef4444; cursor:pointer; padding:4px 6px; font-weight:bold; font-size:14px;">✕</button>
+        </div>
+      </div>
+    `;
+  });
+  html += `</div>`;
+  container.innerHTML = html;
+}
+
 function calculateTotal() {
+  if (State.cart && State.cart.length > 0) {
+    return State.cart.reduce((sum, it) => sum + (Number(it.total) || 0), 0);
+  }
   const prod = PRODUCTS[State.prodKey] || PRODUCTS.purified;
   return State.qty * prod.price;
 }
@@ -2008,6 +2464,7 @@ function renderOrderSummary() {
   const prod = PRODUCTS[State.prodKey] || PRODUCTS.purified;
   const total = calculateTotal();
 
+  if (typeof renderCartItems === 'function') renderCartItems();
   // 1. Current randomized order number
   const orderNumEl = document.getElementById('currentOrderNumber');
   if (orderNumEl) orderNumEl.textContent = State.currentOrderNo;
@@ -2131,16 +2588,23 @@ function processPaymentAndStoreOrder() {
     }
   }
 
-  // Stored order record
+  // Stored order record (Single & Multi-Item Support)
+  const cartItems = (State.cart && State.cart.length > 0)
+    ? JSON.parse(JSON.stringify(State.cart))
+    : [{ prodKey: State.prodKey, name: prod.name, unitPrice: prod.price, unit: prod.unit, qty: State.qty, total: total }];
+
+  const totalGals = cartItems.reduce((sum, it) => sum + (it.unit === 'jug' ? it.qty : (it.prodKey === 'purified' ? it.qty : 1)), 0);
+
   const newOrder = {
     orderNo: State.currentOrderNo,
     time: timeStr,
     timestamp: Date.now(),
     channel: State.channel,
-    prodKey: State.prodKey,
-    prodName: prod.name,
-    gallons: State.qty,
-    unitPrice: prod.price,
+    prodKey: cartItems.length === 1 ? cartItems[0].prodKey : 'multi',
+    prodName: cartItems.length === 1 ? cartItems[0].name : `${cartItems.length} Products (Multi-Item)`,
+    items: cartItems,
+    gallons: totalGals,
+    unitPrice: cartItems.length === 1 ? cartItems[0].unitPrice : 0,
     total: total,
     paidAmount: paid,
     unpaidAmount: unpaid,
@@ -2170,8 +2634,20 @@ function processPaymentAndStoreOrder() {
     recordCarboyTransaction(newOrder);
   }
 
-  // Sync order to SQLite backend
+  // Sync order to SQLite backend & Outbox Queue
   postOrderToBackend(newOrder);
+  if (typeof StationSyncEngine !== 'undefined') {
+    StationSyncEngine.queueMutation('NEW_ORDER', newOrder);
+  }
+  if (typeof StationDB !== 'undefined') {
+    StationDB.saveOrder(newOrder);
+  }
+
+  // Reset cart to single default gallon refill
+  State.cart = [{ prodKey: 'purified', name: PRODUCTS.purified.name, unitPrice: PRODUCTS.purified.price, unit: 'gal', qty: 1, total: PRODUCTS.purified.price }];
+  State.qty = 1;
+  State.prodKey = 'purified';
+  if (typeof renderCartItems === 'function') renderCartItems();
 
   // Deduct station inventory & add swapped jugs
   if (State.inventory) {
@@ -2758,7 +3234,7 @@ function confirmVoidOrder(orderNo) {
       fetch(`/api/orders/${encodeURIComponent(orderNo)}/void`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ reason: reason, staffName: manager.name })
+        body: JSON.stringify({ reason: reason, staffName: manager.name, managerName: manager.name, managerPin: pin })
       }).catch(() => {});
 
       renderAll();
@@ -5067,7 +5543,7 @@ function updateAuthPinDots(isError = false) {
   });
 }
 
-function submitAuthPin() {
+async function submitAuthPin() {
   if (authPinBuffer.length < 4) {
     const errorEl = document.getElementById('authPinError');
     if (errorEl) errorEl.textContent = 'Please enter full 4-digit PIN.';
@@ -5076,7 +5552,9 @@ function submitAuthPin() {
   }
 
   const staff = State.staff || DEFAULT_STAFF;
-  const manager = staff.find(s => s.role === 'manager' && s.pin === authPinBuffer);
+  const candidatePin = authPinBuffer;
+  const hashedCandidate = await hashPinClient(candidatePin);
+  const manager = staff.find(s => s.role === 'manager' && (s.pin === candidatePin || s.pin === hashedCandidate || (State.settings && (State.settings.managerPin === candidatePin || State.settings.managerPin === hashedCandidate))));
 
   if (manager) {
     soundCtrl.playSuccessTone();
@@ -5328,7 +5806,7 @@ function updateStaffLoginPinDots(isError = false) {
   });
 }
 
-function submitStaffLoginPin() {
+async function submitStaffLoginPin() {
   if (staffLoginPinBuffer.length < 4) {
     const errorEl = document.getElementById('staffLoginPinError');
     if (errorEl) errorEl.textContent = 'Please enter 4 digits.';
@@ -5338,8 +5816,10 @@ function submitStaffLoginPin() {
 
   const staff = State.staff || DEFAULT_STAFF;
   const targetUser = staff.find(s => s.id === staffLoginSelectedId);
+  const candidatePin = staffLoginPinBuffer;
+  const hashedCandidate = await hashPinClient(candidatePin);
 
-  if (targetUser && targetUser.pin === staffLoginPinBuffer) {
+  if (targetUser && (targetUser.pin === candidatePin || targetUser.pin === hashedCandidate)) {
     soundCtrl.playSuccessTone();
     State.currentUserId = targetUser.id;
     localStorage.setItem('rr_pos_current_user_id', targetUser.id);
@@ -6235,7 +6715,7 @@ function closeStationSetupWizardModal() {
   }, 200);
 }
 
-function saveStationSetupWizard() {
+async function saveStationSetupWizard() {
   const inStName = document.getElementById('wizardStationName');
   const inStBranch = document.getElementById('wizardStationBranch');
   const inStPhone = document.getElementById('wizardStationPhone');
@@ -6319,12 +6799,13 @@ function saveStationSetupWizard() {
   const sAdd = document.getElementById('settingStationAddress');
   if (sAdd) sAdd.value = stAddr;
 
-  // 2. Register / Update Manager in State.staff
+  // 2. Register / Update Manager in State.staff (Hashed PIN - Item 1.3)
+  const hashedMgrPin = await hashPinClient(mgrPin);
   if (!Array.isArray(State.staff)) State.staff = [];
   let mgr = State.staff.find(s => s.role === 'manager');
   if (mgr) {
     mgr.name = mgrName;
-    mgr.pin = mgrPin;
+    mgr.pin = hashedMgrPin;
     mgr.title = 'Station Manager';
   } else {
     mgr = {
@@ -6332,11 +6813,13 @@ function saveStationSetupWizard() {
       name: mgrName,
       role: 'manager',
       title: 'Station Manager',
-      pin: mgrPin,
+      pin: hashedMgrPin,
       avatarColor: 'linear-gradient(135deg, #0284c7 0%, #0369a1 100%)'
     };
     State.staff.unshift(mgr);
   }
+  if (!State.settings) State.settings = {};
+  State.settings.managerPin = hashedMgrPin;
   State.currentUserId = mgr.id;
 
   // 3. Register / Update Delivery Driver if entered
@@ -7303,11 +7786,19 @@ function renderThermalReceipt(order) {
         </tr>
       </thead>
       <tbody>
-        <tr>
-          <td>${escapeHtml(o.prodName || '1 Gallon Purified Refill')}<br><small>${Number(o.gallons || 1).toLocaleString()} gal @ ₱${formatPeso(o.unitPrice || 35)}</small></td>
-          <td class="col-right">₱${formatPeso(o.unitPrice || 35)}</td>
-          <td class="col-right">₱${formatPeso(o.total)}</td>
-        </tr>
+        ${(o.items && o.items.length > 0) ? o.items.map(it => `
+          <tr>
+            <td>${escapeHtml(it.name)}<br><small>${Number(it.qty || 1).toLocaleString()} ${it.unit || 'gal'} @ ₱${formatPeso(it.unitPrice || 35)}</small></td>
+            <td class="col-right">₱${formatPeso(it.unitPrice || 35)}</td>
+            <td class="col-right">₱${formatPeso(it.total || (it.qty * it.unitPrice))}</td>
+          </tr>
+        `).join('') : `
+          <tr>
+            <td>${escapeHtml(o.prodName || '1 Gallon Purified Refill')}<br><small>${Number(o.gallons || 1).toLocaleString()} gal @ ₱${formatPeso(o.unitPrice || 35)}</small></td>
+            <td class="col-right">₱${formatPeso(o.unitPrice || 35)}</td>
+            <td class="col-right">₱${formatPeso(o.total)}</td>
+          </tr>
+        `}
       </tbody>
     </table>
 
@@ -10120,6 +10611,8 @@ function processDriverSettlementConfirm() {
   };
   State.driverSettlements.unshift(settlementRecord);
   saveDriverSettlements();
+  if (typeof StationDB !== 'undefined') StationDB.saveSettlement(settlementRecord);
+  if (typeof StationSyncEngine !== 'undefined') StationSyncEngine.queueMutation('DRIVER_SETTLEMENT', settlementRecord);
   saveOrders();
   if (typeof Telemetry !== 'undefined') {
     Telemetry.broadcast('DRIVER_SETTLEMENT', `Driver Settlement: ${driver} remitted ₱${formatPeso(actual)} (${sold} sold, ₱${formatPeso(fuel)} fuel)`, settlementRecord);
@@ -10258,6 +10751,8 @@ function processQuickExpenseSubmit() {
 
   State.expenses.unshift(newExpense);
   saveExpenses();
+  if (typeof StationDB !== 'undefined') StationDB.saveExpense(newExpense);
+  if (typeof StationSyncEngine !== 'undefined') StationSyncEngine.queueMutation('NEW_EXPENSE', newExpense);
   if (typeof Telemetry !== 'undefined') {
     Telemetry.broadcast('EXPENSE_LOGGED', `Operational Expense: ₱${formatPeso(amt)} for ${catLabels[category]} (${newExpense.note})`, newExpense);
   }
@@ -10270,6 +10765,158 @@ function processQuickExpenseSubmit() {
   if (modal) modal.style.display = 'none';
 
   renderAll();
+}
+
+
+// ==========================================================================
+// ANDROID HARDWARE BACK BUTTON NAVIGATION (Item 3)
+// ==========================================================================
+function initAndroidBackButtonHandling() {
+  if (typeof window === 'undefined' || !window.history) return;
+
+  try {
+    window.history.replaceState({ posRoot: true }, '');
+  } catch (e) {}
+
+  window.addEventListener('popstate', (e) => {
+    const modalsToCheck = [
+      { id: 'stationAlertModal', close: closeStationAlert },
+      { id: 'confirmModal', close: closeConfirmModal },
+      { id: 'stationSetupWizardModal', close: closeStationSetupWizardModal },
+      { id: 'thermalReceiptModal', close: closeThermalReceiptModal },
+      { id: 'quickExpenseModal', close: () => { const m = document.getElementById('quickExpenseModal'); if (m) m.style.display = 'none'; } },
+      { id: 'driverSettlementModal', close: () => { const m = document.getElementById('driverSettlementModal'); if (m) m.style.display = 'none'; } },
+      { id: 'bayadUtangModal', close: () => { const m = document.getElementById('bayadUtangModal'); if (m) m.style.display = 'none'; } },
+      { id: 'switchUserModal', close: () => { const m = document.getElementById('switchUserModal'); if (m) m.style.display = 'none'; } },
+      { id: 'carboyEmptiesModal', close: () => { const m = document.getElementById('carboyEmptiesModal'); if (m) m.style.display = 'none'; } },
+      { id: 'stationSummaryOverlay', close: closeStationSummaryDrawer }
+    ];
+
+    let closed = false;
+    for (const m of modalsToCheck) {
+      const el = document.getElementById(m.id);
+      if (el && (el.style.display === 'flex' || el.style.display === 'block' || el.classList.contains('show') || el.classList.contains('open'))) {
+        m.close();
+        closed = true;
+        break;
+      }
+    }
+
+    if (closed) {
+      try { window.history.pushState({ posRoot: true }, ''); } catch (e) {}
+    } else if (State.activeView && State.activeView !== 'pos') {
+      switchView('pos');
+      try { window.history.pushState({ posRoot: true }, ''); } catch (e) {}
+    }
+  });
+}
+
+// ==========================================================================
+// END-OF-DAY TELEGRAM DISPATCH TO OWNER (Item 4.1)
+// ==========================================================================
+async function sendEodTelegramReport(customNote = '') {
+  const inToken = document.getElementById('settingTelegramBotToken');
+  const inChatId = document.getElementById('settingTelegramChatId');
+
+  const token = (inToken && inToken.value.trim()) || State.settings?.telegramBotToken || '';
+  const chatId = (inChatId && inChatId.value.trim()) || State.settings?.telegramChatId || '';
+
+  if (!token || !chatId) {
+    showStationAlert(
+      'Telegram Setup Required',
+      'Please enter your Telegram Bot Token and Owner Chat ID in Settings > Terminal & Data first.',
+      'assets/droppy_question.png',
+      () => switchView('settings')
+    );
+    return;
+  }
+
+  showToast('Sending End-of-Day report to Telegram...');
+  soundCtrl.playTap();
+
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const todayMs = today.getTime();
+
+  const todayOrders = (State.storedOrders || []).filter(o => !o.isVoided && (o.timestamp || 0) >= todayMs);
+  const totalSales = todayOrders.filter(o => o.status === 'paid').reduce((sum, o) => sum + (Number(o.total) || 0), 0);
+  const pending = todayOrders.filter(o => o.status === 'pending').reduce((sum, o) => sum + (Number(o.total) || 0), 0);
+  const totalGals = todayOrders.reduce((sum, o) => sum + (Number(o.gallons) || 0), 0);
+  const totalOrders = todayOrders.length;
+
+  const todayExpenses = (State.expenses || []).filter(e => (e.timestamp || 0) >= todayMs);
+  const totalExp = todayExpenses.reduce((sum, e) => sum + (Number(e.amount) || 0), 0);
+  const netCash = Math.max(0, totalSales - totalExp);
+
+  const carboysOnLoan = (State.customers || []).reduce((sum, c) => sum + (Number(c.carboy_balance || c.carboyBalance) || 0), 0);
+
+  const dateStr = new Date().toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' });
+  const timeStr = new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true });
+  const cashier = (typeof getCurrentUser === 'function' && getCurrentUser() ? getCurrentUser().name : (State.settings?.cashierName || 'Neil'));
+
+  const msgLines = [
+    '💧 *R&R WATER REFILLING STATION*',
+    '📋 *Daily End-of-Day Shift Summary*',
+    `📅 ${dateStr} • ${timeStr}`,
+    '━━━━━━━━━━━━━━━━━━━━━',
+    '💰 *FINANCIAL TOTALS:*',
+    `• Gross Cash Collected: ₱${formatPeso(totalSales)}`,
+    `• Operating Expenses: ₱${formatPeso(totalExp)}`,
+    `• Net Cash in Drawer: ₱${formatPeso(netCash)}`,
+    `• Unpaid Deliveries: ₱${formatPeso(pending)}`,
+    '',
+    '📦 *VOLUMES & DELIVERIES:*',
+    `• Total Gallons Dispensed: ${totalGals} Gals`,
+    `• Total Completed Orders: ${totalOrders}`,
+    `• Active Carboys on Loan: ${carboysOnLoan} containers`,
+    '━━━━━━━━━━━━━━━━━━━━━',
+    `👤 Terminal / Cashier: ${cashier}`,
+    customNote ? `📝 Note: ${customNote}` : '',
+    '✅ Terminal synchronized.'
+  ].filter(Boolean).join('\n');
+
+  try {
+    let success = false;
+    const isStatic = window.location.hostname.includes('github.io') || window.location.protocol === 'file:';
+    if (!isStatic) {
+      try {
+        const resp = await fetch('/api/reports/eod/send', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ botToken: token, chatId, cashierName: cashier, notes: customNote })
+        });
+        const resData = await resp.json();
+        if (resp.ok && resData.success) success = true;
+      } catch (e) {}
+    }
+
+    if (!success) {
+      const tgRes = await fetch(`https://api.telegram.org/bot${encodeURIComponent(token)}/sendMessage`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ chat_id: chatId, text: msgLines, parse_mode: 'Markdown' })
+      });
+      const tgData = await tgRes.json();
+      if (tgData.ok) success = true;
+      else throw new Error(tgData.description || 'Telegram API error');
+    }
+
+    if (success) {
+      soundCtrl.playSuccess();
+      showToast('EOD Report dispatched to Telegram successfully!');
+      showStationAlert(
+        'EOD Report Sent!',
+        `Today's station summary (₱${formatPeso(totalSales)} collected • ${totalGals} gallons) has been dispatched directly to the station owner's Telegram!`,
+        'assets/droppy_happy.png'
+      );
+    }
+  } catch (err) {
+    showStationAlert(
+      'Telegram Dispatch Error',
+      'Could not send Telegram message: ' + (err.message || 'Network error'),
+      'assets/droppy_sad.png'
+    );
+  }
 }
 
 // Route any native window.alert to the custom Droppy modal

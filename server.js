@@ -166,11 +166,15 @@ const server = http.createServer(async (req, res) => {
         return sendJson(res, 200, { success: true, order });
       }
 
-      // 4. Void Order (Requires Manager Reason)
+      // 4. Void Order (Requires Manager PIN - Item 1.2)
       const voidMatch = pathname.match(/^\/api\/orders\/([^\/]+)\/void$/);
       if (voidMatch && req.method === 'POST') {
         const orderNo = decodeURIComponent(voidMatch[1]);
         const body = await readJsonBody(req);
+        const pin = body.managerPin || req.headers['x-manager-pin'] || '';
+        if (!db.verifyManagerPin(pin)) {
+          return sendJson(res, 401, { error: 'Unauthorized: Valid Manager 4-Digit Security PIN required to void transactions.' });
+        }
         const result = db.voidOrder(orderNo, body.reason, body.managerName);
         if (!result) return sendJson(res, 404, { error: 'Order not found' });
         return sendJson(res, 200, { success: true, result });
@@ -240,8 +244,12 @@ const server = http.createServer(async (req, res) => {
         return sendJson(res, 200, { success: true, ...syncResult });
       }
 
-      // 9. Database Backup Download
+      // 9. Database Backup Download (Requires Manager PIN - Item 1.2)
       if (pathname === '/api/backup' && req.method === 'GET') {
+        const pin = parsedUrl.searchParams.get('pin') || req.headers['x-manager-pin'] || '';
+        if (!db.verifyManagerPin(pin)) {
+          return sendJson(res, 401, { error: 'Unauthorized: Manager 4-Digit Security PIN required to download database backup.' });
+        }
         const dbPath = path.join(__dirname, 'rr_water.db');
         if (!fs.existsSync(dbPath)) {
           return sendJson(res, 404, { error: 'Database not initialized' });
@@ -252,6 +260,125 @@ const server = http.createServer(async (req, res) => {
         });
         const stream = fs.createReadStream(dbPath);
         stream.pipe(res);
+        return;
+      }
+
+
+      // 10. Expenses API (Item 2.3)
+      if (pathname === '/api/expenses') {
+        if (req.method === 'GET') {
+          const limit = Number(parsedUrl.searchParams.get('limit')) || 100;
+          const expenses = db.getExpenses({ limit });
+          return sendJson(res, 200, { success: true, count: expenses.length, expenses });
+        }
+        if (req.method === 'POST') {
+          const body = await readJsonBody(req);
+          const expense = db.addExpense(body);
+          return sendJson(res, 201, { success: true, expense });
+        }
+      }
+
+      // 11. Driver Settlements API (Item 2.3)
+      if (pathname === '/api/driver-settlements') {
+        if (req.method === 'GET') {
+          const limit = Number(parsedUrl.searchParams.get('limit')) || 100;
+          const settlements = db.getDriverSettlements({ limit });
+          return sendJson(res, 200, { success: true, count: settlements.length, settlements });
+        }
+        if (req.method === 'POST') {
+          const body = await readJsonBody(req);
+          const settlement = db.addDriverSettlement(body);
+          return sendJson(res, 201, { success: true, settlement });
+        }
+      }
+
+      // 12. End-of-Day Dispatch API via Telegram Bot (Item 4.1)
+      if (pathname === '/api/reports/eod/send' && req.method === 'POST') {
+        const body = await readJsonBody(req);
+        const botToken = body.botToken || process.env.TELEGRAM_BOT_TOKEN;
+        const chatId = body.chatId || process.env.TELEGRAM_CHAT_ID;
+
+        if (!botToken || !chatId) {
+          return sendJson(res, 400, { error: 'Missing Telegram botToken or chatId. Configure in Station Settings.' });
+        }
+
+        const summary = db.getStationSummary();
+        const dateStr = new Date().toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' });
+        const timeStr = new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true });
+
+        const today = summary.today || {};
+        const totalSales = Number(today.total_cash_collected || 0);
+        const gallons = Number(today.total_gallons || 0);
+        const ordersCount = Number(today.total_orders || 0);
+        const pending = Number(today.total_pending_receivables || 0);
+        const carboysLoaned = Number(summary.carboysOnLoan || 0);
+
+        // Fetch today's expenses
+        const startOfDay = new Date();
+        startOfDay.setHours(0, 0, 0, 0);
+        const expenses = db.getExpenses({ dateFrom: startOfDay.getTime() });
+        const totalExp = expenses.reduce((sum, e) => sum + (Number(e.amount) || 0), 0);
+        const netCash = Math.max(0, totalSales - totalExp);
+
+        const msgLines = [
+          '💧 *R&R WATER REFILLING STATION*',
+          '📋 *End-of-Day Shift Summary*',
+          `📅 ${dateStr} • ${timeStr}`,
+          '━━━━━━━━━━━━━━━━━━━━━',
+          '💰 *FINANCIAL TOTALS:*',
+          `• Gross Cash Collected: ₱${totalSales.toLocaleString('en-US', { minimumFractionDigits: 2 })}`,
+          `• Operating Expenses: ₱${totalExp.toLocaleString('en-US', { minimumFractionDigits: 2 })}`,
+          `• Net Cash in Drawer: ₱${netCash.toLocaleString('en-US', { minimumFractionDigits: 2 })}`,
+          `• Unpaid Deliveries: ₱${pending.toLocaleString('en-US', { minimumFractionDigits: 2 })}`,
+          '',
+          '📦 *VOLUMES & DELIVERIES:*',
+          `• Total Gallons Dispensed: ${gallons} Gals`,
+          `• Total Completed Orders: ${ordersCount}`,
+          `• Active Carboys on Loan: ${carboysLoaned} containers`,
+          '━━━━━━━━━━━━━━━━━━━━━',
+          `👤 Cashier / Shift: ${body.cashierName || 'Counter #1'}`,
+          body.notes ? `📝 Note: ${body.notes}` : '',
+          '✅ Station terminal synchronized & closed.'
+        ].filter(Boolean).join('\n');
+
+        const postData = JSON.stringify({
+          chat_id: chatId,
+          text: msgLines,
+          parse_mode: 'Markdown'
+        });
+
+        const reqTg = https.request({
+          hostname: 'api.telegram.org',
+          port: 443,
+          path: `/bot${encodeURIComponent(botToken)}/sendMessage`,
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Content-Length': Buffer.byteLength(postData)
+          }
+        }, (resTg) => {
+          let tgResp = '';
+          resTg.on('data', chunk => tgResp += chunk);
+          resTg.on('end', () => {
+            try {
+              const parsed = JSON.parse(tgResp);
+              if (parsed.ok) {
+                return sendJson(res, 200, { success: true, message: 'EOD Report sent to owner Telegram successfully!' });
+              } else {
+                return sendJson(res, 400, { error: 'Telegram API Error: ' + (parsed.description || 'Unknown error') });
+              }
+            } catch (e) {
+              return sendJson(res, 500, { error: 'Invalid response from Telegram API' });
+            }
+          });
+        });
+
+        reqTg.on('error', (err) => {
+          return sendJson(res, 500, { error: 'Failed to connect to Telegram API: ' + err.message });
+        });
+
+        reqTg.write(postData);
+        reqTg.end();
         return;
       }
 
@@ -271,10 +398,22 @@ const server = http.createServer(async (req, res) => {
   const safePath = path.normalize(pathname).replace(/^(\.\.[\/\\])+/, '');
   const filePath = path.join(PUBLIC_DIR, safePath);
 
-  // Security check: ensure filePath is inside PUBLIC_DIR
+  // Security check 1: ensure filePath is inside PUBLIC_DIR
   if (!filePath.startsWith(PUBLIC_DIR)) {
     res.writeHead(403, { 'Content-Type': 'text/plain' });
     res.end('403 Forbidden');
+    return;
+  }
+
+  // Security check 2: Prevent source code, environment, and database file exposure (Item 1.1)
+  const baseName = path.basename(filePath);
+  const ext = path.extname(filePath).toLowerCase();
+  const BLOCKED_EXTENSIONS = ['.db', '.db-shm', '.db-wal', '.env', '.log', '.bat', '.py', '.pyc', '.sql'];
+  const BLOCKED_FILES = ['server.js', 'database.js', 'package.json', 'package-lock.json', '.gitignore', 'dev_station_console.py'];
+
+  if (baseName.startsWith('.') || BLOCKED_EXTENSIONS.includes(ext) || BLOCKED_FILES.includes(baseName)) {
+    res.writeHead(403, { 'Content-Type': 'text/plain; charset=utf-8' });
+    res.end('403 Forbidden: Direct access to system configuration, database, or server source files is restricted.');
     return;
   }
 

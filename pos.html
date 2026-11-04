@@ -370,24 +370,41 @@
               </div>
             </div>
 
-            <!-- Group 2: Product & Quantity Stepper Card -->
-            <div class="order-selected-item-card">
-              <div class="selected-item-row">
-                <img src="assets/water_jug.png" alt="Carboy" class="selected-item-img">
-                <div class="selected-item-details">
-                  <h5 id="orderItemTitle">1 Gallon Purified Refill</h5>
-                  <span class="selected-item-rate" id="orderItemRate">₱35.00 / gallon</span>
+            <!-- Group 2: Order Cart Items List (Single & Multi-Item Support) -->
+            <div class="order-selected-item-card" id="orderCartCard">
+              <div class="cart-items-container" id="cartItemsContainer">
+                <div class="selected-item-row">
+                  <img src="assets/water_jug.png" alt="Carboy" class="selected-item-img">
+                  <div class="selected-item-details">
+                    <h5 id="orderItemTitle">1 Gallon Purified Refill</h5>
+                    <span class="selected-item-rate" id="orderItemRate">₱35.00 / gallon</span>
+                  </div>
+                </div>
+
+                <!-- Stepper Control -->
+                <div class="quantity-stepper-row">
+                  <button type="button" class="btn-stepper" id="btnStepperMinus" title="Subtract 1 gallon">−</button>
+                  <div class="stepper-center-box">
+                    <span class="stepper-qty-num" id="orderItemQtyText">1</span>
+                    <span class="stepper-unit-lbl">Gallons</span>
+                  </div>
+                  <button type="button" class="btn-stepper" id="btnStepperPlus" title="Add 1 gallon">+</button>
                 </div>
               </div>
 
-              <!-- Stepper Control -->
-              <div class="quantity-stepper-row">
-                <button class="btn-stepper" id="btnStepperMinus" title="Subtract 1 gallon">−</button>
-                <div class="stepper-center-box">
-                  <span class="stepper-qty-num" id="orderItemQtyText">1</span>
-                  <span class="stepper-unit-lbl">Gallons</span>
+              <!-- Multi-Item Quick Add Bar (Item 3: MULTIPLE ITEMS PER SALE) -->
+              <div class="cart-quick-add-bar">
+                <span class="quick-add-label">+ Add Product:</span>
+                <div class="quick-add-buttons">
+                  <button type="button" class="btn-quick-add-pill" id="btnAddCartRefill" title="Add 1-Gallon Refill to this order">
+                    <span class="pill-plus">+</span>
+                    <span>Refill (₱35)</span>
+                  </button>
+                  <button type="button" class="btn-quick-add-pill" id="btnAddCartNewJug" title="Add New Jug + Water to this order">
+                    <span class="pill-plus">+</span>
+                    <span>New Jug (₱250)</span>
+                  </button>
                 </div>
-                <button class="btn-stepper" id="btnStepperPlus" title="Add 1 gallon">+</button>
               </div>
             </div>
 
@@ -1987,6 +2004,31 @@
                       <svg class="ui-icon-xs" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
                       <span>Clear All Orders</span>
                     </button>
+                  </div>
+
+                  <div class="data-tool-action telegram-eod-box" style="margin-top: 14px; padding-top: 14px; border-top: 1px dashed var(--border-subtle); display: block;">
+                    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px;">
+                      <div>
+                        <strong style="display: flex; align-items: center; gap: 6px; color: var(--color-primary);">
+                          <svg class="ui-icon-xs" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z"></path></svg>
+                          Daily Dispatch &amp; Owner Report (Telegram / SMS)
+                        </strong>
+                        <p style="margin: 2px 0 0 0;">Automatically dispatch daily sales, cash in drawer, and volume summaries</p>
+                      </div>
+                      <button type="button" class="btn-sub-action" id="btnSendEodTelegramNow" style="background: var(--color-primary); color: #fff; border: none; font-weight: 700;">
+                        <span>Send EOD Now</span>
+                      </button>
+                    </div>
+                    <div class="setting-row-2col" style="margin-top: 10px;">
+                      <div class="setting-field">
+                        <label for="settingTelegramBotToken">Telegram Bot Token</label>
+                        <input type="password" id="settingTelegramBotToken" class="setting-input" placeholder="e.g. 123456789:ABCdefGHIjk..." autocomplete="off">
+                      </div>
+                      <div class="setting-field">
+                        <label for="settingTelegramChatId">Owner Telegram Chat ID</label>
+                        <input type="text" id="settingTelegramChatId" class="setting-input" placeholder="e.g. 987654321">
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>

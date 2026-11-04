@@ -4,12 +4,40 @@
 // ==========================================================================
 
 const { DatabaseSync } = require('node:sqlite');
+const crypto = require('node:crypto');
 const path = require('path');
 const fs = require('fs');
 
 const DB_PATH = path.join(__dirname, 'rr_water.db');
 
+const PIN_SALT = process.env.PIN_SALT || 'rr_water_refilling_pos_salt_2026';
+
+function hashPin(pin) {
+  if (!pin) return '';
+  const pinStr = String(pin).trim();
+  if (/^[a-f0-9]{64}$/i.test(pinStr)) return pinStr;
+  return crypto.createHash('sha256').update(pinStr + PIN_SALT).digest('hex');
+}
+
+function verifyPin(candidate, storedHash) {
+  if (!candidate || !storedHash) return false;
+  const candStr = String(candidate).trim();
+  const storedStr = String(storedHash).trim();
+  // Support legacy unhashed PINs for seamless backward-compatibility & auto-upgrade
+  if (candStr === storedStr) return true;
+  return hashPin(candStr) === storedStr;
+}
+
+
 class StationDatabase {
+  hashPin(pin) {
+    return hashPin(pin);
+  }
+
+  verifyPin(candidate, storedHash) {
+    return verifyPin(candidate, storedHash);
+  }
+
   constructor() {
     this.db = new DatabaseSync(DB_PATH);
     // Enable Write-Ahead Logging (WAL) for high concurrency & instant durability
@@ -101,6 +129,7 @@ class StationDatabase {
         notes TEXT
       );
 
+
       -- Consumables Inventory (Caps, Seal Wraps, Filters)
       CREATE TABLE IF NOT EXISTS inventory (
         key TEXT PRIMARY KEY,
@@ -109,6 +138,38 @@ class StationDatabase {
         unit TEXT NOT NULL,
         reorder_level INTEGER NOT NULL,
         updated_at INTEGER
+      );
+
+      -- Operational Expenses Ledger (Item 2.3)
+      CREATE TABLE IF NOT EXISTS expenses (
+        id TEXT PRIMARY KEY,
+        timestamp INTEGER NOT NULL,
+        time_str TEXT,
+        amount REAL NOT NULL,
+        category TEXT NOT NULL,
+        category_label TEXT,
+        source TEXT NOT NULL,
+        note TEXT,
+        cashier_name TEXT,
+        created_at INTEGER
+      );
+
+      -- Multicab Driver Settlements & Remittances (Item 2.3)
+      CREATE TABLE IF NOT EXISTS driver_settlements (
+        id TEXT PRIMARY KEY,
+        timestamp INTEGER NOT NULL,
+        time_str TEXT,
+        driver_name TEXT NOT NULL,
+        vehicle TEXT,
+        bottles_loaded INTEGER DEFAULT 0,
+        bottles_sold INTEGER DEFAULT 0,
+        bottles_returned INTEGER DEFAULT 0,
+        cash_remitted REAL DEFAULT 0,
+        cash_expected REAL DEFAULT 0,
+        shortage_excess REAL DEFAULT 0,
+        note TEXT,
+        cashier_name TEXT,
+        created_at INTEGER
       );
 
       -- Security & Operational Audit Trail
@@ -129,12 +190,123 @@ class StationDatabase {
       CREATE INDEX IF NOT EXISTS idx_orders_channel ON orders(channel);
       CREATE INDEX IF NOT EXISTS idx_customers_name ON customers(name);
       CREATE INDEX IF NOT EXISTS idx_audit_timestamp ON audit_logs(timestamp);
+      CREATE INDEX IF NOT EXISTS idx_expenses_timestamp ON expenses(timestamp);
+      CREATE INDEX IF NOT EXISTS idx_settlements_timestamp ON driver_settlements(timestamp);
     `);
   }
 
   seedDefaults() {
     // Production Deployment: Initialized to Absolute Zero.
     // No mock staff, inventory, or customers seeded.
+  }
+
+
+  // --- MANAGER PIN VERIFICATION (Items 1.2 & 1.3) ---
+  verifyManagerPin(candidatePin) {
+    if (!candidatePin) return false;
+    const pinStr = String(candidatePin).trim();
+    // 1. Look up manager from staff table
+    try {
+      const mgr = this.db.prepare("SELECT pin FROM staff WHERE role = 'manager' LIMIT 1").get();
+      if (mgr && mgr.pin) {
+        return verifyPin(pinStr, mgr.pin);
+      }
+      // 2. Check settings table if manager_pin was saved
+      const settingPin = this.db.prepare("SELECT value FROM settings WHERE key = 'manager_pin'").get();
+      if (settingPin && settingPin.value) {
+        return verifyPin(pinStr, settingPin.value);
+      }
+      // 3. Fallback: If DB is in Zero State (fresh deployment), any 4-digit PIN authorizes initial manager setup
+      const staffCount = this.db.prepare("SELECT COUNT(*) as count FROM staff").get().count;
+      if (staffCount === 0) {
+        return /^\d{4}$/.test(pinStr);
+      }
+    } catch (e) {
+      console.error('[verifyManagerPin error]', e);
+    }
+    return false;
+  }
+
+  // --- EXPENSES API (Item 2.3) ---
+  getExpenses(filters = {}) {
+    let sql = 'SELECT * FROM expenses WHERE 1=1';
+    const params = [];
+    if (filters.dateFrom) {
+      sql += ' AND timestamp >= ?';
+      params.push(Number(filters.dateFrom));
+    }
+    if (filters.dateTo) {
+      sql += ' AND timestamp <= ?';
+      params.push(Number(filters.dateTo));
+    }
+    sql += ' ORDER BY timestamp DESC';
+    if (filters.limit) {
+      sql += ' LIMIT ?';
+      params.push(Number(filters.limit));
+    }
+    return this.db.prepare(sql).all(...params);
+  }
+
+  addExpense(data) {
+    const now = Date.now();
+    const id = data.id || ('exp_' + now + '_' + Math.random().toString(36).substr(2, 4));
+    const stmt = this.db.prepare(`
+      INSERT INTO expenses (id, timestamp, time_str, amount, category, category_label, source, note, cashier_name, created_at)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    `);
+    stmt.run(
+      id,
+      data.timestamp || now,
+      data.time || data.time_str || new Date(now).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+      Number(data.amount) || 0,
+      data.category || 'other',
+      data.categoryLabel || data.category_label || 'General Expense',
+      data.source || 'drawer',
+      data.note || '',
+      data.cashierName || data.cashier_name || 'Neil',
+      now
+    );
+    return this.db.prepare('SELECT * FROM expenses WHERE id = ?').get(id);
+  }
+
+  // --- DRIVER SETTLEMENTS API (Item 2.3) ---
+  getDriverSettlements(filters = {}) {
+    let sql = 'SELECT * FROM driver_settlements ORDER BY timestamp DESC';
+    const params = [];
+    if (filters.limit) {
+      sql += ' LIMIT ?';
+      params.push(Number(filters.limit));
+    }
+    return this.db.prepare(sql).all(...params);
+  }
+
+  addDriverSettlement(data) {
+    const now = Date.now();
+    const id = data.id || ('stl_' + now + '_' + Math.random().toString(36).substr(2, 4));
+    const stmt = this.db.prepare(`
+      INSERT INTO driver_settlements (
+        id, timestamp, time_str, driver_name, vehicle,
+        bottles_loaded, bottles_sold, bottles_returned,
+        cash_remitted, cash_expected, shortage_excess, note, cashier_name, created_at
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    `);
+    stmt.run(
+      id,
+      data.timestamp || now,
+      data.time || data.time_str || new Date(now).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+      data.driverName || data.driver_name || 'Kuya Jun',
+      data.vehicle || 'Multicab #1',
+      Number(data.bottlesLoaded || data.bottles_loaded) || 0,
+      Number(data.bottlesSold || data.bottles_sold) || 0,
+      Number(data.bottlesReturned || data.bottles_returned) || 0,
+      Number(data.cashRemitted || data.cash_remitted) || 0,
+      Number(data.cashExpected || data.cash_expected) || 0,
+      Number(data.shortageExcess || data.shortage_excess) || 0,
+      data.note || '',
+      data.cashierName || data.cashier_name || 'Neil',
+      now
+    );
+    return this.db.prepare('SELECT * FROM driver_settlements WHERE id = ?').get(id);
   }
 
   // --- ORDERS API ---
@@ -403,12 +575,65 @@ class StationDatabase {
       }
     }
 
-    // 2. Sync staff if custom pins set
+    // 2. Sync staff if custom pins set (securely hashed with salt - Item 1.3)
     if (Array.isArray(payload.staff)) {
-      const updatePin = this.db.prepare('UPDATE staff SET pin = ?, title = ? WHERE id = ?');
+      const updateStaff = this.db.prepare(`
+        INSERT INTO staff (id, name, role, title, pin, avatar_color, created_at)
+        VALUES (?, ?, ?, ?, ?, ?, ?)
+        ON CONFLICT(id) DO UPDATE SET
+          name = excluded.name,
+          role = excluded.role,
+          title = excluded.title,
+          pin = excluded.pin
+      `);
       for (const s of payload.staff) {
-        if (s.id && s.pin) {
-          updatePin.run(s.pin, s.title || s.role, s.id);
+        if (s.id) {
+          const hashed = hashPin(s.pin || '0000');
+          updateStaff.run(
+            s.id, s.name || 'Staff', s.role || 'cashier', s.title || s.role,
+            hashed, s.avatarColor || '#0284c7', now
+          );
+        }
+      }
+    }
+
+    // 2.1 Sync expenses (Item 2.3)
+    if (Array.isArray(payload.expenses)) {
+      const existingExp = new Set(this.db.prepare('SELECT id FROM expenses').all().map(e => e.id));
+      const insertExp = this.db.prepare(`
+        INSERT OR IGNORE INTO expenses (id, timestamp, time_str, amount, category, category_label, source, note, cashier_name, created_at)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      `);
+      for (const exp of payload.expenses) {
+        if (!existingExp.has(exp.id)) {
+          insertExp.run(
+            exp.id, exp.timestamp || now, exp.time || '', Number(exp.amount) || 0,
+            exp.category || 'other', exp.categoryLabel || 'General Expense',
+            exp.source || 'drawer', exp.note || '', exp.cashierName || 'Neil', now
+          );
+        }
+      }
+    }
+
+    // 2.2 Sync driver settlements (Item 2.3)
+    if (Array.isArray(payload.driverSettlements)) {
+      const existingStl = new Set(this.db.prepare('SELECT id FROM driver_settlements').all().map(s => s.id));
+      const insertStl = this.db.prepare(`
+        INSERT OR IGNORE INTO driver_settlements (
+          id, timestamp, time_str, driver_name, vehicle,
+          bottles_loaded, bottles_sold, bottles_returned,
+          cash_remitted, cash_expected, shortage_excess, note, cashier_name, created_at
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      `);
+      for (const stl of payload.driverSettlements) {
+        if (!existingStl.has(stl.id)) {
+          insertStl.run(
+            stl.id, stl.timestamp || now, stl.time || '',
+            stl.driverName || 'Kuya Jun', stl.vehicle || 'Multicab #1',
+            Number(stl.bottlesLoaded) || 0, Number(stl.bottlesSold) || 0, Number(stl.bottlesReturned) || 0,
+            Number(stl.cashRemitted) || 0, Number(stl.cashExpected) || 0, Number(stl.shortageExcess) || 0,
+            stl.note || '', stl.cashierName || 'Neil', now
+          );
         }
       }
     }
