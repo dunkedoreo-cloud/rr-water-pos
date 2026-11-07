@@ -6,6 +6,15 @@
 //           Droppy Mascot, Light/Dark Modes
 // ==========================================================================
 
+// Early trap: guarantee native browser alert is always diverted to Droppy character modal
+if (typeof window !== 'undefined') {
+  window.alert = function(msg) {
+    if (typeof showStationAlert === 'function') {
+      showStationAlert('Station Notice', String(msg), 'assets/droppy_question.png');
+    }
+  };
+}
+
 // --- PRODUCTS CONFIGURATION (Gallon is the Hero & Only Station Container) ---
 const PRODUCTS = {
   purified: {
@@ -648,6 +657,7 @@ document.addEventListener('DOMContentLoaded', () => {
   initWizardDroppyCompanion();
   initStationAlertEvents();
   initAndroidBackButtonHandling();
+  initStationTutorialEvents();
   StationDB.init();
   StationRealtimeSync.init();
 
@@ -2578,7 +2588,27 @@ function renderOrderSummary() {
 //       the orders, it displays how many gallons, what was the time,
 //       just randomize the order number."
 // ==========================================================================
+let isSubmittingPayment = false;
+
 function processPaymentAndStoreOrder() {
+  if (isSubmittingPayment) return;
+  isSubmittingPayment = true;
+  const btnPay = document.getElementById('btnSubmitPayment');
+  if (btnPay) {
+    btnPay.disabled = true;
+    btnPay.style.opacity = '0.6';
+    btnPay.style.pointerEvents = 'none';
+  }
+  setTimeout(() => {
+    isSubmittingPayment = false;
+    const b = document.getElementById('btnSubmitPayment');
+    if (b) {
+      b.disabled = false;
+      b.style.opacity = '';
+      b.style.pointerEvents = '';
+    }
+  }, 600);
+
   const prod = PRODUCTS[State.prodKey] || PRODUCTS.purified;
   const total = calculateTotal();
   const now = new Date();
@@ -9360,7 +9390,7 @@ const StationRealtimeSync = {
         if (typeof payload.paid_amount === 'number') target.paidAmount = payload.paid_amount;
         if (typeof payload.unpaid_amount === 'number') target.unpaidAmount = payload.unpaid_amount;
         saveOrders();
-        renderAll();
+        this.scheduleRender();
       }
     } else if (type === 'ORDER_VOIDED') {
       const orderNo = payload.orderNo || payload.order_no;
@@ -9370,7 +9400,7 @@ const StationRealtimeSync = {
         target.isVoided = true;
         target.voidReason = payload.reason || 'Manager Override';
         saveOrders();
-        renderAll();
+        this.scheduleRender();
         if (typeof showToast === 'function') {
           showToast(`⚡ Order ${orderNo} voided on another terminal`);
         }
@@ -9501,6 +9531,23 @@ const StationRealtimeSync = {
     saveOrders();
   },
 
+  _renderPending: false,
+  scheduleRender() {
+    if (this._renderPending) return;
+    this._renderPending = true;
+    if (typeof requestAnimationFrame === 'function') {
+      requestAnimationFrame(() => {
+        this._renderPending = false;
+        renderAll();
+      });
+    } else {
+      setTimeout(() => {
+        this._renderPending = false;
+        renderAll();
+      }, 16);
+    }
+  },
+
   mergeIncomingExpense(rawExp) {
     const id = rawExp.id;
     if (!id || State.expenses.some(e => e.id === id)) return;
@@ -9517,7 +9564,7 @@ const StationRealtimeSync = {
     };
     State.expenses.unshift(expObj);
     saveExpenses();
-    renderAll();
+    this.scheduleRender();
   },
 
   mergeIncomingSettlement(rawStl) {
@@ -9525,7 +9572,7 @@ const StationRealtimeSync = {
     if (!id || State.driverSettlements.some(s => s.id === id)) return;
     State.driverSettlements.unshift(rawStl);
     saveDriverSettlements();
-    renderAll();
+    this.scheduleRender();
   },
 
   broadcastSettings(settings) {
@@ -9536,10 +9583,14 @@ const StationRealtimeSync = {
     }
 
     if (this.isNodeHost) {
+      const pin = settings.managerPin || State.settings?.managerPin || (typeof getCurrentUser === 'function' && getCurrentUser() && getCurrentUser().role === 'manager' ? getCurrentUser().pin : '') || '';
       fetch('/api/settings', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(settings)
+        headers: {
+          'Content-Type': 'application/json',
+          'x-manager-pin': String(pin)
+        },
+        body: JSON.stringify({ ...settings, managerPin: pin })
       }).catch(() => {});
     }
   },
@@ -11353,4 +11404,253 @@ if (typeof window !== 'undefined') {
   window.alert = function(msg) {
     showStationAlert('Station Notice', msg, 'assets/droppy_question.png');
   };
+}
+
+// ==========================================================================
+// INTERACTIVE ONBOARDING TUTORIAL CONTROLLER (Step-by-Step Character Guide)
+// ==========================================================================
+const StationTutorial = {
+  currentStep: 1,
+  totalSteps: 5,
+  steps: [
+    {
+      targetId: 'prodPurified',
+      fallbackSelector: '.product-selection-grid',
+      title: 'Choose Product Type',
+      desc: 'Tap here to select 5-Gallon Purified Refill (₱35) or a Brand-New Jug with Water (₱250). You can also add both to a multi-item cart!',
+      avatar: 'assets/droppy_winking.png',
+      badge: 'Step 1 of 5'
+    },
+    {
+      targetId: 'presetPillsContainer',
+      fallbackSelector: '.keypad-keys-grid',
+      title: 'Gallon Presets & Numpad',
+      desc: 'Quickly tap 1, 5, 10, or 20 gallons, or type any custom quantity using the numeric keypad for bulk orders.',
+      avatar: 'assets/droppy_happy.png',
+      badge: 'Step 2 of 5'
+    },
+    {
+      targetId: 'channelWalkinBtn',
+      fallbackSelector: '.channel-toggle-group',
+      title: 'Walk-In vs Delivery',
+      desc: 'Choose "Walk-In" for over-the-counter customers, or switch to "Delivery" to assign multicabs and track driver carboys.',
+      avatar: 'assets/droppy_question.png',
+      badge: 'Step 3 of 5'
+    },
+    {
+      targetId: 'modePaidBtn',
+      fallbackSelector: '.pay-mode-toggle-group',
+      title: 'Paid vs Unpaid (Utang)',
+      desc: 'Keep "Paid" for instant cash or GCash payments, or toggle to "Unpaid" for delivery accounts settled upon driver return.',
+      avatar: 'assets/droppy_love.png',
+      badge: 'Step 4 of 5'
+    },
+    {
+      targetId: 'btnSubmitPayment',
+      fallbackSelector: '#btnSubmitPayment',
+      title: 'Record & Complete Sale',
+      desc: 'Hit "Record & Print Receipt" (or press Enter on your keyboard) to finish! Real-time sales and tank inventory update instantly.',
+      avatar: 'assets/droppy_happy.png',
+      badge: 'Step 5 of 5'
+    }
+  ],
+
+  start(step = 1) {
+    if (typeof switchView === 'function') switchView('pos');
+    this.currentStep = step;
+    const overlay = document.getElementById('stationTutorialOverlay');
+    if (!overlay) return;
+
+    soundCtrl.playTap();
+    overlay.style.display = 'block';
+    void overlay.offsetWidth;
+    overlay.classList.add('show');
+
+    this.renderStep(this.currentStep);
+    window.addEventListener('resize', this._boundReposition = () => this.reposition());
+    window.addEventListener('scroll', this._boundReposition = () => this.reposition(), true);
+  },
+
+  renderStep(stepIndex) {
+    this.currentStep = Math.max(1, Math.min(stepIndex, this.totalSteps));
+    const stepData = this.steps[this.currentStep - 1];
+    if (!stepData) return;
+
+    const badgeEl = document.getElementById('tutorialStepBadge');
+    const titleEl = document.getElementById('tutorialStepTitle');
+    const descEl = document.getElementById('tutorialStepDesc');
+    const imgEl = document.getElementById('tutorialDroppyImg');
+    const backBtn = document.getElementById('btnTutorialBack');
+    const nextBtn = document.getElementById('btnTutorialNext');
+    const dots = document.querySelectorAll('.tutorial-dot');
+
+    if (badgeEl) badgeEl.textContent = stepData.badge;
+    if (titleEl) titleEl.textContent = stepData.title;
+    if (descEl) descEl.textContent = stepData.desc;
+    if (imgEl) {
+      imgEl.src = stepData.avatar;
+      imgEl.classList.remove('droppy-pop-anim');
+      void imgEl.offsetWidth;
+      imgEl.classList.add('droppy-pop-anim');
+    }
+
+    if (backBtn) {
+      backBtn.style.display = this.currentStep > 1 ? 'inline-block' : 'none';
+    }
+
+    if (nextBtn) {
+      nextBtn.innerHTML = this.currentStep === this.totalSteps
+        ? '<span>Let\'s Dispense! 💧</span>'
+        : '<span>Next →</span>';
+    }
+
+    dots.forEach((dot, idx) => {
+      dot.classList.toggle('active', idx === (this.currentStep - 1));
+    });
+
+    this.reposition();
+  },
+
+  reposition() {
+    const overlay = document.getElementById('stationTutorialOverlay');
+    if (!overlay || overlay.style.display === 'none') return;
+
+    const stepData = this.steps[this.currentStep - 1];
+    if (!stepData) return;
+
+    let target = document.getElementById(stepData.targetId);
+    if (!target && stepData.fallbackSelector) {
+      target = document.querySelector(stepData.fallbackSelector);
+    }
+
+    const spotlight = document.getElementById('tutorialSpotlight');
+    const card = document.getElementById('tutorialCard');
+    if (!spotlight || !card) return;
+
+    if (!target) {
+      spotlight.style.top = '50%';
+      spotlight.style.left = '50%';
+      spotlight.style.width = '240px';
+      spotlight.style.height = '140px';
+      spotlight.style.transform = 'translate(-50%, -50%)';
+      return;
+    }
+
+    spotlight.style.transform = '';
+    const rect = target.getBoundingClientRect();
+    const pad = 8;
+    const top = Math.max(0, rect.top - pad + window.scrollY);
+    const left = Math.max(0, rect.left - pad + window.scrollX);
+    const width = rect.width + (pad * 2);
+    const height = rect.height + (pad * 2);
+
+    spotlight.style.top = top + 'px';
+    spotlight.style.left = left + 'px';
+    spotlight.style.width = width + 'px';
+    spotlight.style.height = height + 'px';
+
+    const cardWidth = card.offsetWidth || 340;
+    const cardHeight = card.offsetHeight || 220;
+    const vw = window.innerWidth;
+    const vh = window.innerHeight;
+
+    if (vw <= 640) return;
+
+    let cardLeft = rect.right + 20 + window.scrollX;
+    let cardTop = rect.top + window.scrollY;
+
+    if (cardLeft + cardWidth > vw - 20) {
+      if (rect.left - cardWidth - 20 > 20) {
+        cardLeft = rect.left - cardWidth - 20 + window.scrollX;
+      } else {
+        cardLeft = Math.max(20, Math.min(vw - cardWidth - 20, rect.left + window.scrollX));
+        cardTop = rect.bottom + 20 + window.scrollY;
+        if (cardTop + cardHeight > vh + window.scrollY - 20) {
+          cardTop = Math.max(20, rect.top - cardHeight - 20 + window.scrollY);
+        }
+      }
+    }
+
+    card.style.top = cardTop + 'px';
+    card.style.left = cardLeft + 'px';
+  },
+
+  next() {
+    soundCtrl.playTap();
+    if (this.currentStep < this.totalSteps) {
+      this.renderStep(this.currentStep + 1);
+    } else {
+      this.close();
+      showToast("🎉 You're ready to dispense! Tap Droppy anytime for help.");
+      soundCtrl.playSuccess();
+    }
+  },
+
+  prev() {
+    soundCtrl.playTap();
+    if (this.currentStep > 1) {
+      this.renderStep(this.currentStep - 1);
+    }
+  },
+
+  close() {
+    const overlay = document.getElementById('stationTutorialOverlay');
+    if (overlay) {
+      overlay.classList.remove('show');
+      setTimeout(() => {
+        overlay.style.display = 'none';
+      }, 200);
+    }
+    if (this._boundReposition) {
+      window.removeEventListener('resize', this._boundReposition);
+      window.removeEventListener('scroll', this._boundReposition, true);
+    }
+    try {
+      localStorage.setItem('rr_pos_tutorial_done', 'true');
+    } catch (e) {}
+  }
+};
+
+function initStationTutorialEvents() {
+  const btnStart = document.getElementById('btnStartStationTour');
+  if (btnStart) btnStart.addEventListener('click', () => StationTutorial.start(1));
+
+  const btnNext = document.getElementById('btnTutorialNext');
+  if (btnNext) btnNext.addEventListener('click', () => StationTutorial.next());
+
+  const btnBack = document.getElementById('btnTutorialBack');
+  if (btnBack) btnBack.addEventListener('click', () => StationTutorial.prev());
+
+  const btnSkip = document.getElementById('btnTutorialSkip');
+  if (btnSkip) btnSkip.addEventListener('click', () => StationTutorial.close());
+
+  const overlay = document.getElementById('stationTutorialOverlay');
+  if (overlay) {
+    overlay.addEventListener('click', (e) => {
+      if (e.target === overlay) StationTutorial.close();
+    });
+  }
+
+  // Keyboard navigation for tutorial
+  window.addEventListener('keydown', (e) => {
+    const ov = document.getElementById('stationTutorialOverlay');
+    if (ov && ov.classList.contains('show')) {
+      if (e.key === 'Escape') StationTutorial.close();
+      else if (e.key === 'ArrowRight' || e.key === 'Enter') StationTutorial.next();
+      else if (e.key === 'ArrowLeft') StationTutorial.prev();
+    }
+  });
+
+  // First time auto-launch
+  setTimeout(() => {
+    try {
+      if (!localStorage.getItem('rr_pos_tutorial_done')) {
+        const wizardModal = document.getElementById('stationSetupWizardModal');
+        const isWizardShowing = wizardModal && wizardModal.classList.contains('show');
+        if (!isWizardShowing) {
+          StationTutorial.start(1);
+        }
+      }
+    } catch (e) {}
+  }, 1400);
 }

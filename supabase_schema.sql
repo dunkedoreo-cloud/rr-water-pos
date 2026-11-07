@@ -94,24 +94,51 @@ DROP POLICY IF EXISTS "Public Station POS access for customers" ON public.custom
 DROP POLICY IF EXISTS "Public Station POS access for audit_logs" ON public.audit_logs;
 DROP POLICY IF EXISTS "Public Station POS access for station_settings" ON public.station_settings;
 
--- Create policies allowing station operations
-CREATE POLICY "Public Station POS access for orders"
-    ON public.orders FOR ALL
+-- Create hardened policies: allow read, insert, and update, but NEVER allow anonymous hard DELETE
+CREATE POLICY "Station POS select orders"
+    ON public.orders FOR SELECT
+    USING (true);
+
+CREATE POLICY "Station POS insert orders"
+    ON public.orders FOR INSERT
+    WITH CHECK (true);
+
+CREATE POLICY "Station POS update orders"
+    ON public.orders FOR UPDATE
     USING (true)
     WITH CHECK (true);
 
-CREATE POLICY "Public Station POS access for customers"
-    ON public.customers FOR ALL
+CREATE POLICY "Station POS select customers"
+    ON public.customers FOR SELECT
+    USING (true);
+
+CREATE POLICY "Station POS insert customers"
+    ON public.customers FOR INSERT
+    WITH CHECK (true);
+
+CREATE POLICY "Station POS update customers"
+    ON public.customers FOR UPDATE
     USING (true)
     WITH CHECK (true);
 
-CREATE POLICY "Public Station POS access for audit_logs"
-    ON public.audit_logs FOR ALL
-    USING (true)
+CREATE POLICY "Station POS select audit_logs"
+    ON public.audit_logs FOR SELECT
+    USING (true);
+
+CREATE POLICY "Station POS insert audit_logs"
+    ON public.audit_logs FOR INSERT
     WITH CHECK (true);
 
-CREATE POLICY "Public Station POS access for station_settings"
-    ON public.station_settings FOR ALL
+CREATE POLICY "Station POS select station_settings"
+    ON public.station_settings FOR SELECT
+    USING (true);
+
+CREATE POLICY "Station POS upsert station_settings"
+    ON public.station_settings FOR INSERT
+    WITH CHECK (true);
+
+CREATE POLICY "Station POS update station_settings"
+    ON public.station_settings FOR UPDATE
     USING (true)
     WITH CHECK (true);
 

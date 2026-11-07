@@ -10,6 +10,20 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700;800&display=swap" rel="stylesheet">
   <link rel="manifest" href="manifest.json">
   <meta name="theme-color" content="#0284c7">
+  <script>
+    // Early Alert Trap: Ensure no native browser alert can ever show; route to Droppy Character Alert
+    window.alert = function(msg) {
+      if (typeof showStationAlert === 'function') {
+        showStationAlert('Station Notice', String(msg), 'assets/droppy_question.png');
+      } else {
+        document.addEventListener('DOMContentLoaded', function() {
+          if (typeof showStationAlert === 'function') {
+            showStationAlert('Station Notice', String(msg), 'assets/droppy_question.png');
+          }
+        });
+      }
+    };
+  </script>
 </head>
 <body class="light-mode">
 
@@ -138,6 +152,15 @@
             <svg class="ui-icon" id="soundSvg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
               <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
               <path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"></path>
+            </svg>
+          </button>
+
+          <!-- POS Onboarding Guide / Tutorial Button -->
+          <button type="button" class="header-icon-btn" id="btnStartStationTour" title="Station POS Guide &amp; Interactive Tutorial" aria-label="Start POS Tutorial">
+            <svg class="ui-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="10"></circle>
+              <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path>
+              <line x1="12" y1="17" x2="12.01" y2="17"></line>
             </svg>
           </button>
 
@@ -2520,6 +2543,37 @@
       <div class="modal-button-row">
         <button type="button" class="btn-modal-cancel" id="btnModalCancel">Cancel</button>
         <button type="button" class="btn-modal-confirm" id="btnModalConfirm">Confirm</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Interactive POS Onboarding Tutorial Overlay -->
+  <div id="stationTutorialOverlay" class="station-tutorial-overlay" style="display: none;" aria-modal="true" role="dialog" aria-label="POS Interactive Tutorial">
+    <div id="tutorialSpotlight" class="tutorial-spotlight"></div>
+    <div id="tutorialCard" class="tutorial-card">
+      <div class="tutorial-card-header">
+        <div class="tutorial-droppy-avatar-box">
+          <img id="tutorialDroppyImg" src="assets/droppy_winking.png" alt="Droppy Guide" class="tutorial-droppy-img droppy-pop-anim">
+        </div>
+        <div class="tutorial-header-info">
+          <div class="tutorial-step-badge" id="tutorialStepBadge">Step 1 of 5</div>
+          <h4 class="tutorial-step-title" id="tutorialStepTitle">Choose Product</h4>
+        </div>
+        <button type="button" class="tutorial-close-btn" id="btnTutorialSkip" title="Skip Tutorial" aria-label="Skip Tutorial">×</button>
+      </div>
+      <p class="tutorial-step-desc" id="tutorialStepDesc">
+        Tap to refill existing 5-gallon jugs (₱35) or select brand-new containers with water (₱250).
+      </p>
+      <div class="tutorial-card-footer">
+        <button type="button" class="btn-tutorial-back" id="btnTutorialBack" style="display: none;">Back</button>
+        <div class="tutorial-dots" id="tutorialDots">
+          <span class="tutorial-dot active"></span>
+          <span class="tutorial-dot"></span>
+          <span class="tutorial-dot"></span>
+          <span class="tutorial-dot"></span>
+          <span class="tutorial-dot"></span>
+        </div>
+        <button type="button" class="btn-tutorial-next" id="btnTutorialNext">Next →</button>
       </div>
     </div>
   </div>

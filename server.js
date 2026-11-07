@@ -149,7 +149,17 @@ const server = http.createServer(async (req, res) => {
         }
         if (req.method === 'POST') {
           const body = await readJsonBody(req);
+          const pin = req.headers['x-manager-pin'] || body.managerPin || '';
+          if (!db.verifyManagerPin(pin)) {
+            return sendJson(res, 401, { error: 'Unauthorized: Valid Manager 4-Digit Security PIN required to update station settings.' });
+          }
           const saved = db.saveAllSettings(body);
+          db.logAuditEvent(
+            'SETTINGS_UPDATED',
+            'Station pricing and configuration updated',
+            body.managerName || 'Manager',
+            'manager'
+          );
           broadcastEvent('SETTINGS_UPDATED', saved);
           return sendJson(res, 200, { success: true, settings: saved });
         }
@@ -218,12 +228,15 @@ const server = http.createServer(async (req, res) => {
 
       // 3. Collect Order Payment
       const payMatch = pathname.match(/^\/api\/orders\/([^\/]+)\/pay$/);
-      if (payMatch && req.method === 'PATCH') {
+      if (payMatch && (req.method === 'PATCH' || req.method === 'POST')) {
         const orderNo = decodeURIComponent(payMatch[1]);
         const body = await readJsonBody(req);
-        const order = db.collectPayment(orderNo, body.paidAmount);
+        const amount = body.paidAmount !== undefined ? body.paidAmount : body.amount;
+        const order = db.collectPayment(orderNo, amount);
         if (!order) return sendJson(res, 404, { error: 'Order not found' });
-        db.logAuditEvent('PAYMENT_COLLECTED', `Collected ₱${order.total.toFixed(2)} for ${orderNo}`, body.userName || 'Sarah', body.userRole || 'cashier');
+        const cashierName = body.userName || body.cashierName || 'Cashier';
+        const cashierRole = body.userRole || 'cashier';
+        db.logAuditEvent('PAYMENT_COLLECTED', `Collected ₱${order.total.toFixed(2)} for ${orderNo}`, cashierName, cashierRole);
         broadcastEvent('ORDER_UPDATED', order);
         return sendJson(res, 200, { success: true, order });
       }

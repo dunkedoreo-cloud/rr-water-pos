@@ -44,6 +44,7 @@ class StationDatabase {
     this.db.exec('PRAGMA journal_mode = WAL;');
     this.db.exec('PRAGMA synchronous = NORMAL;');
     this.db.exec('PRAGMA foreign_keys = ON;');
+    this.db.exec('PRAGMA busy_timeout = 5000;');
     this.initTables();
     this.seedDefaults();
   }
@@ -426,57 +427,65 @@ class StationDatabase {
     const loaned = Number(orderData.carboysLoaned) || 0;
     const returned = Number(orderData.carboysReturned) || 0;
 
-    const stmt = this.db.prepare(`
-      INSERT INTO orders (
-        id, order_no, timestamp, date_str, channel, prod_key, prod_name,
-        gallons, unit_price, total, paid_amount, status, cashier_name,
-        cashier_role, driver_id, driver_name, customer_name, customer_id,
-        carboys_loaned, carboys_returned, tendered, change_amount, note, created_at
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-    `);
+    this.db.exec('BEGIN IMMEDIATE;');
+    try {
+      const stmt = this.db.prepare(`
+        INSERT INTO orders (
+          id, order_no, timestamp, date_str, channel, prod_key, prod_name,
+          gallons, unit_price, total, paid_amount, status, cashier_name,
+          cashier_role, driver_id, driver_name, customer_name, customer_id,
+          carboys_loaned, carboys_returned, tendered, change_amount, note, created_at
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      `);
 
-    stmt.run(
-      id,
-      orderNo,
-      orderData.timestamp || now,
-      orderData.time || new Date(now).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-      orderData.channel || 'walkin',
-      orderData.prodKey || 'refill_5gal',
-      orderData.prodName || '5-Gallon Purified Refill',
-      gallons,
-      unitPrice,
-      total,
-      paidAmount,
-      status,
-      orderData.cashierName || 'Neil',
-      orderData.cashierRole || 'manager',
-      orderData.driverId || null,
-      orderData.driverName || (orderData.channel === 'delivery' ? 'Kuya Jun' : null),
-      orderData.customerName || (orderData.note || 'Walk-in Refill Customer'),
-      orderData.customerId || null,
-      loaned,
-      returned,
-      Number(orderData.tendered) || paidAmount,
-      Number(orderData.changeAmount) || Number(orderData.change) || 0,
-      orderData.note || '',
-      now
-    );
+      stmt.run(
+        id,
+        orderNo,
+        orderData.timestamp || now,
+        orderData.time || new Date(now).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+        orderData.channel || 'walkin',
+        orderData.prodKey || 'refill_5gal',
+        orderData.prodName || '5-Gallon Purified Refill',
+        gallons,
+        unitPrice,
+        total,
+        paidAmount,
+        status,
+        orderData.cashierName || 'Neil',
+        orderData.cashierRole || 'manager',
+        orderData.driverId || null,
+        orderData.driverName || (orderData.channel === 'delivery' ? 'Kuya Jun' : null),
+        orderData.customerName || (orderData.note || 'Walk-in Refill Customer'),
+        orderData.customerId || null,
+        loaned,
+        returned,
+        Number(orderData.tendered) || paidAmount,
+        Number(orderData.changeAmount) || Number(orderData.change) || 0,
+        orderData.note || '',
+        now
+      );
 
-    // Auto-deplete consumables inventory (1 cap seal per refill)
-    this.db.prepare(`
-      UPDATE inventory
-      SET current_stock = MAX(0, current_stock - ?), updated_at = ?
-      WHERE key = 'cap_seals'
-    `).run(gallons, now);
-
-    // Update customer carboy balance if customer_id is provided
-    if (orderData.customerId && (loaned > 0 || returned > 0)) {
-      const netChange = loaned - returned;
+      // Auto-deplete consumables inventory (1 cap seal per refill)
       this.db.prepare(`
-        UPDATE customers
-        SET carboy_balance = MAX(0, carboy_balance + ?), updated_at = ?
-        WHERE id = ?
-      `).run(netChange, now, orderData.customerId);
+        UPDATE inventory
+        SET current_stock = MAX(0, current_stock - ?), updated_at = ?
+        WHERE key = 'cap_seals'
+      `).run(gallons, now);
+
+      // Update customer carboy balance if customer_id is provided
+      if (orderData.customerId && (loaned > 0 || returned > 0)) {
+        const netChange = loaned - returned;
+        this.db.prepare(`
+          UPDATE customers
+          SET carboy_balance = MAX(0, carboy_balance + ?), updated_at = ?
+          WHERE id = ?
+        `).run(netChange, now, orderData.customerId);
+      }
+
+      this.db.exec('COMMIT;');
+    } catch (err) {
+      try { this.db.exec('ROLLBACK;'); } catch (rbErr) {}
+      throw err;
     }
 
     return this.db.prepare('SELECT * FROM orders WHERE id = ?').get(id);
@@ -500,37 +509,45 @@ class StationDatabase {
     const order = this.db.prepare('SELECT * FROM orders WHERE order_no = ?').get(orderNo);
     if (!order) return null;
 
-    this.db.prepare(`
-      UPDATE orders
-      SET is_voided = 1, void_reason = ?, voided_by = ?
-      WHERE order_no = ?
-    `).run(reason || 'Manager Override', managerName || 'Neil', orderNo);
-
-    // Restore inventory
-    this.db.prepare(`
-      UPDATE inventory
-      SET current_stock = current_stock + ?, updated_at = ?
-      WHERE key = 'cap_seals'
-    `).run(order.gallons, Date.now());
-
-    // Revert carboys if linked to customer
-    if (order.customer_id && (order.carboys_loaned > 0 || order.carboys_returned > 0)) {
-      const netChange = order.carboys_loaned - order.carboys_returned;
+    this.db.exec('BEGIN IMMEDIATE;');
+    try {
       this.db.prepare(`
-        UPDATE customers
-        SET carboy_balance = MAX(0, carboy_balance - ?), updated_at = ?
-        WHERE id = ?
-      `).run(netChange, Date.now(), order.customer_id);
-    }
+        UPDATE orders
+        SET is_voided = 1, void_reason = ?, voided_by = ?
+        WHERE order_no = ?
+      `).run(reason || 'Manager Override', managerName || 'Neil', orderNo);
 
-    // Log to audit table
-    this.logAuditEvent(
-      'VOID_ORDER',
-      `Cancelled ${orderNo} (${order.gallons} Gal • ₱${order.total.toFixed(2)}). Reason: ${reason}`,
-      order.cashier_name || 'Cashier',
-      order.cashier_role || 'cashier',
-      managerName
-    );
+      // Restore inventory
+      this.db.prepare(`
+        UPDATE inventory
+        SET current_stock = current_stock + ?, updated_at = ?
+        WHERE key = 'cap_seals'
+      `).run(order.gallons, Date.now());
+
+      // Revert carboys if linked to customer
+      if (order.customer_id && (order.carboys_loaned > 0 || order.carboys_returned > 0)) {
+        const netChange = order.carboys_loaned - order.carboys_returned;
+        this.db.prepare(`
+          UPDATE customers
+          SET carboy_balance = MAX(0, carboy_balance - ?), updated_at = ?
+          WHERE id = ?
+        `).run(netChange, Date.now(), order.customer_id);
+      }
+
+      // Log to audit table
+      this.logAuditEvent(
+        'VOID_ORDER',
+        `Cancelled ${orderNo} (${order.gallons} Gal • ₱${order.total.toFixed(2)}). Reason: ${reason}`,
+        order.cashier_name || 'Cashier',
+        order.cashier_role || 'cashier',
+        managerName
+      );
+
+      this.db.exec('COMMIT;');
+    } catch (err) {
+      try { this.db.exec('ROLLBACK;'); } catch (rbErr) {}
+      throw err;
+    }
 
     return { success: true, voided: orderNo };
   }
