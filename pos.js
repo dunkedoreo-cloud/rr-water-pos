@@ -1142,11 +1142,10 @@ function renderPresets() {
     pill.addEventListener('click', () => {
       soundCtrl.playTap();
       const q = parseInt(pill.getAttribute('data-qty'), 10);
-      State.qty = q;
-      State.keypadBuffer = '';
+      State._isKeypadTyping = false;
+      setOrderQuantity(q);
       wrap.querySelectorAll('.preset-pill').forEach(p => p.classList.remove('active'));
       pill.classList.add('active');
-      renderOrderSummary();
     });
   });
 }
@@ -1339,32 +1338,7 @@ function bindEvents() {
   });
 
   // 5. Stepper Plus & Minus Buttons
-  const btnMinus = document.getElementById('btnStepperMinus');
-  const btnPlus = document.getElementById('btnStepperPlus');
-
-  if (btnMinus) {
-    btnMinus.addEventListener('click', () => {
-      soundCtrl.playTap();
-      setKeypadTarget('qty');
-      if (State.qty > 1) {
-        State.qty--;
-        State.keypadBuffer = '';
-        renderOrderSummary();
-        renderPresets();
-      }
-    });
-  }
-
-  if (btnPlus) {
-    btnPlus.addEventListener('click', () => {
-      soundCtrl.playTap();
-      setKeypadTarget('qty');
-      State.qty++;
-      State.keypadBuffer = '';
-      renderOrderSummary();
-      renderPresets();
-    });
-  }
+  bindSingleStepperEvents();
 
   const stepperCenter = document.querySelector('.stepper-center-box');
   if (stepperCenter) {
@@ -1386,7 +1360,7 @@ function bindEvents() {
       btnDelivery.classList.remove('active');
       if (delivOptions) delivOptions.style.display = 'none';
       if (walkinOptions) walkinOptions.style.display = 'block';
-      if (State.qty > 10) State.qty = 1;
+      if (State.qty > 10) setOrderQuantity(1);
       updateDroppyMessage("Walk-in Refill mode. Swapping carboys at station counter.", 'assets/droppy_winking.png', 'Walk-in Refills');
       renderPresets();
       renderOrderSummary();
@@ -1400,7 +1374,7 @@ function bindEvents() {
       btnWalkin.classList.remove('active');
       if (delivOptions) delivOptions.style.display = 'flex';
       if (walkinOptions) walkinOptions.style.display = 'none';
-      if (State.qty < 5) State.qty = 10; // Convenient batch start
+      if (State.qty < 5) setOrderQuantity(10); // Convenient batch start
       updateDroppyMessage("Multicab Batch Delivery mode. Payment will be marked Pending until driver remits.", 'assets/droppy_question.png', 'Multicab Mode');
       renderPresets();
       renderOrderSummary();
@@ -1528,16 +1502,18 @@ function bindEvents() {
         updateTenderAndChange();
         updateKeypadTargetDisplays();
       } else {
-        if (State.keypadBuffer.length > 0) {
-          State.keypadBuffer = State.keypadBuffer.slice(0, -1);
-          const parsed = parseInt(State.keypadBuffer, 10);
-          State.qty = (!isNaN(parsed) && parsed > 0) ? parsed : 1;
+        State._isKeypadTyping = true;
+        let buf = String(State.keypadBuffer || State.qty || '');
+        if (buf.length > 1) {
+          buf = buf.slice(0, -1);
+          State.keypadBuffer = buf;
+          const parsed = parseInt(buf, 10);
+          setOrderQuantity((!isNaN(parsed) && parsed > 0) ? parsed : 1);
         } else {
-          State.qty = 1;
+          State.keypadBuffer = '';
+          State._isKeypadTyping = false;
+          setOrderQuantity(1);
         }
-        renderPresets();
-        renderOrderSummary();
-        updateKeypadTargetDisplays();
       }
     });
   }
@@ -2096,6 +2072,66 @@ function saveSettings() {
   showToast('Settings saved & broadcasted across terminals!');
 }
 
+
+function setOrderQuantity(newQty) {
+  const q = Math.max(1, Math.min(999, parseInt(newQty, 10) || 1));
+  State.qty = q;
+  State.keypadBuffer = String(q);
+
+  const prod = PRODUCTS[State.prodKey] || PRODUCTS.purified;
+  const unitPrice = prod.price;
+
+  if (!State.cart || State.cart.length <= 1) {
+    State.cart = [{
+      prodKey: State.prodKey,
+      name: prod.name,
+      unitPrice: unitPrice,
+      unit: prod.unit || 'gal',
+      qty: q,
+      total: q * unitPrice
+    }];
+  } else {
+    const matching = State.cart.find(it => it.prodKey === State.prodKey);
+    if (matching) {
+      matching.qty = q;
+      matching.total = q * matching.unitPrice;
+    }
+  }
+
+  renderPresets();
+  renderOrderSummary();
+  updateKeypadTargetDisplays();
+}
+
+function bindSingleStepperEvents() {
+  const btnMinus = document.getElementById('btnStepperMinus');
+  const btnPlus = document.getElementById('btnStepperPlus');
+
+  if (btnMinus && !btnMinus._boundStepper) {
+    btnMinus._boundStepper = true;
+    btnMinus.addEventListener('click', (e) => {
+      e.preventDefault();
+      soundCtrl.playTap();
+      setKeypadTarget('qty');
+      State._isKeypadTyping = false;
+      if (State.qty > 1) {
+        setOrderQuantity(State.qty - 1);
+      }
+    });
+  }
+
+  if (btnPlus && !btnPlus._boundStepper) {
+    btnPlus._boundStepper = true;
+    btnPlus.addEventListener('click', (e) => {
+      e.preventDefault();
+      soundCtrl.playTap();
+      setKeypadTarget('qty');
+      State._isKeypadTyping = false;
+      setOrderQuantity(State.qty + 1);
+    });
+  }
+}
+
 // Select Product (Purified / New Container)
 function selectProduct(key) {
   if (!PRODUCTS[key]) return;
@@ -2116,8 +2152,8 @@ function selectProduct(key) {
 
   const p = PRODUCTS[key];
   updateDroppyMessage(`${p.name} selected at ₱${formatPeso(p.price)}.`, 'assets/droppy_happy.png', 'Product Selected');
-  renderPresets();
-  renderOrderSummary();
+  State._isKeypadTyping = false;
+  setOrderQuantity(State.qty);
 }
 
 // ==========================================================================
@@ -2158,14 +2194,13 @@ function handleKeypadInput(key) {
 
   if (key === 'C') {
     State.keypadBuffer = '';
+    State._isKeypadTyping = false;
     if (isCash) {
       State.selectedTender = 'exact';
       if (inCash) inCash.value = '';
       updateTenderAndChange();
     } else {
-      State.qty = 1;
-      renderPresets();
-      renderOrderSummary();
+      setOrderQuantity(1);
     }
     updateKeypadTargetDisplays();
     return;
@@ -2178,10 +2213,8 @@ function handleKeypadInput(key) {
       if (inCash) inCash.value = State.selectedTender;
       updateTenderAndChange();
     } else {
-      State.qty = Math.min(999, State.qty + 1);
-      State.keypadBuffer = '';
-      renderPresets();
-      renderOrderSummary();
+      State._isKeypadTyping = false;
+      setOrderQuantity(State.qty + 1);
     }
     updateKeypadTargetDisplays();
     return;
@@ -2196,11 +2229,9 @@ function handleKeypadInput(key) {
         updateTenderAndChange();
       }
     } else {
+      State._isKeypadTyping = false;
       if (State.qty > 1) {
-        State.qty--;
-        State.keypadBuffer = '';
-        renderPresets();
-        renderOrderSummary();
+        setOrderQuantity(State.qty - 1);
       }
     }
     updateKeypadTargetDisplays();
@@ -2214,10 +2245,8 @@ function handleKeypadInput(key) {
       if (inCash) inCash.value = State.selectedTender;
       updateTenderAndChange();
     } else {
-      State.qty = Math.min(999, State.qty + 5);
-      State.keypadBuffer = '';
-      renderPresets();
-      renderOrderSummary();
+      State._isKeypadTyping = false;
+      setOrderQuantity(State.qty + 5);
     }
     updateKeypadTargetDisplays();
     return;
@@ -2239,13 +2268,16 @@ function handleKeypadInput(key) {
       updateTenderAndChange();
     }
   } else {
-    State.keypadBuffer += key;
+    if (!State._isKeypadTyping) {
+      State.keypadBuffer = key;
+      State._isKeypadTyping = true;
+    } else {
+      State.keypadBuffer += key;
+    }
     const parsed = parseInt(State.keypadBuffer, 10);
     if (!isNaN(parsed) && parsed > 0 && parsed <= 999) {
-      State.qty = parsed;
+      setOrderQuantity(parsed);
     }
-    renderPresets();
-    renderOrderSummary();
   }
   updateKeypadTargetDisplays();
 }
@@ -2303,16 +2335,14 @@ function updateCartItemQty(index, delta) {
   }
 
   if (State.cart.length === 0) {
-    State.cart.push({
-      prodKey: 'purified',
-      name: PRODUCTS.purified.name,
-      unitPrice: PRODUCTS.purified.price,
-      unit: 'gal',
-      qty: 1,
-      total: PRODUCTS.purified.price
-    });
+    setOrderQuantity(1);
+    return;
   }
-
+  if (State.cart.length === 1) {
+    State.prodKey = State.cart[0].prodKey;
+    setOrderQuantity(State.cart[0].qty);
+    return;
+  }
   State.qty = calculateTotalGallons();
   renderOrderSummary();
   renderCartItems();
@@ -2344,61 +2374,54 @@ function renderCartItems() {
   if (!container) return;
 
   if (!State.cart || State.cart.length <= 1) {
-    const item = (State.cart && State.cart[0]) || {
-      prodKey: State.prodKey || 'purified',
-      name: (PRODUCTS[State.prodKey] || PRODUCTS.purified).name,
-      unitPrice: (PRODUCTS[State.prodKey] || PRODUCTS.purified).price,
-      unit: (PRODUCTS[State.prodKey] || PRODUCTS.purified).unit || 'gal',
-      qty: State.qty || 1,
-      total: ((PRODUCTS[State.prodKey] || PRODUCTS.purified).price) * (State.qty || 1)
-    };
+    const prod = PRODUCTS[State.prodKey] || PRODUCTS.purified;
+    const q = State.qty || 1;
+    const unitPrice = prod.price;
+
+    State.cart = [{
+      prodKey: State.prodKey,
+      name: prod.name,
+      unitPrice: unitPrice,
+      unit: prod.unit || 'gal',
+      qty: q,
+      total: q * unitPrice
+    }];
+
+    const existingQty = document.getElementById('orderItemQtyText');
+    const existingTitle = document.getElementById('orderItemTitle');
+    const existingRate = document.getElementById('orderItemRate');
+    const existingUnit = container.querySelector('.stepper-unit-lbl');
+    const existingMinus = document.getElementById('btnStepperMinus');
+    const existingPlus = document.getElementById('btnStepperPlus');
+
+    if (existingQty && existingTitle && existingRate && existingMinus && existingPlus) {
+      existingTitle.textContent = prod.name;
+      existingRate.textContent = `₱${formatPeso(unitPrice)} / ${prod.unit || 'gal'}`;
+      existingQty.textContent = q.toLocaleString();
+      if (existingUnit) existingUnit.textContent = prod.unit === 'jug' ? 'Jugs' : 'Gallons';
+      bindSingleStepperEvents();
+      return;
+    }
 
     container.innerHTML = `
       <div class="selected-item-row">
         <img src="assets/water_jug.png" alt="Carboy" class="selected-item-img">
         <div class="selected-item-details">
-          <h5 id="orderItemTitle">${escapeHtml(item.name)}</h5>
-          <span class="selected-item-rate" id="orderItemRate">₱${formatPeso(item.unitPrice)} / ${item.unit}</span>
+          <h5 id="orderItemTitle">${escapeHtml(prod.name)}</h5>
+          <span class="selected-item-rate" id="orderItemRate">₱${formatPeso(unitPrice)} / ${prod.unit || 'gal'}</span>
         </div>
       </div>
       <div class="quantity-stepper-row">
-        <button type="button" class="btn-stepper" id="btnStepperMinus" title="Subtract 1">−</button>
+        <button type="button" class="btn-stepper" id="btnStepperMinus" title="Subtract 1 gallon">−</button>
         <div class="stepper-center-box">
-          <span class="stepper-qty-num" id="orderItemQtyText">${item.qty}</span>
-          <span class="stepper-unit-lbl">${item.unit === 'jug' ? 'Jugs' : 'Gallons'}</span>
+          <span class="stepper-qty-num" id="orderItemQtyText">${q}</span>
+          <span class="stepper-unit-lbl">${prod.unit === 'jug' ? 'Jugs' : 'Gallons'}</span>
         </div>
-        <button type="button" class="btn-stepper" id="btnStepperPlus" title="Add 1">+</button>
+        <button type="button" class="btn-stepper" id="btnStepperPlus" title="Add 1 gallon">+</button>
       </div>
     `;
 
-    const btnMinus = document.getElementById('btnStepperMinus');
-    const btnPlus = document.getElementById('btnStepperPlus');
-    if (btnMinus) btnMinus.addEventListener('click', () => {
-      if (typeof soundCtrl !== 'undefined') soundCtrl.playTap();
-      if (item.qty > 1) {
-        item.qty -= 1;
-        item.total = item.qty * item.unitPrice;
-        State.qty = item.qty;
-        if (State.cart && State.cart[0]) {
-          State.cart[0].qty = item.qty;
-          State.cart[0].total = item.total;
-        }
-        renderOrderSummary();
-        renderCartItems();
-      }
-    });
-    if (btnPlus) btnPlus.addEventListener('click', () => {
-      if (typeof soundCtrl !== 'undefined') soundCtrl.playTap();
-      item.qty += 1;
-      item.total = item.qty * item.unitPrice;
-      State.qty = item.qty;
-      if (State.cart && State.cart[0]) {
-        State.cart[0].qty = item.qty;
-        State.cart[0].total = item.total;
-      }
-      renderOrderSummary();
-      renderCartItems();
-    });
+    bindSingleStepperEvents();
     return;
   }
 
@@ -2425,11 +2448,14 @@ function renderCartItems() {
 }
 
 function calculateTotal() {
-  if (State.cart && State.cart.length > 0) {
+  if (State.cart && State.cart.length > 1) {
     return State.cart.reduce((sum, it) => sum + (Number(it.total) || 0), 0);
   }
   const prod = PRODUCTS[State.prodKey] || PRODUCTS.purified;
-  return State.qty * prod.price;
+  const unitPrice = (State.cart && State.cart[0] && State.cart[0].prodKey === State.prodKey)
+    ? State.cart[0].unitPrice
+    : prod.price;
+  return State.qty * unitPrice;
 }
 
 function renderAll() {
