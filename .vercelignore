@@ -1,0 +1,11 @@
+# Vercel Deployment Ignore Rules
+# Keep offline development scripts and local database out of cloud static deployment
+local_server.js
+database.js
+*.db
+*.db-shm
+*.db-wal
+*.bat
+*.py
+dev_*
+developer-portal/

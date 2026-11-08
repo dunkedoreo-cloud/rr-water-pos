@@ -4,11 +4,11 @@
   "description": "R&R Water Refilling Mobile Delivery Application",
   "scripts": {
     "build": "echo \"R&R Water POS Static PWA ready\"",
-    "dev": "node server.js",
-    "serve": "node server.js",
+    "dev": "node local_server.js",
+    "serve": "node local_server.js",
     "dev:portal": "node developer-portal/dev-server.js",
     "dev:desktop": "python dev_station_console.py",
-    "proto": "node -e \"require('child_process').exec('start http://localhost:3000/WRS-POS-Prototype.html'); require('./server.js');\"",
+    "proto": "node -e \"require('child_process').exec('start http://localhost:3000/WRS-POS-Prototype.html'); require('./local_server.js');\"",
     "dev:proto": "npm run proto"
   },
   "keywords": [
