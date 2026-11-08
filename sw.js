@@ -2,17 +2,15 @@
 // R&R Water Refilling Station - Service Worker (Offline-First PWA)
 // ==========================================================================
 
-const CACHE_NAME = 'rr-water-pos-v2.8.37';
+const CACHE_NAME = 'rr-water-pos-v2.8.42';
 const STATIC_ASSETS = [
   './',
   './index.html',
   './pos.html',
   './dev.html',
-  './dev.css?v=2.8.37',
-  './dev.js?v=2.8.37',
-  './pos.css?v=2.8.37',
-  './supabase_config.js?v=2.8.37',
-  './pos.js?v=2.8.37',
+  './pos.css?v=2.8.42',
+  './supabase_config.js?v=2.8.42',
+  './pos.js?v=2.8.42',
   './manifest.json',
   './assets/droppy_happy.png',
   './assets/droppy_love.png',
@@ -27,10 +25,8 @@ const STATIC_ASSETS = [
 self.addEventListener('install', (event) => {
   event.waitUntil(
     caches.open(CACHE_NAME).then((cache) => {
-      console.log('[ServiceWorker] Pre-caching static assets v2.8.3');
-      return cache.addAll(STATIC_ASSETS).catch(err => {
-        console.warn('[ServiceWorker] Some assets could not be cached immediately:', err);
-      });
+      console.log('[ServiceWorker] Pre-caching static assets v2.8.42');
+      return cache.addAll(STATIC_ASSETS);
     }).then(() => self.skipWaiting())
   );
 });
@@ -51,14 +47,19 @@ self.addEventListener('activate', (event) => {
 });
 
 self.addEventListener('fetch', (event) => {
+  // Only handle HTTP / HTTPS requests (ignore chrome-extension://, moz-extension://, etc.)
+  if (!event.request.url.startsWith('http://') && !event.request.url.startsWith('https://')) {
+    return;
+  }
+
   const url = new URL(event.request.url);
 
-  // Network-only for API requests so transactions are always live with SQLite
+  // Network-only for API requests so transactions are always live
   if (url.pathname.startsWith('/api/') || url.hostname.includes('supabase.co')) {
     return;
   }
 
-  // Network-First for HTML, JS, CSS to guarantee fresh updates on deployed GitHub Pages
+  // Network-First for HTML, JS, CSS to guarantee fresh updates on deployment
   const isCodeAsset = event.request.mode === 'navigate' ||
                       url.pathname.endsWith('.html') ||
                       url.pathname.endsWith('.js') ||
@@ -67,9 +68,11 @@ self.addEventListener('fetch', (event) => {
   if (isCodeAsset) {
     event.respondWith(
       fetch(event.request).then((networkResponse) => {
-        if (networkResponse && networkResponse.status === 200) {
+        if (networkResponse && networkResponse.status === 200 && event.request.url.startsWith('http')) {
           const responseToCache = networkResponse.clone();
-          caches.open(CACHE_NAME).then((cache) => cache.put(event.request, responseToCache));
+          caches.open(CACHE_NAME).then((cache) => {
+            try { cache.put(event.request, responseToCache); } catch(e) {}
+          });
         }
         return networkResponse;
       }).catch(() => {
@@ -88,9 +91,11 @@ self.addEventListener('fetch', (event) => {
   event.respondWith(
     caches.match(event.request).then((cachedResponse) => {
       return cachedResponse || fetch(event.request).then((networkResponse) => {
-        if (networkResponse && networkResponse.status === 200) {
+        if (networkResponse && networkResponse.status === 200 && event.request.url.startsWith('http')) {
           const responseToCache = networkResponse.clone();
-          caches.open(CACHE_NAME).then((cache) => cache.put(event.request, responseToCache));
+          caches.open(CACHE_NAME).then((cache) => {
+            try { cache.put(event.request, responseToCache); } catch(e) {}
+          });
         }
         return networkResponse;
       });

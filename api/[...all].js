@@ -1,0 +1,100 @@
+// ==========================================================================
+// R&R Water Refilling Station - Vercel Serverless Edge Catch-All API
+// Catches /api/* requests (e.g. /api/status, /api/settings, /api/events, etc.)
+// ==========================================================================
+
+const SUPABASE_URL = process.env.SUPABASE_URL || 'https://osllqnumtgtcvkpojhlc.supabase.co';
+const SUPABASE_KEY = process.env.SUPABASE_ANON_KEY || 'sb_publishable_9bIn_zoVA66HQq-kTueGuw_B_hFa6uP';
+
+function sendJson(res, statusCode, data) {
+  res.statusCode = statusCode;
+  res.setHeader('Content-Type', 'application/json; charset=utf-8');
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PATCH, PUT, DELETE, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, x-manager-pin');
+  res.end(JSON.stringify(data));
+}
+
+module.exports = async (req, res) => {
+  // CORS Preflight
+  if (req.method === 'OPTIONS') {
+    res.statusCode = 204;
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PATCH, PUT, DELETE, OPTIONS');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, x-manager-pin');
+    res.setHeader('Access-Control-Max-Age', '86400');
+    return res.end();
+  }
+
+  const url = req.url || '';
+  const pathname = url.split('?')[0];
+
+  // 1. SSE Events endpoint
+  if (pathname.includes('/events')) {
+    res.statusCode = 200;
+    res.setHeader('Content-Type', 'text/event-stream; charset=utf-8');
+    res.setHeader('Cache-Control', 'no-cache, no-transform');
+    res.setHeader('Connection', 'keep-alive');
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.write(`data: ${JSON.stringify({ type: 'CONNECTED', mode: 'cloud', timestamp: Date.now() })}\n\n`);
+    return res.end();
+  }
+
+  // 2. Supabase Cloud Configuration endpoint
+  if (pathname.includes('/config/supabase') || pathname.includes('/config')) {
+    return sendJson(res, 200, {
+      success: true,
+      configured: true,
+      url: SUPABASE_URL,
+      anonKey: SUPABASE_KEY,
+      provider: 'Supabase Cloud (PostgreSQL)',
+      status: 'active'
+    });
+  }
+
+  // 3. Server Status & Health Check
+  if (pathname.includes('/status') || pathname.includes('/health')) {
+    return sendJson(res, 200, {
+      success: true,
+      status: 'online',
+      platform: 'Vercel Serverless Edge',
+      storage: 'Supabase Cloud (Persistent PostgreSQL)',
+      carboysOnLoan: 0,
+      timestamp: Date.now()
+    });
+  }
+
+  // 4. Station Settings endpoint
+  if (pathname.includes('/settings')) {
+    return sendJson(res, 200, {
+      success: true,
+      settings: {
+        stationName: 'R&R Water Refilling Station',
+        stationBranch: 'Counter #1 (Main Terminal)',
+        stationPhone: '0917-829-4102',
+        stationAddress: 'Purok 1, Main Road',
+        pricePurified: 35,
+        priceNewJug: 250,
+        minBatch: 10,
+        wholesalePrice: 30
+      }
+    });
+  }
+
+  // 5. Customers endpoint
+  if (pathname.includes('/customers')) {
+    return sendJson(res, 200, {
+      success: true,
+      customers: []
+    });
+  }
+
+  // 6. Universal Fallback for sync/telemetry/orders on Vercel
+  return sendJson(res, 200, {
+    success: true,
+    acknowledged: true,
+    mode: 'cloud-first',
+    note: 'Persistent data is synchronized directly through Supabase Cloud PostgreSQL & Realtime.',
+    timestamp: Date.now()
+  });
+};

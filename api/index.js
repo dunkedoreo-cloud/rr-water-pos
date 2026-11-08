@@ -29,7 +29,18 @@ module.exports = async (req, res) => {
   const url = req.url || '';
   const pathname = url.split('?')[0];
 
-  // 1. Supabase Cloud Configuration endpoint
+  // 1. SSE Events endpoint
+  if (pathname.includes('/events')) {
+    res.statusCode = 200;
+    res.setHeader('Content-Type', 'text/event-stream; charset=utf-8');
+    res.setHeader('Cache-Control', 'no-cache, no-transform');
+    res.setHeader('Connection', 'keep-alive');
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.write(`data: ${JSON.stringify({ type: 'CONNECTED', mode: 'cloud', timestamp: Date.now() })}\n\n`);
+    return res.end();
+  }
+
+  // 2. Supabase Cloud Configuration endpoint
   if (pathname === '/api/config/supabase' || pathname === '/api/config') {
     return sendJson(res, 200, {
       success: true,
@@ -41,7 +52,7 @@ module.exports = async (req, res) => {
     });
   }
 
-  // 2. Server Status & Health Check
+  // 3. Server Status & Health Check
   if (pathname === '/api/status' || pathname === '/api/health') {
     return sendJson(res, 200, {
       success: true,
@@ -53,7 +64,7 @@ module.exports = async (req, res) => {
     });
   }
 
-  // 3. Station Settings endpoint
+  // 4. Station Settings endpoint
   if (pathname === '/api/settings') {
     return sendJson(res, 200, {
       success: true,
@@ -70,7 +81,15 @@ module.exports = async (req, res) => {
     });
   }
 
-  // 4. Universal Fallback for sync/telemetry/orders/customers on Vercel
+  // 5. Customers endpoint
+  if (pathname.includes('/customers')) {
+    return sendJson(res, 200, {
+      success: true,
+      customers: []
+    });
+  }
+
+  // 6. Universal Fallback for sync/telemetry/orders on Vercel
   if (pathname.startsWith('/api/')) {
     return sendJson(res, 200, {
       success: true,

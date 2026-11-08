@@ -391,7 +391,18 @@ class SoundController {
 
   init() {
     if (!this.ctx && (window.AudioContext || window.webkitAudioContext)) {
-      this.ctx = new (window.AudioContext || window.webkitAudioContext)();
+      try {
+        this.ctx = new (window.AudioContext || window.webkitAudioContext)();
+      } catch (e) {}
+    }
+    if (this.ctx && this.ctx.state === 'suspended') {
+      const unlock = () => {
+        if (this.ctx && this.ctx.state === 'suspended') this.ctx.resume().catch(() => {});
+        window.removeEventListener('click', unlock);
+        window.removeEventListener('touchstart', unlock);
+      };
+      window.addEventListener('click', unlock, { once: true });
+      window.addEventListener('touchstart', unlock, { once: true });
     }
   }
 
@@ -563,7 +574,7 @@ const Telemetry = {
     } catch (e) {}
 
     // 4. Send to Node server if active
-    if (window.location && typeof window.location.protocol === 'string' && window.location.protocol.startsWith('http')) {
+    if (typeof StationRealtimeSync !== 'undefined' && StationRealtimeSync.isNodeHost && window.location && typeof window.location.protocol === 'string' && window.location.protocol.startsWith('http')) {
       fetch('/api/telemetry', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -618,7 +629,7 @@ const Telemetry = {
       } catch (e) {}
     }
 
-    if (window.location && typeof window.location.protocol === 'string' && window.location.protocol.startsWith('http')) {
+    if (typeof StationRealtimeSync !== 'undefined' && StationRealtimeSync.isNodeHost && window.location && typeof window.location.protocol === 'string' && window.location.protocol.startsWith('http')) {
       fetch('/api/telemetry/active', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -8259,6 +8270,7 @@ function quickAddCustomer() {
 // ==========================================================================
 function syncWithBackend() {
   if (!navigator.onLine) return;
+  if (typeof StationRealtimeSync !== 'undefined' && !StationRealtimeSync.isNodeHost) return;
 
   // 1. Fetch server status and inventory
   fetch('/api/status')
@@ -9270,8 +9282,12 @@ const StationRealtimeSync = {
 
   init() {
     this.isNodeHost = typeof window !== 'undefined' && 
-      !window.location.hostname.includes('github.io') && 
-      window.location.protocol !== 'file:';
+      (window.location.hostname === 'localhost' || 
+       window.location.hostname === '127.0.0.1' || 
+       window.location.hostname.startsWith('192.168.') || 
+       window.location.hostname.startsWith('10.') || 
+       window.location.port === '3000' || 
+       window.location.port === '4000');
 
     // 1. Cross-tab instant synchronization via BroadcastChannel
     if (typeof BroadcastChannel !== 'undefined') {
