@@ -749,10 +749,20 @@ function loadSavedData() {
     State.currentUserId = null;
   } else {
     const savedOrders = localStorage.getItem('rr_pos_stored_orders');
+    const clearedAt = Number(localStorage.getItem('rr_pos_orders_cleared_at')) || 0;
+    let voidedList = [];
+    try { voidedList = JSON.parse(localStorage.getItem('rr_pos_voided_orders') || '[]'); } catch (e) {}
+
     if (savedOrders !== null) {
       try {
         const parsed = JSON.parse(savedOrders);
-        State.storedOrders = (Array.isArray(parsed) ? parsed : []).filter(o => !isMockOrder(o));
+        State.storedOrders = (Array.isArray(parsed) ? parsed : []).filter(o => {
+          if (isMockOrder(o)) return false;
+          if (voidedList.includes(o.orderNo)) return false;
+          const ts = Number(o.timestamp) || (o.created_at ? new Date(o.created_at).getTime() : 0);
+          if (clearedAt && ts && ts <= clearedAt) return false;
+          return true;
+        });
         State.storedOrders.forEach(o => {
           if (!o.time && (o.timestamp || o.created_at || o.createdAt)) {
             const ts = o.timestamp ? Number(o.timestamp) : new Date(o.created_at || o.createdAt).getTime();
@@ -1172,9 +1182,11 @@ function renderPresets() {
 // ==========================================================================
 function clearStationOrdersHistory(skipConfirm = false) {
   const executeClear = () => {
+    const clearedTimestamp = Date.now();
     State.storedOrders = [];
     saveOrders();
     try {
+      localStorage.setItem('rr_pos_orders_cleared_at', String(clearedTimestamp));
       localStorage.setItem('rr_pos_stored_orders', '[]');
       if (typeof BroadcastChannel !== 'undefined') {
         const bc = new BroadcastChannel('rr_pos_channel');
@@ -1182,6 +1194,11 @@ function clearStationOrdersHistory(skipConfirm = false) {
       }
       fetch('/api/dev/wipe', { method: 'POST' }).catch(() => {});
     } catch (e) {}
+
+    // Soft-archive orders in Supabase so historical records remain in database
+    if (typeof SupabaseSync !== 'undefined' && SupabaseSync.clearOrArchiveOrders) {
+      SupabaseSync.clearOrArchiveOrders(clearedTimestamp);
+    }
 
     renderAll();
     renderStoredOrders();
@@ -3328,7 +3345,12 @@ function confirmVoidOrder(orderNo) {
     onAuthorized: (reason, manager) => {
       State.storedOrders = State.storedOrders.filter(o => o.orderNo !== orderNo);
       saveOrders();
-      SupabaseSync.voidOrder(orderNo);
+      try {
+        let voided = JSON.parse(localStorage.getItem('rr_pos_voided_orders') || '[]');
+        if (!voided.includes(orderNo)) voided.push(orderNo);
+        localStorage.setItem('rr_pos_voided_orders', JSON.stringify(voided));
+      } catch (e) {}
+      SupabaseSync.voidOrder(orderNo, reason, manager.name);
 
       // Sync void to SQLite backend
       fetch(`/api/orders/${encodeURIComponent(orderNo)}/void`, {
@@ -9512,6 +9534,20 @@ const StationRealtimeSync = {
     const orderNo = rawOrder.order_no || rawOrder.orderNo;
     if (!orderNo) return;
 
+    if (rawOrder.is_archived || rawOrder.is_voided || rawOrder.status === 'voided') {
+      State.storedOrders = State.storedOrders.filter(o => o.orderNo !== orderNo);
+      saveOrders();
+      return;
+    }
+
+    const clearedAt = Number(localStorage.getItem('rr_pos_orders_cleared_at')) || 0;
+    let voidedList = [];
+    try { voidedList = JSON.parse(localStorage.getItem('rr_pos_voided_orders') || '[]'); } catch (e) {}
+    if (voidedList.includes(orderNo)) return;
+
+    const ts = Number(rawOrder.timestamp) || Date.now();
+    if (clearedAt && ts && ts <= clearedAt) return;
+
     const exists = State.storedOrders.some(o => o.orderNo === orderNo);
     if (exists) {
       const ex = State.storedOrders.find(o => o.orderNo === orderNo);
@@ -9524,7 +9560,6 @@ const StationRealtimeSync = {
       return;
     }
 
-    const ts = Number(rawOrder.timestamp) || Date.now();
     const timeStr = rawOrder.time_str || rawOrder.time || new Date(ts).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true });
 
     let items = rawOrder.items;
@@ -9871,6 +9906,18 @@ const SupabaseSync = {
     }
   },
 
+  async clearOrArchiveOrders(clearedTimestamp) {
+    if (!this.client || !this.isConnected) return;
+    try {
+      await this.client.from('orders').update({
+        is_archived: true,
+        archived_at: new Date(clearedTimestamp).toISOString()
+      }).lte('timestamp', clearedTimestamp);
+    } catch (e) {
+      console.warn('[Supabase] clearOrArchiveOrders error:', e);
+    }
+  },
+
   async pushSettings(settings = State.settings) {
     if (!this.client || !this.isConnected) return;
     try {
@@ -9934,11 +9981,21 @@ const SupabaseSync = {
         .limit(200);
 
       if (Array.isArray(cloudOrders) && cloudOrders.length > 0) {
+        const clearedAt = Number(localStorage.getItem('rr_pos_orders_cleared_at')) || 0;
+        let voidedList = [];
+        try { voidedList = JSON.parse(localStorage.getItem('rr_pos_voided_orders') || '[]'); } catch (e) {}
+
         const existingMap = new Map();
         State.storedOrders.forEach(o => existingMap.set(o.orderNo, o));
 
         let updated = false;
         cloudOrders.forEach(co => {
+          if (co.is_archived || co.is_voided || co.status === 'voided') return;
+          if (voidedList.includes(co.order_no)) return;
+
+          const ts = Number(co.timestamp) || (co.created_at ? new Date(co.created_at).getTime() : 0);
+          if (clearedAt && ts && ts <= clearedAt) return;
+
           if (!existingMap.has(co.order_no)) {
             const ts = Number(co.timestamp) || (co.created_at ? new Date(co.created_at).getTime() : Date.now());
             const timeStr = co.time || (ts ? new Date(ts).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true }) : '---');
