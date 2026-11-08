@@ -112,14 +112,19 @@ body:not(.light-mode) {
 }
 
 html {
+  width: 100%;
+  max-width: 100vw;
   min-height: 100%;
   overflow-x: hidden;
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
   scroll-behavior: auto;
+  box-sizing: border-box;
 }
 
 body {
+  width: 100%;
+  max-width: 100vw;
   font-family: var(--font-sans);
   background-color: var(--bg-app);
   color: var(--text-main);
@@ -127,6 +132,8 @@ body {
   display: flex;
   transition: background-color 0.25s ease, color 0.25s ease;
   overflow-x: hidden;
+  position: relative;
+  box-sizing: border-box;
 }
 
 /* ==========================================================================
@@ -7542,14 +7549,23 @@ body:not(.light-mode) .btn-sub-action.primary:hover {
    5. MOBILE PHONES (iPhone, Android, Compact Devices: <= 640px)
    -------------------------------------------------------------------------- */
 @media (max-width: 640px) {
-  /* Layout: Switch vertical sidebar to fixed Bottom Navigation Bar */
+  /* Layout: Full mobile viewport constraint */
+  html, body {
+    width: 100% !important;
+    max-width: 100vw !important;
+    overflow-x: hidden !important;
+    position: relative !important;
+    box-sizing: border-box !important;
+  }
+
   .pos-app-layout {
     flex-direction: column !important;
     min-height: 100vh !important;
     min-height: -webkit-fill-available !important;
     padding-left: 0 !important;
     width: 100% !important;
-    max-width: 100% !important;
+    max-width: 100vw !important;
+    overflow-x: hidden !important;
     box-sizing: border-box !important;
   }
 
@@ -7557,18 +7573,233 @@ body:not(.light-mode) .btn-sub-action.primary:hover {
     display: none !important;
   }
 
-  /* Mobile Phone portrait: 1 column vertical stack with smooth touch scrolling */
-  .pos-workspace-grid {
-    display: grid !important;
-    grid-template-columns: 1fr !important;
-    gap: 14px !important;
+  /* Main Stage Full Width with Bottom Nav Clearance */
+  .main-content {
+    width: 100% !important;
+    max-width: 100vw !important;
+    overflow-x: hidden !important;
+    min-width: 0 !important;
+    padding: 8px 10px calc(76px + env(safe-area-inset-bottom, 0px)) 10px !important;
+    box-sizing: border-box !important;
+    touch-action: pan-y pinch-zoom;
   }
 
-  .order-calculator-panel {
-    position: relative !important;
-    top: auto !important;
-    padding: 14px 12px !important;
-    gap: 10px !important;
+  .view-stage {
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+    overflow-x: hidden !important;
+    box-sizing: border-box !important;
+  }
+
+  /* Mobile Top Header (Sleek 3-Tier Purpose-Driven Layout) */
+  .top-header {
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 8px !important;
+    padding-bottom: 8px !important;
+    border-bottom: 1px solid var(--border-subtle) !important;
+    margin-bottom: 8px !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    box-sizing: border-box !important;
+  }
+
+  /* Row 1: Welcome Greeting & Station Terminal Status Pill (Side-by-Side) */
+  .welcome-box {
+    display: flex !important;
+    flex-direction: row !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    gap: 8px !important;
+    margin: 0 !important;
+    box-sizing: border-box !important;
+  }
+  .welcome-title {
+    font-size: 1.12rem !important;
+    font-weight: 800 !important;
+    line-height: 1.15 !important;
+    color: var(--text-main) !important;
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    margin: 0 !important;
+    letter-spacing: -0.01em !important;
+  }
+  .station-status-pill {
+    padding: 3px 8px !important;
+    font-size: 0.64rem !important;
+    font-weight: 700 !important;
+    border-radius: var(--radius-full) !important;
+    white-space: nowrap !important;
+    flex-shrink: 0 !important;
+    background-color: var(--bg-surface) !important;
+    border: 1px solid var(--border-subtle) !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 5px !important;
+  }
+  .station-status-pill .station-sub-tag {
+    display: inline !important;
+  }
+
+  /* Actions Container: Row 2 (Cashier & Clock) and Row 3 (Action Toolbar) */
+  .header-right-actions {
+    display: flex !important;
+    flex-wrap: wrap !important;
+    align-items: center !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    gap: 6px !important;
+    margin: 0 !important;
+    box-sizing: border-box !important;
+  }
+
+  /* Row 2: Cashier Profile Pill on Left, Live Clock on Right */
+  .cashier-profile-wrapper {
+    order: 1 !important;
+    display: flex !important;
+    align-items: center !important;
+    flex: 1 1 auto !important;
+    min-width: 0 !important;
+    max-width: calc(100% - 105px) !important;
+  }
+  .cashier-profile-btn {
+    padding: 2px 8px 2px 3px !important;
+    gap: 6px !important;
+    height: 32px !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+    background: var(--bg-surface) !important;
+    border: 1px solid var(--border-subtle) !important;
+    border-radius: var(--radius-full) !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    box-sizing: border-box !important;
+  }
+  .cashier-avatar {
+    width: 26px !important;
+    height: 26px !important;
+    min-width: 26px !important;
+    min-height: 26px !important;
+    max-width: 26px !important;
+    max-height: 26px !important;
+    border-radius: 50% !important;
+    font-size: 0.72rem !important;
+    line-height: 26px !important;
+    flex-shrink: 0 !important;
+    overflow: hidden !important;
+    margin: 0 !important;
+    box-sizing: border-box !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+  }
+  .cashier-name-text {
+    font-size: 0.76rem !important;
+    font-weight: 700 !important;
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    max-width: 95px !important;
+  }
+  .cashier-role-badge {
+    font-size: 0.58rem !important;
+    padding: 1px 5px !important;
+  }
+  .cashier-chevron-icon {
+    width: 14px !important;
+    height: 14px !important;
+    flex-shrink: 0 !important;
+  }
+
+  .live-clock-pill {
+    order: 2 !important;
+    margin-left: auto !important;
+    font-size: 0.72rem !important;
+    font-weight: 700 !important;
+    padding: 4px 10px !important;
+    height: 28px !important;
+    line-height: 20px !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    white-space: nowrap !important;
+    flex-shrink: 0 !important;
+    border-radius: var(--radius-full) !important;
+    background-color: var(--bg-surface) !important;
+    border: 1px solid var(--border-subtle) !important;
+  }
+  .clock-date {
+    display: none !important;
+  }
+
+  /* Flex Break to Force Clean Unified Action Strip on Row 3 */
+  .header-right-actions::before {
+    content: "" !important;
+    display: block !important;
+    width: 100% !important;
+    height: 0 !important;
+    order: 3 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
+  /* Row 3: Action Toolbar */
+  #btnStartStationTour {
+    order: 4 !important;
+    width: 32px !important;
+    height: 32px !important;
+    min-width: 32px !important;
+    min-height: 32px !important;
+    padding: 0 !important;
+    flex-shrink: 0 !important;
+    border-radius: var(--radius-full) !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+  }
+  .header-summary-pill-btn {
+    order: 5 !important;
+    padding: 4px 10px !important;
+    height: 32px !important;
+    font-size: 0.72rem !important;
+    font-weight: 700 !important;
+    gap: 5px !important;
+    white-space: nowrap !important;
+    flex-shrink: 0 !important;
+    border-radius: var(--radius-full) !important;
+    display: inline-flex !important;
+    align-items: center !important;
+  }
+  #themeToggleBtn {
+    order: 6 !important;
+    width: 32px !important;
+    height: 32px !important;
+    min-width: 32px !important;
+    min-height: 32px !important;
+    padding: 0 !important;
+    flex-shrink: 0 !important;
+    border-radius: var(--radius-full) !important;
+    margin-left: auto !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+  }
+  #soundToggleBtn {
+    order: 7 !important;
+    width: 32px !important;
+    height: 32px !important;
+    min-width: 32px !important;
+    min-height: 32px !important;
+    padding: 0 !important;
+    flex-shrink: 0 !important;
+    border-radius: var(--radius-full) !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
   }
 
   /* Bottom Navigation Bar on Mobile */
@@ -7578,7 +7809,7 @@ body:not(.light-mode) .btn-sub-action.primary:hover {
     left: 0 !important;
     right: 0 !important;
     top: auto !important;
-    width: 100vw !important;
+    width: 100% !important;
     max-width: 100vw !important;
     height: 56px !important;
     height: calc(56px + env(safe-area-inset-bottom, 0px)) !important;
@@ -7600,8 +7831,6 @@ body:not(.light-mode) .btn-sub-action.primary:hover {
 
   body:not(.light-mode) .sidebar {
     background-color: rgba(14, 22, 40, 0.96) !important;
-    /* blur removed */
-    -webkit-/* blur removed */
     border-top: 1px solid rgba(56, 189, 248, 0.16) !important;
     box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.5) !important;
   }
@@ -7645,16 +7874,7 @@ body:not(.light-mode) .btn-sub-action.primary:hover {
     outline: none !important;
     cursor: pointer !important;
     -webkit-tap-highlight-color: transparent !important;
-    transform: none !important;
-    box-shadow: none !important;
     box-sizing: border-box !important;
-    transition: color 0.15s ease !important;
-  }
-
-  .nav-item:hover,
-  .nav-item:active {
-    transform: none !important;
-    background: transparent !important;
   }
 
   .nav-item span {
@@ -7667,38 +7887,29 @@ body:not(.light-mode) .btn-sub-action.primary:hover {
     text-overflow: ellipsis !important;
     max-width: 100% !important;
     color: inherit !important;
-    letter-spacing: -0.01em !important;
   }
 
   .nav-item .ui-icon {
     width: 20px !important;
     height: 20px !important;
     flex-shrink: 0 !important;
-    margin: 0 !important;
-    transform: none !important;
-    stroke: currentColor !important;
   }
 
   .nav-item.active {
     color: var(--color-primary) !important;
     background: transparent !important;
-    box-shadow: none !important;
-    transform: none !important;
   }
 
   body:not(.light-mode) .nav-item.active {
     color: #38bdf8 !important;
-    background: transparent !important;
   }
 
   .nav-badge {
     position: absolute !important;
     top: 2px !important;
     left: calc(50% + 5px) !important;
-    margin: 0 !important;
     font-size: 0.58rem !important;
     font-weight: 800 !important;
-    font-family: var(--font-mono) !important;
     padding: 0 4px !important;
     min-width: 15px !important;
     height: 15px !important;
@@ -7710,556 +7921,711 @@ body:not(.light-mode) .btn-sub-action.primary:hover {
     display: inline-flex !important;
     align-items: center !important;
     justify-content: center !important;
-    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2) !important;
     z-index: 2 !important;
   }
 
-  body:not(.light-mode) .nav-badge {
-    background-color: #38bdf8 !important;
-    color: #080d1a !important;
-    border-color: #0e1628 !important;
-  }
-
-  /* Main Stage Full Width with Bottom Nav Clearance */
-  .main-content {
-    width: 100% !important;
-    max-width: 100% !important;
-    padding: 10px 12px calc(76px + env(safe-area-inset-bottom, 0px)) 12px !important;
-    box-sizing: border-box !important;
-    touch-action: pan-y pinch-zoom;
-  }
-
-  /* Mobile Top Header (Sleek 3-Tier Purpose-Driven Layout) */
-  .top-header {
+  /* POS Workspace: 1 Column Vertical Stack */
+  .pos-workspace-grid {
     display: flex !important;
     flex-direction: column !important;
-    align-items: stretch !important;
-    gap: 8px !important;
-    padding-bottom: 10px !important;
-    border-bottom: 1px solid var(--border-subtle) !important;
-    margin-bottom: 8px !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    gap: 12px !important;
+    min-width: 0 !important;
   }
 
-  /* Row 1: Welcome Greeting & Station Terminal Status Pill (Side-by-Side) */
-  .welcome-box {
+  /* Product Selection: Vertical 1-Column Stack (Cleanly Overrides Desktop 2-Column!) */
+  .products-section {
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+  }
+  .products-cards-grid {
     display: flex !important;
-    flex-direction: row !important;
-    align-items: center !important;
+    flex-direction: column !important;
+    grid-template-columns: 1fr !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    gap: 10px !important;
+    min-width: 0 !important;
+  }
+  .product-card {
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+    box-sizing: border-box !important;
+  }
+
+  /* Gallon Type Filter Pills: Horizontal Touch Scroll without Breaking Width */
+  .gallon-type-pills {
+    display: flex !important;
+    flex-wrap: nowrap !important;
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch !important;
+    scrollbar-width: none !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    gap: 8px !important;
+    padding-bottom: 4px !important;
+    margin-bottom: 6px !important;
+    box-sizing: border-box !important;
+  }
+  .gallon-type-pills::-webkit-scrollbar {
+    display: none !important;
+  }
+  .type-pill {
+    flex: 0 0 auto !important;
+    flex-shrink: 0 !important;
+    white-space: nowrap !important;
+    padding: 6px 12px !important;
+    font-size: 0.74rem !important;
+    border-radius: var(--radius-full) !important;
+  }
+
+  /* Droppy Mascot Banner */
+  .droppy-mascot-banner {
+    width: 100% !important;
+    max-width: 100% !important;
+    box-sizing: border-box !important;
+    padding: 10px 12px !important;
+    gap: 10px !important;
+    border-radius: 14px !important;
+  }
+  .droppy-banner-avatar {
+    width: 50px !important;
+    height: 56px !important;
+    flex-shrink: 0 !important;
+  }
+  .droppy-banner-msg {
+    font-size: 0.75rem !important;
+    line-height: 1.35 !important;
+    word-break: break-word !important;
+  }
+
+  /* Presets Strip */
+  .quick-presets-strip {
+    width: 100% !important;
+    max-width: 100% !important;
+    box-sizing: border-box !important;
+    padding: 8px 10px !important;
+  }
+  .preset-buttons-wrap {
+    display: flex !important;
+    flex-wrap: nowrap !important;
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch !important;
+    scrollbar-width: none !important;
+    gap: 6px !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    padding-bottom: 2px !important;
+    box-sizing: border-box !important;
+  }
+  .preset-buttons-wrap::-webkit-scrollbar {
+    display: none !important;
+  }
+  .preset-pill {
+    flex: 0 0 auto !important;
+    min-width: 66px !important;
+    min-height: 42px !important;
+    padding: 5px 6px !important;
+    white-space: nowrap !important;
+  }
+  .pill-gal {
+    font-size: 0.74rem !important;
+  }
+  .pill-price {
+    font-size: 0.64rem !important;
+  }
+
+  /* Order Calculator Panel */
+  .order-calculator-panel {
+    position: relative !important;
+    top: auto !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    box-sizing: border-box !important;
+    padding: 12px 10px !important;
+    gap: 8px !important;
+    overflow: hidden !important;
+    min-width: 0 !important;
+  }
+
+  .order-item-card {
+    width: 100% !important;
+    max-width: 100% !important;
+    box-sizing: border-box !important;
+    padding: 10px 8px !important;
+    min-width: 0 !important;
+  }
+  .order-item-controls-row {
+    display: flex !important;
+    flex-wrap: wrap !important;
+    gap: 8px !important;
     justify-content: space-between !important;
     width: 100% !important;
-    gap: 8px !important;
-    margin: 0 !important;
-  }
-  .welcome-title {
-    font-size: 1.15rem !important;
-    font-weight: 800 !important;
-    line-height: 1.15 !important;
-    color: var(--text-main) !important;
-    white-space: nowrap !important;
-    margin: 0 !important;
-    letter-spacing: -0.01em !important;
-  }
-  .station-status-pill {
-    padding: 3px 8px !important;
-    font-size: 0.64rem !important;
-    font-weight: 700 !important;
-    border-radius: var(--radius-full) !important;
-    white-space: nowrap !important;
-    background-color: var(--bg-surface) !important;
-    border: 1px solid var(--border-subtle) !important;
-    display: inline-flex !important;
-    align-items: center !important;
-    gap: 5px !important;
-  }
-  .station-status-pill .station-sub-tag {
-    display: inline !important;
   }
 
-  /* Actions Container: 2 Clean Rows (Row 2: User Profile & Clock; Row 3: Action Toolbar) */
-  .header-right-actions {
+  /* Cart Quick Add Bar */
+  .cart-quick-add-bar {
     display: flex !important;
     flex-wrap: wrap !important;
     align-items: center !important;
-    width: 100% !important;
+    justify-content: space-between !important;
     gap: 6px !important;
-    margin: 0 !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    box-sizing: border-box !important;
+    margin-top: 8px !important;
+    padding-top: 6px !important;
+  }
+  .quick-add-label {
+    font-size: 0.68rem !important;
+    white-space: nowrap !important;
+  }
+  .quick-add-buttons {
+    display: flex !important;
+    flex-wrap: wrap !important;
+    gap: 5px !important;
+  }
+  .btn-quick-add-pill {
+    padding: 4px 8px !important;
+    font-size: 0.68rem !important;
+    white-space: nowrap !important;
   }
 
-  /* Row 2: Cashier Profile Pill on Left, Live Clock on Right */
-  .cashier-profile-wrapper {
-    order: 1 !important;
+  /* Delivery Options on Mobile */
+  .status-toggle-row {
+    flex-direction: column !important;
+    gap: 6px !important;
+    width: 100% !important;
+  }
+  .status-toggle-btn {
+    width: 100% !important;
+    justify-content: center !important;
+    padding: 8px 10px !important;
+    font-size: 0.74rem !important;
+  }
+
+  /* Carboy Loan & Empties Steppers: Stack Vertically */
+  .carboy-loan-row {
+    display: flex !important;
+    flex-direction: column !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    box-sizing: border-box !important;
+    gap: 8px !important;
+    margin: 8px 0 !important;
+    min-width: 0 !important;
+  }
+  .carboy-loan-item {
+    width: 100% !important;
+    max-width: 100% !important;
+    box-sizing: border-box !important;
+    padding: 7px 10px !important;
     display: flex !important;
     align-items: center !important;
+    justify-content: space-between !important;
+    min-width: 0 !important;
   }
-  .cashier-profile-btn {
-    padding: 2px 10px 2px 3px !important;
+  .carboy-loan-label {
+    font-size: 0.68rem !important;
+    font-weight: 700 !important;
+    white-space: nowrap !important;
+  }
+  .carboy-stepper {
+    display: flex !important;
+    align-items: center !important;
     gap: 6px !important;
-    height: 32px !important;
-    background: var(--bg-surface) !important;
-    border: 1px solid var(--border-subtle) !important;
-    border-radius: var(--radius-full) !important;
+    flex-shrink: 0 !important;
   }
-  .cashier-avatar {
-    width: 26px !important;
-    height: 26px !important;
-    font-size: 0.75rem !important;
-  }
-  .cashier-name-text {
-    font-size: 0.78rem !important;
-    font-weight: 700 !important;
-  }
-  .cashier-role-badge {
-    font-size: 0.58rem !important;
-    padding: 1px 5px !important;
-  }
-  .cashier-chevron-icon {
-    width: 14px !important;
-    height: 14px !important;
-  }
-
-  .live-clock-pill {
-    order: 2 !important;
-    margin-left: auto !important;
-    font-size: 0.72rem !important;
-    font-weight: 700 !important;
-    padding: 4px 10px !important;
+  .btn-carboy-step {
+    width: 28px !important;
     height: 28px !important;
+    min-width: 28px !important;
+    min-height: 28px !important;
+    font-size: 0.95rem !important;
     display: inline-flex !important;
     align-items: center !important;
-    white-space: nowrap !important;
-    border-radius: var(--radius-full) !important;
-    background-color: var(--bg-surface) !important;
-    border: 1px solid var(--border-subtle) !important;
+    justify-content: center !important;
   }
-  .clock-date {
-    display: none !important;
+  .carboy-step-input {
+    width: 44px !important;
+    height: 28px !important;
+    font-size: 1rem !important;
   }
 
-  /* Flex Break to Force Clean Unified Action Strip on Row 3 */
-  .header-right-actions::before {
-    content: "" !important;
-    display: block !important;
+  /* Numpad Mode Target Bar */
+  .keypad-target-bar {
+    display: flex !important;
+    flex-wrap: wrap !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    gap: 6px !important;
     width: 100% !important;
-    height: 0 !important;
-    order: 3 !important;
-    margin: 0 !important;
-    padding: 0 !important;
+    max-width: 100% !important;
+    box-sizing: border-box !important;
   }
-
-  /* Row 3: Single Unified Action Strip */
-  .btn-header-save {
-    order: 4 !important;
-    padding: 5px 10px !important;
-    height: 32px !important;
-    font-size: 0.72rem !important;
-    font-weight: 700 !important;
-    gap: 5px !important;
+  .keypad-target-hint {
+    font-size: 0.65rem !important;
     white-space: nowrap !important;
-    flex-shrink: 0 !important;
-    background: rgba(2, 132, 199, 0.09) !important;
-    border: 1px solid rgba(2, 132, 199, 0.28) !important;
-    color: var(--color-primary) !important;
   }
-  body:not(.light-mode) .btn-header-save {
-    background: rgba(56, 189, 248, 0.12) !important;
-    border-color: rgba(56, 189, 248, 0.28) !important;
-    color: #38bdf8 !important;
+  .keypad-target-pills {
+    display: flex !important;
+    flex: 1 1 100% !important;
+    width: 100% !important;
+    gap: 6px !important;
   }
-
-  .header-summary-pill-btn {
-    order: 5 !important;
-    padding: 5px 10px !important;
-    height: 32px !important;
-    font-size: 0.72rem !important;
-    font-weight: 700 !important;
-    gap: 5px !important;
+  .kp-target-pill {
+    flex: 1 1 0 !important;
+    min-width: 0 !important;
+    justify-content: center !important;
+    font-size: 0.68rem !important;
+    padding: 5px 6px !important;
     white-space: nowrap !important;
-    flex-shrink: 0 !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
   }
 
-  /* Hide redundant bell icon on mobile since Summary pill is directly present */
-  .btn-header-summary#btnNotifications {
+  /* Keypad on Mobile (Senior & Touch Friendly, Contained Width) */
+  .numeric-keypad-grid {
+    display: grid !important;
+    grid-template-columns: repeat(4, 1fr) !important;
+    gap: 5px !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    box-sizing: border-box !important;
+  }
+  .keypad-key {
+    min-height: 48px !important;
+    height: 48px !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    font-size: 1.45rem !important;
+    border-radius: 8px !important;
+    box-sizing: border-box !important;
+  }
+  .keypad-key.key-num {
+    font-size: 1.8rem !important;
+  }
+  .quick-cash-btn-row {
+    display: grid !important;
+    grid-template-columns: repeat(6, 1fr) !important;
+    gap: 3px !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    box-sizing: border-box !important;
+  }
+  .btn-quick-cash {
+    min-width: 0 !important;
+    padding: 6px 0 !important;
+    font-size: 0.66rem !important;
+    text-align: center !important;
+    white-space: nowrap !important;
+  }
+  .tender-summary-row {
+    display: flex !important;
+    flex-wrap: wrap !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    gap: 6px !important;
+    width: 100% !important;
+    max-width: 100% !important;
+  }
+  .tender-summary-row .total-amount-display {
+    font-size: 1.35rem !important;
+  }
+  .tender-status-pills {
+    display: flex !important;
+    gap: 4px !important;
+    flex-wrap: wrap !important;
+  }
+  .btn-primary-action {
+    min-height: 48px !important;
+    height: 48px !important;
+    font-size: 0.96rem !important;
+    width: 100% !important;
+  }
+
+  /* Inventory Dock on Mobile */
+  .inventory-dock {
+    width: 100% !important;
+    max-width: 100% !important;
+    box-sizing: border-box !important;
+    padding: 10px 8px !important;
+    min-width: 0 !important;
+  }
+  .inventory-metrics-grid {
+    display: grid !important;
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 6px !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    box-sizing: border-box !important;
+    min-width: 0 !important;
+  }
+  .inv-mini-card {
+    min-width: 0 !important;
+    width: 100% !important;
+    padding: 8px 6px !important;
+    box-sizing: border-box !important;
+    overflow: hidden !important;
+  }
+  .inv-val {
+    font-size: 1.1rem !important;
+  }
+  .inv-lbl {
+    font-size: 0.62rem !important;
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+  }
+  .inv-sub {
+    font-size: 0.60rem !important;
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+  }
+
+  /* Orders Log View on Mobile */
+  .orders-log-view {
+    padding: 10px 8px !important;
+    border-radius: var(--radius-lg) !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    box-sizing: border-box !important;
+    overflow: hidden !important;
+  }
+  .orders-view-header h3 {
+    font-size: 1.05rem !important;
+  }
+  .orders-view-header p {
+    font-size: 0.70rem !important;
+  }
+  .orders-header-controls {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 8px !important;
+    width: 100% !important;
+    max-width: 100% !important;
+  }
+  .search-box {
+    width: 100% !important;
+    max-width: 100% !important;
+    box-sizing: border-box !important;
+    height: 38px !important;
+    min-height: 38px !important;
+  }
+  .orders-segmented-filter {
+    display: flex !important;
+    flex-wrap: nowrap !important;
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch !important;
+    scrollbar-width: none !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    gap: 6px !important;
+    padding-bottom: 4px !important;
+    box-sizing: border-box !important;
+  }
+  .orders-segmented-filter::-webkit-scrollbar {
     display: none !important;
   }
-
-  .btn-header-empties {
-    order: 6 !important;
-    width: 32px !important;
-    height: 32px !important;
-    min-width: 32px !important;
-    min-height: 32px !important;
-    padding: 0 !important;
+  .log-filter-btn {
     flex-shrink: 0 !important;
-    position: relative !important;
-  }
-
-  #themeToggleBtn {
-    order: 7 !important;
-    width: 32px !important;
-    height: 32px !important;
-    min-width: 32px !important;
-    min-height: 32px !important;
-    padding: 0 !important;
-    flex-shrink: 0 !important;
-  }
-
-  #soundToggleBtn {
-    order: 8 !important;
-    width: 32px !important;
-    height: 32px !important;
-    min-width: 32px !important;
-    min-height: 32px !important;
-    padding: 0 !important;
-    flex-shrink: 0 !important;
-  }
-
-  #btnLockTerminal {
-    order: 9 !important;
-    width: 32px !important;
-    height: 32px !important;
-    min-width: 32px !important;
-    min-height: 32px !important;
-    padding: 0 !important;
-    flex-shrink: 0 !important;
-    margin-left: auto !important;
-  }
-
-  .header-icon-btn {
-    width: 32px !important;
-    height: 32px !important;
-    min-width: 32px !important;
-    min-height: 32px !important;
-  }
-  .header-icon-btn .ui-icon {
-    width: 17px !important;
-    height: 17px !important;
-  }
-
-  @media (max-width: 360px) {
-    .welcome-title {
-      font-size: 1.02rem !important;
-    }
-    .station-status-pill .station-sub-tag {
-      display: none !important;
-    }
-    .btn-header-save span {
-      display: none !important;
-    }
-    .btn-header-save {
-      width: 32px !important;
-      padding: 0 !important;
-      justify-content: center !important;
-    }
-  }
-
-  /* Stage Container Padding */
-  .orders-log-view,
-  .delivered-fleet-view,
-  .reports-view,
-  .settings-view {
-    padding: 14px 12px;
-    border-radius: var(--radius-lg);
+    white-space: nowrap !important;
+    padding: 6px 10px !important;
+    font-size: 0.72rem !important;
   }
 
   /* Station Summary Grid on Mobile (2x2 Compact) */
   .station-summary-grid {
     grid-template-columns: repeat(2, 1fr) !important;
-    gap: 8px;
+    gap: 8px !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    box-sizing: border-box !important;
   }
   .metric-card {
-    padding: 10px 10px;
-    min-height: 76px;
-    border-radius: var(--radius-md);
+    padding: 8px 8px !important;
+    min-height: 72px !important;
+    min-width: 0 !important;
+    width: 100% !important;
+    overflow: hidden !important;
+    border-radius: var(--radius-md) !important;
+    box-sizing: border-box !important;
   }
   .m-val {
-    font-size: 1.18rem;
+    font-size: 1.15rem !important;
+    word-break: break-all !important;
   }
   .m-lbl {
-    font-size: 0.65rem;
+    font-size: 0.62rem !important;
   }
   .m-sub {
-    font-size: 0.64rem;
-  }
-
-  /* Fleet & Reports Cards */
-  .fleet-metrics-row,
-  .reports-summary-cards {
-    grid-template-columns: repeat(2, 1fr) !important;
-    gap: 8px;
-  }
-  .fleet-metric-box,
-  .report-card {
-    padding: 10px 10px;
-  }
-
-  /* Orders Header Controls on Mobile */
-  .orders-view-header h3 {
-    font-size: 1.1rem;
-  }
-  .orders-view-header p {
-    font-size: 0.72rem;
-  }
-  .orders-header-controls {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 8px;
-    width: 100%;
-  }
-  .search-box {
-    grid-column: 1 / -1;
-    width: 100%;
-    flex: 0 0 38px;
-    height: 38px;
-    min-height: 38px;
-    border-radius: var(--radius-md);
-  }
-  .orders-segmented-filter {
-    grid-column: 1 / -1;
-    width: 100%;
-    overflow-x: auto;
-    white-space: nowrap;
-    -webkit-overflow-scrolling: touch;
-  }
-  .btn-export-csv,
-  .btn-print-summary {
-    width: 100%;
-    justify-content: center;
-    padding: 7px 10px;
-    font-size: 0.74rem;
+    font-size: 0.60rem !important;
   }
 
   /* Orders Footer on Mobile */
   .orders-footer-summary {
-    flex-direction: column;
-    align-items: stretch;
-    gap: 8px;
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 8px !important;
+    width: 100% !important;
   }
   .footer-stat {
-    display: flex;
-    justify-content: space-between;
-    width: 100%;
+    display: flex !important;
+    justify-content: space-between !important;
+    width: 100% !important;
   }
   .btn-reset-shift-log {
-    width: 100%;
-    justify-content: center;
-    margin-left: 0;
+    width: 100% !important;
+    justify-content: center !important;
+    margin-left: 0 !important;
   }
 
-  /* POS Stage on Mobile */
-  .products-cards-grid {
-    grid-template-columns: 1fr;
-    gap: 10px;
+  /* Reports View on Mobile */
+  .reports-view {
+    padding: 10px 8px !important;
+    border-radius: var(--radius-lg) !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    box-sizing: border-box !important;
+    overflow: hidden !important;
   }
-  .gallon-type-pills {
-    flex-wrap: wrap;
-    width: 100%;
+  .report-list-toolbar {
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 8px !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    box-sizing: border-box !important;
   }
-  .type-pill {
-    flex: 1 1 130px;
-    padding: 6px 10px;
-    font-size: 0.72rem;
+  .toolbar-left-group {
+    width: 100% !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
   }
-  .droppy-mascot-banner {
-    padding: 12px 14px;
-    gap: 12px;
-    border-radius: 16px;
+  .toolbar-right-group {
+    display: flex !important;
+    flex-wrap: wrap !important;
+    gap: 6px !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    box-sizing: border-box !important;
   }
-  .droppy-banner-avatar {
-    width: 68px;
-    height: 76px;
+  .report-search-wrap {
+    width: 100% !important;
+    min-width: 0 !important;
   }
-  .droppy-bubble-title {
-    font-size: 0.88rem;
+  .report-search-wrap input {
+    width: 100% !important;
+    min-width: 0 !important;
+    box-sizing: border-box !important;
   }
-  .droppy-bubble-badge {
-    font-size: 0.62rem;
-    padding: 1px 6px;
-  }
-  .droppy-banner-msg {
-    font-size: 0.78rem;
-    line-height: 1.4;
-  }
-
-  /* Quick Presets on Mobile */
-  .quick-presets-strip {
-    padding: 10px 12px;
-  }
-  .preset-buttons-wrap {
-    grid-template-columns: repeat(5, 1fr) !important;
-    gap: 4px;
-  }
-  .preset-pill {
-    min-height: 44px;
-    padding: 6px 2px;
-  }
-  .pill-gal {
-    font-size: 0.74rem;
-  }
-  .pill-price {
-    font-size: 0.65rem;
-  }
-
-  /* Keypad on Mobile (Accessible & Comfortable) */
-  .numeric-keypad-grid {
-    gap: 6px;
-  }
-  .keypad-key {
-    min-height: 52px;
-    height: 52px;
-    font-size: 1.6rem;
-    border-radius: 8px;
-  }
-  .keypad-key.key-num {
-    font-size: 1.95rem;
-  }
-  .quick-cash-btn-row {
-    grid-template-columns: repeat(6, 1fr) !important;
-    gap: 4px !important;
-  }
-  .btn-quick-cash {
-    padding: 6px 1px !important;
-    font-size: 0.71rem !important;
+  .report-action-btn {
+    flex: 1 1 0 !important;
+    min-width: 0 !important;
+    padding: 6px 4px !important;
+    font-size: 0.68rem !important;
+    justify-content: center !important;
     white-space: nowrap !important;
   }
-  .btn-primary-action {
-    min-height: 50px;
-    height: 50px;
-    font-size: 0.98rem;
+  .report-action-btn span {
+    font-size: 0.68rem !important;
   }
 
-  /* Inventory Dock on Mobile */
-  .inventory-metrics-grid {
-    grid-template-columns: repeat(2, 1fr);
-    gap: 8px;
+  .dd-card-header {
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    gap: 10px !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
   }
-  .inv-mini-card {
-    padding: 10px 12px;
+  .dd-card-header-right {
+    width: 100% !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
   }
-  .inv-val {
-    font-size: 1.2rem;
+  .dd-chart-container {
+    width: 100% !important;
+    max-width: 100% !important;
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch !important;
+    box-sizing: border-box !important;
   }
-
-  /* Mini Drawer on Mobile */
-  .mini-orders-drawer {
-    width: 100vw;
-    max-width: 100vw;
+  .dd-bar-chart {
+    width: 100% !important;
+    min-width: 0 !important;
+    padding: 10px 0 0 !important;
   }
-
-  /* Reports Stage on Mobile Phone (Fixes 3-Column Sparkline Squish!) */
+  .dd-bar-col {
+    padding: 0 1px !important;
+    min-width: 0 !important;
+  }
+  .dd-bar-track {
+    width: 12px !important;
+    min-width: 8px !important;
+    border-radius: 3px 3px 0 0 !important;
+  }
+  .dd-bar-label {
+    font-size: 0.58rem !important;
+  }
   .sparkline-kpi-grid {
     grid-template-columns: 1fr !important;
     gap: 10px !important;
   }
   .sparkline-card {
-    padding: 14px 16px !important;
-  }
-  .report-hero-header {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 10px;
-  }
-  .report-hero-actions {
-    width: 100%;
-  }
-  .btn-full-dive-trigger {
-    width: 100%;
-    justify-content: center;
-  }
-  .deep-dive-header {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 10px;
-  }
-  .deep-dive-header-actions {
-    width: 100%;
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 8px;
-  }
-  .btn-dd-primary {
-    grid-column: 1 / -1;
+    padding: 12px 14px !important;
   }
   .dd-kpi-grid {
     grid-template-columns: 1fr !important;
     gap: 10px !important;
   }
 
-  /* Settings Stage on Mobile Phone */
+  /* Settings View on Mobile */
   .settings-view {
-    padding: 14px 12px !important;
+    padding: 10px 8px !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    box-sizing: border-box !important;
+    overflow: hidden !important;
   }
   .settings-tabs-nav {
-    overflow-x: auto;
-    flex-wrap: nowrap;
-    -webkit-overflow-scrolling: touch;
-    padding-bottom: 6px;
+    overflow-x: auto !important;
+    flex-wrap: nowrap !important;
+    -webkit-overflow-scrolling: touch !important;
+    scrollbar-width: none !important;
+    padding-bottom: 6px !important;
+    width: 100% !important;
+    max-width: 100% !important;
+  }
+  .settings-tabs-nav::-webkit-scrollbar {
+    display: none !important;
   }
   .settings-tab-btn {
-    flex-shrink: 0;
-    white-space: nowrap;
-    padding: 6px 12px;
-    font-size: 0.76rem;
+    flex-shrink: 0 !important;
+    white-space: nowrap !important;
+    padding: 6px 12px !important;
+    font-size: 0.74rem !important;
   }
-  .setting-row-2col {
+  .setting-row-2col,
+  .setting-inputs-grid-2col {
     grid-template-columns: 1fr !important;
     gap: 8px !important;
   }
   .btn-save-settings {
-    width: 100%;
-    justify-content: center;
+    width: 100% !important;
+    justify-content: center !important;
   }
 
-  /* Profile Stage on Mobile Phone */
+  /* Profile View on Mobile */
+  .profile-view-wrapper {
+    padding: 10px 8px !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    box-sizing: border-box !important;
+    overflow: hidden !important;
+  }
   .profile-top-bar {
-    flex-direction: column;
-    align-items: stretch;
-    gap: 10px;
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 10px !important;
   }
   .profile-header-actions {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 6px;
-    width: 100%;
+    display: grid !important;
+    grid-template-columns: 1fr 1fr !important;
+    gap: 6px !important;
+    width: 100% !important;
   }
   .btn-profile-top-action.danger {
-    grid-column: 1 / -1;
+    grid-column: 1 / -1 !important;
   }
   .profile-hero-card {
-    flex-direction: column;
-    align-items: center;
-    text-align: center;
-    padding: 16px 14px;
-    gap: 12px;
+    flex-direction: column !important;
+    align-items: center !important;
+    text-align: center !important;
+    padding: 14px 10px !important;
+    gap: 12px !important;
   }
   .profile-hero-left {
-    flex-direction: column;
-    align-items: center;
-    gap: 10px;
+    flex-direction: column !important;
+    align-items: center !important;
+    gap: 8px !important;
   }
   .profile-hero-title-row {
-    justify-content: center;
+    justify-content: center !important;
   }
   .profile-operator-meta-row {
-    justify-content: center;
-    flex-wrap: wrap;
+    justify-content: center !important;
+    flex-wrap: wrap !important;
   }
   .profile-hero-right {
-    width: 100%;
+    width: 100% !important;
   }
   .profile-quick-stat-box {
-    width: 100%;
-    text-align: center;
+    width: 100% !important;
+    text-align: center !important;
   }
   .profile-kpis-grid {
     grid-template-columns: repeat(2, 1fr) !important;
     gap: 8px !important;
+    width: 100% !important;
   }
   .profile-kpi-card {
-    padding: 10px 12px !important;
+    padding: 10px 10px !important;
     gap: 4px !important;
+    min-width: 0 !important;
   }
   .profile-kpi-main-val {
-    font-size: 1.25rem !important;
+    font-size: 1.15rem !important;
+  }
+  .profile-details-grid {
+    grid-template-columns: 1fr !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    gap: 12px !important;
+    min-width: 0 !important;
+  }
+  .profile-section-card {
+    padding: 12px 10px !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    box-sizing: border-box !important;
+    min-width: 0 !important;
+    overflow: hidden !important;
+  }
+  .profile-orders-table-wrapper {
+    width: 100% !important;
+    max-width: 100% !important;
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch !important;
+    display: block !important;
+    box-sizing: border-box !important;
+    border-radius: var(--radius-md) !important;
+  }
+  .profile-orders-table {
+    min-width: 480px !important;
+    width: 100% !important;
+  }
+  .profile-input-row {
+    display: flex !important;
+    flex-direction: column !important;
+    width: 100% !important;
+    gap: 8px !important;
+  }
+  .profile-input-group {
+    width: 100% !important;
+    min-width: 0 !important;
+  }
+  .profile-input-group input {
+    width: 100% !important;
+    box-sizing: border-box !important;
+    height: 40px !important;
   }
 
   /* Modals on Mobile Phone */
@@ -8287,8 +8653,40 @@ body:not(.light-mode) .btn-sub-action.primary:hover {
     height: 44px;
     font-size: 1.1rem;
   }
+  .mini-orders-drawer {
+    width: 100vw !important;
+    max-width: 100vw !important;
+  }
 }
 
+/* Compact Android & Small Mobile Screens (<= 380px) */
+@media (max-width: 380px) {
+  .welcome-title {
+    font-size: 1rem !important;
+  }
+  .station-status-pill .station-sub-tag {
+    display: none !important;
+  }
+  .cashier-name-text {
+    max-width: 70px !important;
+  }
+  .live-clock-pill {
+    padding: 4px 6px !important;
+    font-size: 0.68rem !important;
+  }
+  .btn-quick-cash {
+    font-size: 0.60rem !important;
+    padding: 5px 0 !important;
+  }
+  .keypad-key {
+    min-height: 44px !important;
+    height: 44px !important;
+    font-size: 1.35rem !important;
+  }
+  .keypad-key.key-num {
+    font-size: 1.6rem !important;
+  }
+}
 /* ==========================================================================
    MINI ORDERS DRAWER (Quick Flyout Tab for POS)
    ========================================================================== */
