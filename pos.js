@@ -366,10 +366,10 @@ const State = {
     wholesalePrice: 30,
     stationName: 'R&R Water Refilling Station',
     stationBranch: 'Counter #1 (Main Terminal)',
-    stationPhone: '',
-    stationAddress: '',
+    stationPhone: '0917-829-4102',
+    stationAddress: 'Purok 1, Main Road',
     autoPrint: false,
-    cashierName: ''
+    cashierName: 'Neil'
   },
   theme: 'light',                  // 'light' | 'dark'
   soundEnabled: true,
@@ -837,6 +837,8 @@ function loadSavedData() {
         lowStockThreshold: 20,
         tdsBaseline: 10
       }, JSON.parse(savedSettings));
+      if (!State.settings.stationPhone) State.settings.stationPhone = '0917-829-4102';
+      if (!State.settings.stationName) State.settings.stationName = 'R&R Water Refilling Station';
     } catch (e) {}
   }
 
@@ -1953,11 +1955,11 @@ function initSettingsUI() {
   setVal('settingPriceNewJug', s.priceNewJug);
   setVal('settingMinBatch', s.minBatch);
   setVal('settingWholesalePrice', s.wholesalePrice);
-  setVal('settingStationName', s.stationName);
-  setVal('settingStationBranch', s.stationBranch);
-  setVal('settingStationPhone', s.stationPhone);
-  setVal('settingStationAddress', s.stationAddress);
-  setVal('settingCashierName', s.cashierName);
+  setVal('settingStationName', s.stationName || 'R&R Water Refilling Station');
+  setVal('settingStationBranch', s.stationBranch || 'Counter #1 (Main Terminal)');
+  setVal('settingStationPhone', s.stationPhone || '0917-829-4102');
+  setVal('settingStationAddress', s.stationAddress || 'Purok 1, Main Road');
+  setVal('settingCashierName', s.cashierName || 'Neil');
   setChecked('settingAutoPrintToggle', s.autoPrint);
   setChecked('settingSoundToggle', State.soundEnabled);
   setChecked('settingDarkModeToggle', State.theme === 'dark');
@@ -6750,7 +6752,7 @@ function openStationSetupWizardModal() {
   // Populate Station Info
   if (inStName) inStName.value = State.settings.stationName || 'R&R Water Refilling Station';
   if (inStBranch) inStBranch.value = State.settings.stationBranch || 'Counter #1 (Main Terminal)';
-  if (inStPhone) inStPhone.value = State.settings.stationPhone || '';
+  if (inStPhone) inStPhone.value = State.settings.stationPhone || '0917-829-4102';
   if (inStAddr) inStAddr.value = State.settings.stationAddress || '';
 
   // Populate Manager Profile

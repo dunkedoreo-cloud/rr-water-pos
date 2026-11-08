@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>R&R Water - Station POS</title>
-  <link rel="stylesheet" href="pos.css?v=2.8.40">
+  <link rel="stylesheet" href="pos.css?v=2.8.41">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700;800&display=swap" rel="stylesheet">
@@ -1783,7 +1783,7 @@
                   <div class="setting-row">
                     <div class="setting-meta">
                       <label for="settingPricePurified">Purified Water Refill (1 Gallon)</label>
-                      <span class="setting-desc">Standard walk-in &amp; delivery swap price</span>
+                      <span class="setting-desc">Standard walk-in &amp; delivery swap</span>
                     </div>
                     <div class="input-currency-wrap">
                       <span class="currency-prefix">₱</span>
@@ -1794,7 +1794,7 @@
                   <div class="setting-row">
                     <div class="setting-meta">
                       <label for="settingPriceNewJug">New Gallon Jug + Water</label>
-                      <span class="setting-desc">Includes brand-new bottle and initial fill</span>
+                      <span class="setting-desc">Includes new container &amp; initial fill</span>
                     </div>
                     <div class="input-currency-wrap">
                       <span class="currency-prefix">₱</span>
@@ -1805,7 +1805,7 @@
                   <div class="setting-row">
                     <div class="setting-meta">
                       <label for="settingMinBatch">Multicab Minimum Batch</label>
-                      <span class="setting-desc">Default starting quantity for vehicle deliveries</span>
+                      <span class="setting-desc">Minimum batch for vehicle deliveries</span>
                     </div>
                     <div class="input-unit-wrap">
                       <input type="number" id="settingMinBatch" class="setting-input num-input" value="10" min="1" step="1">
@@ -1816,7 +1816,7 @@
                   <div class="setting-row">
                     <div class="setting-meta">
                       <label for="settingWholesalePrice">Wholesale Bulk Rate (20+ Gal)</label>
-                      <span class="setting-desc">Special discount rate for stores &amp; canteens</span>
+                      <span class="setting-desc">Discount rate for stores &amp; canteens</span>
                     </div>
                     <div class="input-currency-wrap">
                       <span class="currency-prefix">₱</span>
@@ -1842,11 +1842,11 @@
                   <div class="setting-row-2col">
                     <div class="setting-field">
                       <label for="settingStationName">Station Business Name</label>
-                      <input type="text" id="settingStationName" class="setting-input" value="R&amp;R Water Refilling Station">
+                      <input type="text" id="settingStationName" class="setting-input" value="R&amp;R Water Refilling Station" placeholder="R&amp;R Water Refilling Station">
                     </div>
                     <div class="setting-field">
                       <label for="settingStationPhone">Contact Number</label>
-                      <input type="text" id="settingStationPhone" class="setting-input" value="0917-829-4102">
+                      <input type="text" id="settingStationPhone" class="setting-input" value="0917-829-4102" placeholder="0917-829-4102">
                     </div>
                   </div>
 
@@ -3755,7 +3755,7 @@
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="supabase_config.js?v=2.8.37"></script>
-  <script src="pos.js?v=2.8.37"></script>
+  <script src="pos.js?v=2.8.41"></script>
 
   <!-- ====================================================================
        MODAL 1: BAYAD UTANG (CUSTOMER DEBT COLLECTION & PARTIAL PAYMENT)
