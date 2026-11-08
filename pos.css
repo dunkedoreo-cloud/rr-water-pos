@@ -8759,9 +8759,42 @@ body:not(.light-mode) .btn-sub-action.primary:hover {
     height: 44px;
     font-size: 1.1rem;
   }
-  .mini-orders-drawer {
+  .mini-orders-drawer,
+  .station-summary-drawer {
     width: 100vw !important;
     max-width: 100vw !important;
+    border-radius: 0 !important;
+    border-left: none !important;
+  }
+  .settle-top-selectors-grid {
+    grid-template-columns: 1fr !important;
+    gap: 8px !important;
+  }
+  .settle-inventory-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 8px !important;
+  }
+  .bayad-utang-card,
+  .driver-settlement-card,
+  .quick-expense-card,
+  .gcash-enlarge-card {
+    width: 95vw !important;
+    max-width: 95vw !important;
+    padding: 16px 14px !important;
+    border-radius: var(--radius-lg) !important;
+  }
+  .profile-filter-btn {
+    padding: 6px 14px !important;
+    min-height: 32px !important;
+    font-size: 0.74rem !important;
+  }
+  .btn-order-reconcile {
+    min-height: 32px !important;
+    padding: 6px 12px !important;
+  }
+  .td-action-dots-btn {
+    width: 32px !important;
+    height: 32px !important;
   }
 }
 
@@ -8826,11 +8859,15 @@ body:not(.light-mode) .btn-sub-action.primary:hover {
   display: flex;
   flex-direction: column;
   transform: translateX(100%);
-  transition: transform 0.28s cubic-bezier(0.16, 1, 0.3, 1);
+  visibility: hidden;
+  pointer-events: none;
+  transition: transform 0.28s cubic-bezier(0.16, 1, 0.3, 1), visibility 0.28s;
 }
 
 .mini-orders-drawer.open {
   transform: translateX(0);
+  visibility: visible;
+  pointer-events: auto;
 }
 
 .mini-drawer-header {
@@ -11742,7 +11779,9 @@ body:not(.light-mode) .floating-side-minitab {
   display: flex;
   flex-direction: column;
   transform: translateX(100%);
-  transition: transform 0.28s cubic-bezier(0.16, 1, 0.3, 1);
+  visibility: hidden;
+  pointer-events: none;
+  transition: transform 0.28s cubic-bezier(0.16, 1, 0.3, 1), visibility 0.28s;
   box-sizing: border-box;
 }
 
@@ -11754,6 +11793,8 @@ body:not(.light-mode) .station-summary-drawer {
 
 .station-summary-drawer.open {
   transform: translateX(0);
+  visibility: visible;
+  pointer-events: auto;
 }
 
 .station-summary-drawer.open .summary-section-card {
@@ -15128,7 +15169,7 @@ body:not(.light-mode) .droppy-fun-tip-btn {
 @media (max-width: 640px) {
   .tutorial-card {
     position: fixed !important;
-    bottom: 20px !important;
+    bottom: calc(76px + env(safe-area-inset-bottom, 0px)) !important;
     top: auto !important;
     left: 50% !important;
     transform: translateX(-50%) !important;
