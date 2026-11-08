@@ -7307,6 +7307,7 @@ body:not(.light-mode) .btn-sub-action.primary:hover {
   }
   .search-box {
     flex: 1 1 180px;
+    max-height: 40px;
   }
   .orders-segmented-filter {
     overflow-x: auto;
@@ -7486,29 +7487,83 @@ body:not(.light-mode) .btn-sub-action.primary:hover {
   }
   .orders-table-row td.td-amount {
     order: 7;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding-top: 6px;
-    border-top: 1px dashed var(--border-subtle);
-    white-space: nowrap !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    flex-wrap: wrap !important;
+    padding-top: 8px !important;
+    border-top: 1px dashed var(--border-subtle) !important;
+    gap: 6px !important;
+    width: 100% !important;
   }
   .orders-table-row td.td-amount::before {
-    content: 'Total Amount:';
-    font-size: 0.74rem;
-    font-weight: 700;
-    color: var(--text-muted);
-    text-transform: uppercase;
+    content: 'TOTAL:';
+    font-size: 0.70rem !important;
+    font-weight: 700 !important;
+    color: var(--text-muted) !important;
+    text-transform: uppercase !important;
+    margin-right: 4px !important;
+  }
+  .orders-table-row .table-amount-main {
+    font-size: 1.05rem !important;
+    font-weight: 800 !important;
+    color: var(--text-main) !important;
+    display: inline-flex !important;
+    align-items: baseline !important;
+    margin-right: auto !important;
+  }
+  .orders-table-row .table-money-flow {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: flex-end !important;
+    flex-wrap: wrap !important;
+    gap: 4px !important;
+    margin-top: 0 !important;
+  }
+  .orders-table-row .mflow-pill {
+    font-size: 0.65rem !important;
+    padding: 2px 6px !important;
+    line-height: 1.2 !important;
   }
   .orders-table-row td.td-actions {
     order: 8;
-    padding-top: 4px;
+    padding-top: 6px !important;
+    border-top: 1px solid var(--border-subtle, #f1f5f9) !important;
+    display: flex !important;
+    width: 100% !important;
   }
-  .table-actions-cell {
-    width: 100%;
-    display: flex;
-    gap: 8px;
-    justify-content: flex-end;
+  .orders-table-row .table-actions-cell {
+    width: 100% !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: flex-end !important;
+    gap: 8px !important;
+  }
+  .orders-table-row .btn-order-print,
+  .orders-table-row .btn-order-void {
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    width: 34px !important;
+    height: 34px !important;
+    border-radius: var(--radius-md, 8px) !important;
+    background-color: var(--bg-card-subtle) !important;
+    border: 1px solid var(--border-subtle) !important;
+    color: var(--text-muted) !important;
+    cursor: pointer !important;
+    transition: all 0.15s ease !important;
+  }
+  .orders-table-row .btn-order-print:hover,
+  .orders-table-row .btn-order-print:active {
+    color: var(--color-primary) !important;
+    border-color: var(--color-primary) !important;
+    background-color: var(--bg-surface) !important;
+  }
+  .orders-table-row .btn-order-void:hover,
+  .orders-table-row .btn-order-void:active {
+    color: var(--color-danger) !important;
+    border-color: rgba(239, 68, 68, 0.4) !important;
+    background-color: rgba(239, 68, 68, 0.08) !important;
   }
   .btn-table-collect {
     flex: 1;
@@ -7516,10 +7571,6 @@ body:not(.light-mode) .btn-sub-action.primary:hover {
     font-size: 0.75rem;
     justify-content: center;
     text-align: center;
-  }
-  .btn-order-void {
-    width: 36px;
-    height: 36px;
   }
 
   /* Table Footer on Mobile */
@@ -8308,13 +8359,31 @@ body:not(.light-mode) .btn-sub-action.primary:hover {
     gap: 8px !important;
     width: 100% !important;
     max-width: 100% !important;
+    align-items: stretch !important;
   }
   .search-box {
     width: 100% !important;
     max-width: 100% !important;
     box-sizing: border-box !important;
-    height: 38px !important;
-    min-height: 38px !important;
+    height: 40px !important;
+    min-height: 40px !important;
+    max-height: 40px !important;
+    flex: 0 0 40px !important;
+    border-radius: 10px !important;
+    padding: 0 12px !important;
+    display: flex !important;
+    align-items: center !important;
+  }
+  .search-box input {
+    height: 100% !important;
+    font-size: 0.85rem !important;
+  }
+  .search-box .search-icon {
+    width: 16px !important;
+    height: 16px !important;
+    min-width: 16px !important;
+    min-height: 16px !important;
+    flex-shrink: 0 !important;
   }
   .orders-segmented-filter {
     display: flex !important;
@@ -8337,6 +8406,13 @@ body:not(.light-mode) .btn-sub-action.primary:hover {
     padding: 6px 10px !important;
     font-size: 0.72rem !important;
   }
+  .orders-header-controls .btn-export-csv,
+  .orders-header-controls .btn-print-summary {
+    padding: 7px 12px !important;
+    font-size: 0.74rem !important;
+    justify-content: center !important;
+    width: auto !important;
+  }
 
   /* Station Summary Grid on Mobile (2x2 Compact) */
   .station-summary-grid {
@@ -8355,12 +8431,42 @@ body:not(.light-mode) .btn-sub-action.primary:hover {
     border-radius: var(--radius-md) !important;
     box-sizing: border-box !important;
   }
+  .metric-card.profit-card {
+    grid-column: 1 / -1 !important;
+  }
+  .metric-card-header {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    gap: 3px !important;
+    width: 100% !important;
+    min-width: 0 !important;
+  }
+  .m-lbl {
+    font-size: 0.55rem !important;
+    letter-spacing: 0.01em !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    white-space: nowrap !important;
+    flex: 1 1 0 !important;
+    min-width: 0 !important;
+    text-transform: uppercase !important;
+  }
+  .m-badge-metric,
+  .m-badge-paid,
+  .m-badge-pending,
+  .m-badge-fleet,
+  .m-badge-profit {
+    font-size: 0.50rem !important;
+    padding: 1px 4px !important;
+    flex-shrink: 0 !important;
+    white-space: nowrap !important;
+    line-height: 1.1 !important;
+    letter-spacing: 0.01em !important;
+  }
   .m-val {
     font-size: 1.15rem !important;
     word-break: break-all !important;
-  }
-  .m-lbl {
-    font-size: 0.62rem !important;
   }
   .m-sub {
     font-size: 0.60rem !important;
