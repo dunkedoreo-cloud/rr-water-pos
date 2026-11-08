@@ -475,10 +475,14 @@ const server = http.createServer(async (req, res) => {
 
   // Prevent directory traversal
   const safePath = path.normalize(pathname).replace(/^(\.\.[\/\\])+/, '');
-  const filePath = path.join(PUBLIC_DIR, safePath);
+  let filePath = path.join(PUBLIC_DIR, safePath);
+  if (!fs.existsSync(filePath)) {
+    const alt = path.join(process.cwd(), safePath);
+    if (fs.existsSync(alt)) filePath = alt;
+  }
 
-  // Security check 1: ensure filePath is inside PUBLIC_DIR
-  if (!filePath.startsWith(PUBLIC_DIR)) {
+  // Security check 1: ensure filePath is inside PUBLIC_DIR or cwd
+  if (!filePath.startsWith(PUBLIC_DIR) && !filePath.startsWith(process.cwd())) {
     res.writeHead(403, { 'Content-Type': 'text/plain' });
     res.end('403 Forbidden');
     return;
