@@ -2,15 +2,15 @@
 // R&R Water Refilling Station - Service Worker (Offline-First PWA)
 // ==========================================================================
 
-const CACHE_NAME = 'rr-water-pos-v2.8.46';
+const CACHE_NAME = 'rr-water-pos-v2.8.47';
 const STATIC_ASSETS = [
   './',
   './index.html',
   './pos.html',
   './dev.html',
-  './pos.css?v=2.8.46',
-  './supabase_config.js?v=2.8.46',
-  './pos.js?v=2.8.46',
+  './pos.css?v=2.8.47',
+  './supabase_config.js?v=2.8.47',
+  './pos.js?v=2.8.47',
   './manifest.json',
   './favicon.ico',
   './assets/droppy_happy.png',
@@ -26,7 +26,7 @@ const STATIC_ASSETS = [
 self.addEventListener('install', (event) => {
   event.waitUntil(
     caches.open(CACHE_NAME).then((cache) => {
-      console.log('[ServiceWorker] Pre-caching static assets v2.8.46');
+      console.log('[ServiceWorker] Pre-caching static assets v2.8.47');
       return cache.addAll(STATIC_ASSETS);
     }).then(() => self.skipWaiting())
   );

@@ -11813,6 +11813,24 @@ function initStationTutorialEvents() {
     }
   });
 
+  // URL param trigger (?tour=1 or ?tutorial=1)
+  try {
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get('tour') === '1' || urlParams.get('tutorial') === '1') {
+      setTimeout(() => StationTutorial.start(1), 600);
+    }
+  } catch (e) {}
+
+  // Auto-pulse tutorial buttons if tutorial not yet completed
+  try {
+    if (!localStorage.getItem('rr_pos_tutorial_done')) {
+      const btnHeader = document.getElementById('btnStartStationTour');
+      if (btnHeader) btnHeader.classList.add('glow-pulse');
+      const btnBanner = document.getElementById('btnDroppyBannerTour');
+      if (btnBanner) btnBanner.classList.add('glow-pulse');
+    }
+  } catch (e) {}
+
   // First time auto-launch
   setTimeout(() => {
     try {
@@ -11824,5 +11842,5 @@ function initStationTutorialEvents() {
         }
       }
     } catch (e) {}
-  }, 1400);
+  }, 1200);
 }

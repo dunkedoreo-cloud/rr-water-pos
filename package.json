@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "description": "R&R Water Refilling Mobile Delivery Application",
   "scripts": {
+    "build": "node build.js",
     "dev": "node local_server.js",
     "serve": "node local_server.js",
     "dev:portal": "node developer-portal/dev-server.js",
