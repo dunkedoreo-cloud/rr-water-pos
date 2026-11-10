@@ -11515,42 +11515,42 @@ const StationTutorial = {
   totalSteps: 5,
   steps: [
     {
-      targetId: 'prodPurified',
-      fallbackSelector: '.product-selection-grid',
-      title: 'Choose Product Type',
-      desc: 'Tap here to select 5-Gallon Purified Refill (₱35) or a Brand-New Jug with Water (₱250). You can also add both to a multi-item cart!',
+      targetId: 'cardPurified',
+      fallbackSelector: '.products-cards-grid',
+      title: 'Step 1: Choose Product',
+      desc: 'Tap 1 Gallon Purified Refill (₱35) to swap an existing carboy, or choose New Gallon Jug + Water (₱250) for a brand-new container.',
       avatar: 'assets/droppy_winking.png',
       badge: 'Step 1 of 5'
     },
     {
-      targetId: 'presetPillsContainer',
-      fallbackSelector: '.keypad-keys-grid',
-      title: 'Gallon Presets & Numpad',
-      desc: 'Quickly tap 1, 5, 10, or 20 gallons, or type any custom quantity using the numeric keypad for bulk orders.',
+      targetId: 'quickPresetsStrip',
+      fallbackSelector: '#mainNumericKeypad',
+      title: 'Step 2: Presets & Numpad',
+      desc: 'Use 1-tap quick presets (1, 2, 3, 4, 5 Gal) or type any bulk gallons on the numpad. You can also switch the numpad to type cash given!',
       avatar: 'assets/droppy_happy.png',
       badge: 'Step 2 of 5'
     },
     {
-      targetId: 'channelWalkinBtn',
-      fallbackSelector: '.channel-toggle-group',
-      title: 'Walk-In vs Delivery',
-      desc: 'Choose "Walk-In" for over-the-counter customers, or switch to "Delivery" to assign multicabs and track driver carboys.',
+      targetId: 'btnChannelWalkin',
+      fallbackSelector: '.order-channel-pills',
+      title: 'Step 3: Walk-In vs Multicab Delivery',
+      desc: 'Keep "Walk-in" for counter refills, or switch to "Multicab" to assign delivery drivers, track blue jugs loaned, and record drops.',
       avatar: 'assets/droppy_question.png',
       badge: 'Step 3 of 5'
     },
     {
-      targetId: 'modePaidBtn',
-      fallbackSelector: '.pay-mode-toggle-group',
-      title: 'Paid vs Unpaid (Utang)',
-      desc: 'Keep "Paid" for instant cash or GCash payments, or toggle to "Unpaid" for delivery accounts settled upon driver return.',
+      targetId: 'quickCashTenderCard',
+      fallbackSelector: '#payToggleWrapper',
+      title: 'Step 4: Cash Tender & Payment',
+      desc: 'Choose Cash or GCash QR. Tap quick bills (₱50, ₱100, ₱200, ₱500) to instantly calculate change, or toggle to Unpaid for utang balances.',
       avatar: 'assets/droppy_love.png',
       badge: 'Step 4 of 5'
     },
     {
       targetId: 'btnSubmitPayment',
       fallbackSelector: '#btnSubmitPayment',
-      title: 'Record & Complete Sale',
-      desc: 'Hit "Record & Print Receipt" (or press Enter on your keyboard) to finish! Real-time sales and tank inventory update instantly.',
+      title: 'Step 5: Complete Sale',
+      desc: 'Tap "Complete Sale" (or press Enter on keyboard) to finalize the transaction, record the sale in real time, and auto-print the thermal receipt!',
       avatar: 'assets/droppy_happy.png',
       badge: 'Step 5 of 5'
     }
@@ -11631,9 +11631,14 @@ const StationTutorial = {
     if (!target) {
       spotlight.style.top = '50%';
       spotlight.style.left = '50%';
-      spotlight.style.width = '240px';
-      spotlight.style.height = '140px';
+      spotlight.style.width = '260px';
+      spotlight.style.height = '160px';
       spotlight.style.transform = 'translate(-50%, -50%)';
+
+      card.style.position = 'fixed';
+      card.style.top = '50%';
+      card.style.left = '50%';
+      card.style.transform = 'translate(-50%, -50%)';
       return;
     }
 
@@ -11650,25 +11655,43 @@ const StationTutorial = {
     spotlight.style.width = width + 'px';
     spotlight.style.height = height + 'px';
 
+    // Auto-scroll target into view if outside
+    if (rect.top < 60 || rect.bottom > window.innerHeight - 60) {
+      target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+
     const cardWidth = card.offsetWidth || 340;
     const cardHeight = card.offsetHeight || 220;
     const vw = window.innerWidth;
     const vh = window.innerHeight;
 
-    if (vw <= 640) return;
+    if (vw <= 680) {
+      card.style.position = 'fixed';
+      card.style.bottom = '16px';
+      card.style.top = 'auto';
+      card.style.left = '50%';
+      card.style.transform = 'translateX(-50%)';
+      card.style.width = 'calc(100% - 32px)';
+      card.style.maxWidth = '380px';
+      return;
+    }
 
-    let cardLeft = rect.right + 20 + window.scrollX;
-    let cardTop = rect.top + window.scrollY;
+    card.style.position = 'absolute';
+    card.style.transform = '';
+    card.style.width = '360px';
 
-    if (cardLeft + cardWidth > vw - 20) {
-      if (rect.left - cardWidth - 20 > 20) {
-        cardLeft = rect.left - cardWidth - 20 + window.scrollX;
-      } else {
-        cardLeft = Math.max(20, Math.min(vw - cardWidth - 20, rect.left + window.scrollX));
-        cardTop = rect.bottom + 20 + window.scrollY;
-        if (cardTop + cardHeight > vh + window.scrollY - 20) {
-          cardTop = Math.max(20, rect.top - cardHeight - 20 + window.scrollY);
-        }
+    let cardLeft, cardTop;
+    if (rect.left > cardWidth + 30) {
+      cardLeft = rect.left - cardWidth - 16 + window.scrollX;
+      cardTop = Math.max(16, rect.top + window.scrollY);
+    } else if (vw - rect.right > cardWidth + 30) {
+      cardLeft = rect.right + 16 + window.scrollX;
+      cardTop = Math.max(16, rect.top + window.scrollY);
+    } else {
+      cardLeft = Math.max(16, Math.min(vw - cardWidth - 16, rect.left + window.scrollX));
+      cardTop = rect.bottom + 16 + window.scrollY;
+      if (cardTop + cardHeight > vh + window.scrollY - 16) {
+        cardTop = Math.max(16, rect.top - cardHeight - 16 + window.scrollY);
       }
     }
 
@@ -11715,6 +11738,12 @@ const StationTutorial = {
 function initStationTutorialEvents() {
   const btnStart = document.getElementById('btnStartStationTour');
   if (btnStart) btnStart.addEventListener('click', () => StationTutorial.start(1));
+
+  const btnBanner = document.getElementById('btnDroppyBannerTour');
+  if (btnBanner) btnBanner.addEventListener('click', () => StationTutorial.start(1));
+
+  const btnSidebar = document.getElementById('btnSidebarTour');
+  if (btnSidebar) btnSidebar.addEventListener('click', () => StationTutorial.start(1));
 
   const btnNext = document.getElementById('btnTutorialNext');
   if (btnNext) btnNext.addEventListener('click', () => StationTutorial.next());

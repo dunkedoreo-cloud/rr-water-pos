@@ -15242,3 +15242,83 @@ body:not(.light-mode) .droppy-fun-tip-btn {
     max-width: 400px;
   }
 }
+
+/* ==========================================================================
+   PROMINENT TUTORIAL LAUNCH BUTTONS
+   ========================================================================== */
+.header-tour-pill-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(2, 132, 199, 0.09);
+  border: 1.5px solid rgba(2, 132, 199, 0.3);
+  color: var(--color-primary);
+  border-radius: var(--radius-full);
+  padding: 6px 14px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  font-family: var(--font-sans);
+}
+.header-tour-pill-btn:hover {
+  background: var(--color-primary);
+  color: #ffffff;
+  border-color: var(--color-primary);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 14px rgba(2, 132, 199, 0.3);
+}
+body:not(.light-mode) .header-tour-pill-btn {
+  background: rgba(56, 189, 248, 0.12);
+  border-color: rgba(56, 189, 248, 0.35);
+  color: #38bdf8;
+}
+body:not(.light-mode) .header-tour-pill-btn:hover {
+  background: #38bdf8;
+  color: #071529;
+}
+
+.btn-banner-tour-launch {
+  background: linear-gradient(135deg, #0284c7 0%, #38bdf8 100%);
+  border: none;
+  color: #ffffff;
+  border-radius: var(--radius-full);
+  padding: 4px 12px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 8px rgba(2, 132, 199, 0.3);
+  margin-left: auto;
+}
+.btn-banner-tour-launch:hover {
+  transform: scale(1.05);
+  box-shadow: 0 4px 14px rgba(2, 132, 199, 0.45);
+}
+
+.sidebar-tour-action-btn {
+  margin-top: 8px;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  padding: 7px 10px;
+  font-size: 0.74rem;
+  font-weight: 700;
+  color: var(--color-primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  width: 100%;
+}
+.sidebar-tour-action-btn:hover {
+  background: var(--color-primary);
+  color: #ffffff;
+  border-color: var(--color-primary);
+}
+body:not(.light-mode) .sidebar-tour-action-btn {
+  background: rgba(255, 255, 255, 0.05);
+  border-color: rgba(255, 255, 255, 0.1);
+  color: #38bdf8;
+}

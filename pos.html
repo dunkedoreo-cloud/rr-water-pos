@@ -4,11 +4,11 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>R&R Water - Station POS</title>
-  <link rel="icon" type="image/png" sizes="32x32" href="assets/droppy_happy.png?v=2.8.44">
-  <link rel="icon" type="image/png" sizes="192x192" href="assets/droppy_happy.png?v=2.8.44">
-  <link rel="apple-touch-icon" href="assets/droppy_happy.png?v=2.8.44">
-  <link rel="shortcut icon" href="favicon.ico?v=2.8.44">
-  <link rel="stylesheet" href="pos.css?v=2.8.44">
+  <link rel="icon" type="image/png" sizes="32x32" href="assets/droppy_happy.png?v=2.8.45">
+  <link rel="icon" type="image/png" sizes="192x192" href="assets/droppy_happy.png?v=2.8.45">
+  <link rel="apple-touch-icon" href="assets/droppy_happy.png?v=2.8.45">
+  <link rel="shortcut icon" href="favicon.ico?v=2.8.45">
+  <link rel="stylesheet" href="pos.css?v=2.8.45">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700;800&display=swap" rel="stylesheet">
@@ -118,6 +118,9 @@
             <span class="sidebar-droppy-tag" id="sidebarDroppyTag">System Monitor</span>
           </div>
         </div>
+        <button type="button" class="sidebar-tour-action-btn" id="btnSidebarTour" title="Start Interactive 5-Step Tutorial">
+          <span>❓ Take 1-Min Tour</span>
+        </button>
       </div>
     </aside>
 
@@ -160,12 +163,13 @@
           </button>
 
           <!-- POS Onboarding Guide / Tutorial Button -->
-          <button type="button" class="header-icon-btn" id="btnStartStationTour" title="Station POS Guide &amp; Interactive Tutorial" aria-label="Start POS Tutorial">
-            <svg class="ui-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <button type="button" class="header-tour-pill-btn" id="btnStartStationTour" title="Station POS Guide &amp; Interactive Tutorial" aria-label="Start POS Tutorial">
+            <svg class="ui-icon-xs" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
               <circle cx="12" cy="12" r="10"></circle>
               <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path>
               <line x1="12" y1="17" x2="12.01" y2="17"></line>
             </svg>
+            <span>Tutorial</span>
           </button>
 
           <!-- Station Live Summary Header Mini-Tab Pill (F2) -->
@@ -312,8 +316,13 @@
               <img src="assets/droppy_winking.png" alt="Droppy Mascot" class="droppy-banner-avatar" id="droppyBannerAvatar">
               <div class="droppy-speech-bubble-box">
                 <div class="droppy-bubble-header">
-                  <span class="droppy-bubble-title">Droppy</span>
-                  <span class="droppy-bubble-badge" id="droppyBannerBadge">Counter Assistant</span>
+                  <div style="display: flex; align-items: center; gap: 8px;">
+                    <span class="droppy-bubble-title">Droppy</span>
+                    <span class="droppy-bubble-badge" id="droppyBannerBadge">Counter Assistant</span>
+                  </div>
+                  <button type="button" class="btn-banner-tour-launch" id="btnDroppyBannerTour" title="Start Interactive 5-Step Tutorial">
+                    <span>✨ Start Tutorial</span>
+                  </button>
                 </div>
                 <div class="droppy-banner-msg" id="droppyBannerMsg">
                   Purified filtration taps running. Tap presets or input quantity, then tap Complete Sale.
@@ -3758,8 +3767,8 @@
   </aside>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="supabase_config.js?v=2.8.44"></script>
-  <script src="pos.js?v=2.8.44"></script>
+  <script src="supabase_config.js?v=2.8.45"></script>
+  <script src="pos.js?v=2.8.45"></script>
 
   <!-- ====================================================================
        MODAL 1: BAYAD UTANG (CUSTOMER DEBT COLLECTION & PARTIAL PAYMENT)
