@@ -11717,6 +11717,14 @@ const StationTutorial = {
     }
   },
 
+  skip() {
+    soundCtrl.playTap();
+    this.close();
+    if (typeof showToast === 'function') {
+      showToast('Tutorial skipped. You can restart it anytime from Settings or the top bar!');
+    }
+  },
+
   close() {
     const overlay = document.getElementById('stationTutorialOverlay');
     if (overlay) {
@@ -11745,6 +11753,23 @@ function initStationTutorialEvents() {
   const btnSidebar = document.getElementById('btnSidebarTour');
   if (btnSidebar) btnSidebar.addEventListener('click', () => StationTutorial.start(1));
 
+  const btnSettingsHeader = document.getElementById('btnLaunchTutorialFromSettings');
+  if (btnSettingsHeader) btnSettingsHeader.addEventListener('click', () => StationTutorial.start(1));
+
+  const btnSettingsCard = document.getElementById('btnSettingsStartTutorial');
+  if (btnSettingsCard) btnSettingsCard.addEventListener('click', () => StationTutorial.start(1));
+
+  const btnResetFlag = document.getElementById('btnSettingsResetTutorialState');
+  if (btnResetFlag) {
+    btnResetFlag.addEventListener('click', () => {
+      try {
+        localStorage.removeItem('rr_pos_tutorial_done');
+        soundCtrl.playSuccess();
+        showToast('🔄 Tutorial prompt reset. It will show on next login / reload.');
+      } catch (e) {}
+    });
+  }
+
   const btnNext = document.getElementById('btnTutorialNext');
   if (btnNext) btnNext.addEventListener('click', () => StationTutorial.next());
 
@@ -11752,12 +11777,24 @@ function initStationTutorialEvents() {
   if (btnBack) btnBack.addEventListener('click', () => StationTutorial.prev());
 
   const btnSkip = document.getElementById('btnTutorialSkip');
-  if (btnSkip) btnSkip.addEventListener('click', () => StationTutorial.close());
+  if (btnSkip) btnSkip.addEventListener('click', () => StationTutorial.skip());
+
+  const btnSkipFooter = document.getElementById('btnTutorialSkipFooter');
+  if (btnSkipFooter) btnSkipFooter.addEventListener('click', () => StationTutorial.skip());
 
   const overlay = document.getElementById('stationTutorialOverlay');
   if (overlay) {
     overlay.addEventListener('click', (e) => {
-      if (e.target === overlay) StationTutorial.close();
+      // Do NOT allow exiting easily by tapping background overlay!
+      // Shake card to inform operator to use Next or explicit Skip button
+      if (e.target === overlay) {
+        const card = document.getElementById('tutorialCard');
+        if (card) {
+          card.classList.remove('tutorial-card-shake');
+          void card.offsetWidth;
+          card.classList.add('tutorial-card-shake');
+        }
+      }
     });
   }
 
@@ -11765,9 +11802,14 @@ function initStationTutorialEvents() {
   window.addEventListener('keydown', (e) => {
     const ov = document.getElementById('stationTutorialOverlay');
     if (ov && ov.classList.contains('show')) {
-      if (e.key === 'Escape') StationTutorial.close();
-      else if (e.key === 'ArrowRight' || e.key === 'Enter') StationTutorial.next();
-      else if (e.key === 'ArrowLeft') StationTutorial.prev();
+      if (e.key === 'ArrowRight' || e.key === 'Enter') {
+        e.preventDefault();
+        StationTutorial.next();
+      } else if (e.key === 'ArrowLeft') {
+        e.preventDefault();
+        StationTutorial.prev();
+      }
+      // Esc does not exit by accident - explicit Skip button is required
     }
   });
 

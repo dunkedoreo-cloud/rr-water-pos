@@ -4,11 +4,11 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>R&R Water - Station POS</title>
-  <link rel="icon" type="image/png" sizes="32x32" href="assets/droppy_happy.png?v=2.8.45">
-  <link rel="icon" type="image/png" sizes="192x192" href="assets/droppy_happy.png?v=2.8.45">
-  <link rel="apple-touch-icon" href="assets/droppy_happy.png?v=2.8.45">
-  <link rel="shortcut icon" href="favicon.ico?v=2.8.45">
-  <link rel="stylesheet" href="pos.css?v=2.8.45">
+  <link rel="icon" type="image/png" sizes="32x32" href="assets/droppy_happy.png?v=2.8.46">
+  <link rel="icon" type="image/png" sizes="192x192" href="assets/droppy_happy.png?v=2.8.46">
+  <link rel="apple-touch-icon" href="assets/droppy_happy.png?v=2.8.46">
+  <link rel="shortcut icon" href="favicon.ico?v=2.8.46">
+  <link rel="stylesheet" href="pos.css?v=2.8.46">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700;800&display=swap" rel="stylesheet">
@@ -1744,7 +1744,11 @@
               <h3>Station Configuration &amp; POS Settings</h3>
               <p>Configure gallon pricing, station details, driver fleet, and terminal security</p>
             </div>
-            <div style="display: flex; gap: 8px; align-items: center;">
+            <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
+              <button type="button" class="btn-sub-action btn-settings-tour-pill" id="btnLaunchTutorialFromSettings" title="Run Interactive 5-Step POS Onboarding Tour">
+                <svg class="ui-icon-xs" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="12" cy="12" r="10"></circle><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
+                <span>POS Tutorial</span>
+              </button>
               <button type="button" class="btn-sub-action" id="btnLaunchSetupWizard" title="Run Quick Station Setup Wizard (PIN, Name, Gallon Price, Driver)" style="font-weight: 700; height: 38px; border-radius: var(--radius-sm); border: 1px solid var(--border-subtle); background: var(--bg-card); color: var(--text-main);">
                 <svg class="ui-icon-xs" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"></path></svg>
                 <span>Setup Wizard</span>
@@ -1928,6 +1932,44 @@
                         <p class="gcash-qr-hint">Accepts screenshot or photo of your printed GCash QR standee. Stored locally for fast, offline checkout display.</p>
                       </div>
                     </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Card 2.5: Cashier Onboarding & POS Interactive Tutorial -->
+              <div class="setting-card setting-card-full" id="cardSettingsTutorial">
+                <div class="setting-card-header" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
+                  <div style="display: flex; align-items: center; gap: 12px;">
+                    <div class="card-icon-tag" style="background: rgba(2, 132, 199, 0.12); color: var(--color-primary);">
+                      <svg class="ui-icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="10"></circle>
+                        <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path>
+                        <line x1="12" y1="17" x2="12.01" y2="17"></line>
+                      </svg>
+                    </div>
+                    <div>
+                      <h4>Interactive POS Onboarding &amp; Tutorial</h4>
+                      <p>5-step interactive cashier walkthrough for refills, presets, multicab delivery, and checkout</p>
+                    </div>
+                  </div>
+                  <button type="button" class="btn-sub-action primary" id="btnSettingsStartTutorial" style="background: linear-gradient(135deg, #0284c7 0%, #38bdf8 100%); border: none; color: #fff; font-weight: 700; height: 38px; padding: 0 16px; border-radius: var(--radius-sm); cursor: pointer; display: inline-flex; align-items: center; gap: 6px;">
+                    <svg class="ui-icon-xs" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
+                    <span>Launch 5-Step Tutorial</span>
+                  </button>
+                </div>
+
+                <div class="setting-inputs-list">
+                  <div style="display: flex; align-items: center; justify-content: space-between; padding: 12px 14px; background: var(--bg-surface); border-radius: var(--radius-md); border: 1px solid var(--border-subtle); flex-wrap: wrap; gap: 12px;">
+                    <div style="display: flex; align-items: center; gap: 12px;">
+                      <img src="assets/droppy_happy.png" alt="Droppy" style="width: 44px; height: 44px; object-fit: contain;">
+                      <div>
+                        <strong style="display: block; font-size: 0.9rem; color: var(--text-main);">Train Staff Anytime</strong>
+                        <span style="font-size: 0.8rem; color: var(--text-muted);">Guided spotlights teach new attendants how to select products, use numpad presets, switch to multicab delivery, and tender cash or GCash.</span>
+                      </div>
+                    </div>
+                    <button type="button" class="btn-sub-action" id="btnSettingsResetTutorialState" title="Reset tutorial flag so it prompts on next login" style="font-size: 0.78rem; font-weight: 600; padding: 7px 12px;">
+                      <span>🔄 Reset First-Time Prompt</span>
+                    </button>
                   </div>
                 </div>
               </div>
@@ -2572,13 +2614,18 @@
           <div class="tutorial-step-badge" id="tutorialStepBadge">Step 1 of 5</div>
           <h4 class="tutorial-step-title" id="tutorialStepTitle">Choose Product</h4>
         </div>
-        <button type="button" class="tutorial-close-btn" id="btnTutorialSkip" title="Skip Tutorial" aria-label="Skip Tutorial">×</button>
+        <button type="button" class="btn-tutorial-skip-header" id="btnTutorialSkip" title="Skip Tutorial" aria-label="Skip Tutorial">
+          <span>Skip Tour</span>
+        </button>
       </div>
       <p class="tutorial-step-desc" id="tutorialStepDesc">
         Tap to refill existing 5-gallon jugs (₱35) or select brand-new containers with water (₱250).
       </p>
       <div class="tutorial-card-footer">
-        <button type="button" class="btn-tutorial-back" id="btnTutorialBack" style="display: none;">Back</button>
+        <div class="tutorial-footer-actions-left">
+          <button type="button" class="btn-tutorial-back" id="btnTutorialBack" style="display: none;">← Back</button>
+          <button type="button" class="btn-tutorial-skip-footer" id="btnTutorialSkipFooter" title="Skip Tutorial">Skip</button>
+        </div>
         <div class="tutorial-dots" id="tutorialDots">
           <span class="tutorial-dot active"></span>
           <span class="tutorial-dot"></span>
@@ -3767,8 +3814,8 @@
   </aside>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="supabase_config.js?v=2.8.45"></script>
-  <script src="pos.js?v=2.8.45"></script>
+  <script src="supabase_config.js?v=2.8.46"></script>
+  <script src="pos.js?v=2.8.46"></script>
 
   <!-- ====================================================================
        MODAL 1: BAYAD UTANG (CUSTOMER DEBT COLLECTION & PARTIAL PAYMENT)
