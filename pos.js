@@ -11610,6 +11610,9 @@ const StationTutorial = {
     });
 
     this.reposition();
+    // Re-verify position after smooth scrolling finishes on Android & iPad touch devices
+    setTimeout(() => this.reposition(), 120);
+    setTimeout(() => this.reposition(), 320);
   },
 
   reposition() {
@@ -11666,31 +11669,36 @@ const StationTutorial = {
     spotlight.style.width = spotWidth + 'px';
     spotlight.style.height = spotHeight + 'px';
 
+    // Mobile dock (<= 680px, Android & iPhone)
+    if (vw <= 680) {
+      card.classList.remove('tablet-card');
+      card.style.left = '50%';
+      card.style.transform = 'translateX(-50%)';
+      card.style.width = 'calc(100% - 24px)';
+      card.style.maxWidth = '400px';
+      card.style.top = '';
+      card.style.bottom = '';
+      if (rect.top > vh * 0.48) {
+        card.classList.add('dock-top');
+        card.classList.remove('dock-bottom');
+      } else {
+        card.classList.add('dock-bottom');
+        card.classList.remove('dock-top');
+      }
+      return;
+    }
+
+    // Tablet & Desktop Positioning (iPad Pro 13, iPad Air, Android Tablets)
+    card.classList.remove('dock-top', 'dock-bottom');
+    card.classList.add('tablet-card');
+
     const cardWidth = Math.min(380, Math.max(300, vw - 32));
     card.style.width = cardWidth + 'px';
     card.style.position = 'fixed';
     card.style.transform = '';
 
-    // Measure card height accurately (always guarantee room for header, body, and footer)
+    // Measure card height accurately (guarantee room for header, body, and footer)
     const cardHeight = Math.max(card.offsetHeight || 0, 250);
-
-    // Mobile dock (<= 680px)
-    if (vw <= 680) {
-      card.style.left = '50%';
-      card.style.transform = 'translateX(-50%)';
-      card.style.width = 'calc(100% - 32px)';
-      card.style.maxWidth = '380px';
-      if (rect.top > vh / 2) {
-        card.style.top = '16px';
-        card.style.bottom = 'auto';
-      } else {
-        card.style.top = 'auto';
-        card.style.bottom = '16px';
-      }
-      return;
-    }
-
-    // Tablet & Desktop Positioning
     const margin = 14;
     const spaceAbove = rect.top - margin;
     const spaceBelow = vh - rect.bottom - margin;
@@ -11814,6 +11822,34 @@ function initStationTutorialEvents() {
 
   const btnSkipFooter = document.getElementById('btnTutorialSkipFooter');
   if (btnSkipFooter) btnSkipFooter.addEventListener('click', () => StationTutorial.skip());
+
+  // Touch Swipe navigation on mobile / tablet / iPad (Swipe Left -> Next, Swipe Right -> Back)
+  const tutorialCard = document.getElementById('tutorialCard');
+  if (tutorialCard && !tutorialCard._touchBound) {
+    tutorialCard._touchBound = true;
+    let touchStartX = 0;
+    let touchStartY = 0;
+    tutorialCard.addEventListener('touchstart', (e) => {
+      if (e.touches && e.touches[0]) {
+        touchStartX = e.touches[0].clientX;
+        touchStartY = e.touches[0].clientY;
+      }
+    }, { passive: true });
+    tutorialCard.addEventListener('touchend', (e) => {
+      if (e.changedTouches && e.changedTouches[0]) {
+        const dx = e.changedTouches[0].clientX - touchStartX;
+        const dy = e.changedTouches[0].clientY - touchStartY;
+        // Horizontal swipe detected
+        if (Math.abs(dx) > 42 && Math.abs(dy) < 45) {
+          if (dx < 0) {
+            StationTutorial.next();
+          } else {
+            StationTutorial.prev();
+          }
+        }
+      }
+    }, { passive: true });
+  }
 
   const overlay = document.getElementById('stationTutorialOverlay');
   if (overlay) {
