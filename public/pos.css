@@ -15051,7 +15051,7 @@ body:not(.light-mode) .droppy-fun-tip-btn {
 }
 
 .tutorial-spotlight {
-  position: absolute;
+  position: fixed;
   border-radius: 14px;
   box-shadow: 0 0 0 9999px rgba(15, 23, 42, 0.78);
   border: 2.5px solid #0284c7;
@@ -15076,13 +15076,16 @@ body:not(.light-mode) .droppy-fun-tip-btn {
 }
 
 .tutorial-card {
-  position: absolute;
+  position: fixed;
   background: var(--bg-surface);
   border: 1.5px solid rgba(2, 132, 199, 0.35);
   border-radius: 18px;
   box-shadow: 0 24px 60px rgba(0, 0, 0, 0.55);
   width: 360px;
   max-width: calc(100vw - 32px);
+  max-height: calc(100vh - 32px);
+  overflow-y: auto;
+  box-sizing: border-box;
   padding: 20px 22px 18px 22px;
   z-index: 9995;
   transition: top 0.28s cubic-bezier(0.16, 1, 0.3, 1),

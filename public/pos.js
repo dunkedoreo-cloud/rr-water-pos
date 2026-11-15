@@ -11628,6 +11628,9 @@ const StationTutorial = {
     const card = document.getElementById('tutorialCard');
     if (!spotlight || !card) return;
 
+    const vw = window.innerWidth;
+    const vh = window.innerHeight;
+
     if (!target) {
       spotlight.style.top = '50%';
       spotlight.style.left = '50%';
@@ -11642,58 +11645,88 @@ const StationTutorial = {
       return;
     }
 
-    spotlight.style.transform = '';
-    const rect = target.getBoundingClientRect();
-    const pad = 8;
-    const top = Math.max(0, rect.top - pad + window.scrollY);
-    const left = Math.max(0, rect.left - pad + window.scrollX);
-    const width = rect.width + (pad * 2);
-    const height = rect.height + (pad * 2);
-
-    spotlight.style.top = top + 'px';
-    spotlight.style.left = left + 'px';
-    spotlight.style.width = width + 'px';
-    spotlight.style.height = height + 'px';
-
-    // Auto-scroll target into view if outside
-    if (rect.top < 60 || rect.bottom > window.innerHeight - 60) {
-      target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    // Auto-scroll target into view if outside the visible viewport
+    const rawRect = target.getBoundingClientRect();
+    if (rawRect.top < 60 || rawRect.bottom > vh - 60) {
+      target.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
     }
 
-    const cardWidth = card.offsetWidth || 340;
-    const cardHeight = card.offsetHeight || 220;
-    const vw = window.innerWidth;
-    const vh = window.innerHeight;
+    // Measure viewport coordinates
+    const rect = target.getBoundingClientRect();
+    const pad = 8;
+    const spotTop = Math.max(0, rect.top - pad);
+    const spotLeft = Math.max(0, rect.left - pad);
+    const spotWidth = Math.max(60, rect.width + (pad * 2));
+    const spotHeight = Math.max(40, rect.height + (pad * 2));
 
+    spotlight.style.transform = '';
+    spotlight.style.position = 'fixed';
+    spotlight.style.top = spotTop + 'px';
+    spotlight.style.left = spotLeft + 'px';
+    spotlight.style.width = spotWidth + 'px';
+    spotlight.style.height = spotHeight + 'px';
+
+    const cardWidth = Math.min(380, Math.max(300, vw - 32));
+    card.style.width = cardWidth + 'px';
+    card.style.position = 'fixed';
+    card.style.transform = '';
+
+    // Measure card height accurately (always guarantee room for header, body, and footer)
+    const cardHeight = Math.max(card.offsetHeight || 0, 250);
+
+    // Mobile dock (<= 680px)
     if (vw <= 680) {
-      card.style.position = 'fixed';
-      card.style.bottom = '16px';
-      card.style.top = 'auto';
       card.style.left = '50%';
       card.style.transform = 'translateX(-50%)';
       card.style.width = 'calc(100% - 32px)';
       card.style.maxWidth = '380px';
+      if (rect.top > vh / 2) {
+        card.style.top = '16px';
+        card.style.bottom = 'auto';
+      } else {
+        card.style.top = 'auto';
+        card.style.bottom = '16px';
+      }
       return;
     }
 
-    card.style.position = 'absolute';
-    card.style.transform = '';
-    card.style.width = '360px';
+    // Tablet & Desktop Positioning
+    const margin = 14;
+    const spaceAbove = rect.top - margin;
+    const spaceBelow = vh - rect.bottom - margin;
+    const spaceLeft = rect.left - margin;
+    const spaceRight = vw - rect.right - margin;
 
     let cardLeft, cardTop;
-    if (rect.left > cardWidth + 30) {
-      cardLeft = rect.left - cardWidth - 16 + window.scrollX;
-      cardTop = Math.max(16, rect.top + window.scrollY);
-    } else if (vw - rect.right > cardWidth + 30) {
-      cardLeft = rect.right + 16 + window.scrollX;
-      cardTop = Math.max(16, rect.top + window.scrollY);
+
+    // Prefer placing ABOVE when target is in bottom half of screen (e.g. presets strip, checkout button)
+    if (rect.top > vh * 0.52 && spaceAbove >= cardHeight) {
+      cardTop = rect.top - cardHeight - margin;
+      cardLeft = rect.left;
+    } else if (spaceBelow >= cardHeight) {
+      // Prefer placing BELOW when room exists (e.g. product cards at top)
+      cardTop = rect.bottom + margin;
+      cardLeft = rect.left;
+    } else if (spaceRight >= cardWidth) {
+      // Place to the RIGHT of target
+      cardLeft = rect.right + margin;
+      cardTop = rect.top;
+    } else if (spaceLeft >= cardWidth) {
+      // Place to the LEFT of target
+      cardLeft = rect.left - cardWidth - margin;
+      cardTop = rect.top;
     } else {
-      cardLeft = Math.max(16, Math.min(vw - cardWidth - 16, rect.left + window.scrollX));
-      cardTop = rect.bottom + 16 + window.scrollY;
-      if (cardTop + cardHeight > vh + window.scrollY - 16) {
-        cardTop = Math.max(16, rect.top - cardHeight - 16 + window.scrollY);
-      }
+      // Fallback: place above if more space above than below, else below
+      cardTop = (spaceAbove > spaceBelow)
+        ? Math.max(16, rect.top - cardHeight - margin)
+        : Math.min(vh - cardHeight - 16, rect.bottom + margin);
+      cardLeft = rect.left;
     }
+
+    // STRICT FAIL-SAFE VIEWPORT CLAMPING
+    // Guarantees card and all footer buttons (Next, Back, Skip) NEVER clip off any screen edge!
+    cardLeft = Math.max(16, Math.min(cardLeft, vw - cardWidth - 16));
+    cardTop = Math.max(16, Math.min(cardTop, vh - cardHeight - 16));
 
     card.style.top = cardTop + 'px';
     card.style.left = cardLeft + 'px';
