@@ -8,8 +8,8 @@
 /* Google Fonts loaded via preconnected link tags in HTML for zero-lag rendering */
 
 :root {
-  /* Default: Soft Slate Light Mode (Matching reference image) */
-  --bg-app: #f0f2f7;
+  /* Default: Soft Crisp Slate Light Mode with Fresh Water Tint */
+  --bg-app: #f0f4f9;
   --bg-sidebar: #e5e8f0;
   --bg-surface: #ffffff;
   --bg-card: #ffffff;
@@ -203,7 +203,8 @@ body:not(.light-mode) .kp-mode-tab.active .ui-icon-xs {
 }
 
 /* ==========================================================================
-   SIMPLIFIED MODERN AMBIENT BACKGROUND (Clean, Minimalist, Distraction-Free)
+   SIMPLIFIED MODERN AMBIENT BACKGROUND
+   Harmonious blend: Pure White Light + Fresh Gradient Blue + Hint of Black Depth
    ========================================================================== */
 .static-water-bg {
   position: fixed;
@@ -214,27 +215,42 @@ body:not(.light-mode) .kp-mode-tab.active .ui-icon-xs {
   z-index: 0;
   overflow: hidden;
   background-color: var(--bg-app);
-  background: radial-gradient(circle at 50% 0%, rgba(2, 132, 199, 0.04) 0%, transparent 65%), var(--bg-app);
+  background:
+    /* Layer 1: Hint of black depth in bottom-right corner */
+    radial-gradient(ellipse 75% 55% at 95% 100%, rgba(15, 23, 42, 0.075) 0%, rgba(15, 23, 42, 0.02) 40%, transparent 70%),
+    /* Layer 2: Soft water blue glow from bottom-left */
+    radial-gradient(ellipse 70% 55% at 10% 95%, rgba(2, 132, 199, 0.10) 0%, rgba(56, 189, 248, 0.04) 50%, transparent 70%),
+    /* Layer 3: Vibrant top ambient water sky glow */
+    radial-gradient(ellipse 85% 50% at 50% -10%, rgba(56, 189, 248, 0.18) 0%, rgba(2, 132, 199, 0.07) 45%, transparent 75%),
+    /* Layer 4: Base gradient blending pure white top-left into soft water blue and cool misty tone */
+    linear-gradient(140deg, #ffffff 0%, #f4f8fd 28%, #eaf3fb 62%, #dfeaf4 100%);
   opacity: 1;
-  transition: background-color 0.3s ease;
+  transition: background-color 0.3s ease, background 0.3s ease;
 }
 
-/* Subtle clean top ambient light to elevate card contrast */
+/* Subtle clean top ambient light and white spotlight to elevate card contrast */
 .static-water-bg::after {
   content: '';
   position: absolute;
   inset: 0;
-  background: radial-gradient(ellipse 80% 50% at 50% -20%, rgba(2, 132, 199, 0.06), transparent 70%);
+  background:
+    /* Hint of black top-right vignette for refined border definition */
+    radial-gradient(circle at 100% 0%, rgba(15, 23, 42, 0.045) 0%, transparent 45%),
+    /* Pure white center-top luminous spotlight keeping cards and text ultra-crisp */
+    radial-gradient(ellipse 80% 50% at 50% 25%, rgba(255, 255, 255, 0.55) 0%, transparent 75%);
   pointer-events: none;
 }
 
-/* Dark Mode Clean Ambient Background */
+/* Dark Mode Clean Ambient Background with subtle ocean glow */
 body:not(.light-mode) .static-water-bg {
-  background: radial-gradient(circle at 50% 0%, rgba(2, 132, 199, 0.08) 0%, transparent 70%), var(--bg-app);
+  background:
+    radial-gradient(ellipse 80% 60% at 50% -10%, rgba(2, 132, 199, 0.15) 0%, transparent 70%),
+    radial-gradient(ellipse 70% 50% at 90% 100%, rgba(2, 6, 23, 0.8) 0%, transparent 70%),
+    linear-gradient(145deg, #0b1329 0%, #080e1e 50%, #030712 100%);
 }
 
 body:not(.light-mode) .static-water-bg::after {
-  background: radial-gradient(ellipse 80% 50% at 50% -20%, rgba(56, 189, 248, 0.08), transparent 70%);
+  background: radial-gradient(ellipse 80% 50% at 50% 30%, rgba(56, 189, 248, 0.06), transparent 70%);
 }
 
 /* Overall App Flex Container */
