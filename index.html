@@ -4,11 +4,11 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>R&R Water - Station POS</title>
-  <link rel="icon" type="image/png" sizes="32x32" href="assets/droppy_happy.png?v=2.8.50">
-  <link rel="icon" type="image/png" sizes="192x192" href="assets/droppy_happy.png?v=2.8.50">
-  <link rel="apple-touch-icon" href="assets/droppy_happy.png?v=2.8.50">
-  <link rel="shortcut icon" href="favicon.ico?v=2.8.50">
-  <link rel="stylesheet" href="pos.css?v=2.8.50">
+  <link rel="icon" type="image/png" sizes="32x32" href="assets/droppy_happy.png?v=2.8.51">
+  <link rel="icon" type="image/png" sizes="192x192" href="assets/droppy_happy.png?v=2.8.51">
+  <link rel="apple-touch-icon" href="assets/droppy_happy.png?v=2.8.51">
+  <link rel="shortcut icon" href="favicon.ico?v=2.8.51">
+  <link rel="stylesheet" href="pos.css?v=2.8.51">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700;800&display=swap" rel="stylesheet">
@@ -118,8 +118,8 @@
             <span class="sidebar-droppy-tag" id="sidebarDroppyTag">System Monitor</span>
           </div>
         </div>
-        <button type="button" class="sidebar-tour-action-btn" id="btnSidebarTour" title="Start Interactive 5-Step Tutorial">
-          <span>❓ Take 1-Min Tour</span>
+        <button type="button" class="sidebar-tour-action-btn" id="btnSidebarTour" title="Start Interactive Station Tour (All Tabs)">
+          <span>❓ Take Station Tour</span>
         </button>
       </div>
     </aside>
@@ -320,7 +320,7 @@
                     <span class="droppy-bubble-title">Droppy</span>
                     <span class="droppy-bubble-badge" id="droppyBannerBadge">Counter Assistant</span>
                   </div>
-                  <button type="button" class="btn-banner-tour-launch" id="btnDroppyBannerTour" title="Start Interactive 5-Step Tutorial">
+                  <button type="button" class="btn-banner-tour-launch" id="btnDroppyBannerTour" title="Start Interactive Station Tour (All Tabs)">
                     <span>✨ Start Tutorial</span>
                   </button>
                 </div>
@@ -1745,9 +1745,9 @@
               <p>Configure gallon pricing, station details, driver fleet, and terminal security</p>
             </div>
             <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
-              <button type="button" class="btn-sub-action btn-settings-tour-pill" id="btnLaunchTutorialFromSettings" title="Run Interactive 5-Step POS Onboarding Tour">
+              <button type="button" class="btn-sub-action btn-settings-tour-pill" id="btnLaunchTutorialFromSettings" title="Run Interactive Station Onboarding Tour (All Tabs)">
                 <svg class="ui-icon-xs" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="12" cy="12" r="10"></circle><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
-                <span>POS Tutorial</span>
+                <span>Station Tutorial</span>
               </button>
               <button type="button" class="btn-sub-action" id="btnLaunchSetupWizard" title="Run Quick Station Setup Wizard (PIN, Name, Gallon Price, Driver)" style="font-weight: 700; height: 38px; border-radius: var(--radius-sm); border: 1px solid var(--border-subtle); background: var(--bg-card); color: var(--text-main);">
                 <svg class="ui-icon-xs" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"></path></svg>
@@ -1949,12 +1949,12 @@
                     </div>
                     <div>
                       <h4>Interactive POS Onboarding &amp; Tutorial</h4>
-                      <p>5-step interactive cashier walkthrough for refills, presets, multicab delivery, and checkout</p>
+                      <p>Complete interactive walkthrough covering POS dispensing, Stored Orders, Sales Reports, Settings, and Profile</p>
                     </div>
                   </div>
                   <button type="button" class="btn-sub-action primary" id="btnSettingsStartTutorial" style="background: linear-gradient(135deg, #0284c7 0%, #38bdf8 100%); border: none; color: #fff; font-weight: 700; height: 38px; padding: 0 16px; border-radius: var(--radius-sm); cursor: pointer; display: inline-flex; align-items: center; gap: 6px;">
                     <svg class="ui-icon-xs" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
-                    <span>Launch 5-Step Tutorial</span>
+                    <span>Launch Station Tour</span>
                   </button>
                 </div>
 
@@ -2233,7 +2233,7 @@
           </div>
 
           <!-- Hero Operator Profile Banner -->
-          <div class="profile-hero-card">
+          <div class="profile-hero-card" id="profileHeroCard">
             <div class="profile-hero-left">
               <div class="profile-hero-avatar-wrap" id="profileAvatarWrap" title="Click to Change Photo / Edit Profile">
                 <div class="profile-hero-avatar" id="profileHeroAvatar">N</div>
@@ -3814,8 +3814,8 @@
   </aside>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="supabase_config.js?v=2.8.50"></script>
-  <script src="pos.js?v=2.8.50"></script>
+  <script src="supabase_config.js?v=2.8.51"></script>
+  <script src="pos.js?v=2.8.51"></script>
 
   <!-- ====================================================================
        MODAL 1: BAYAD UTANG (CUSTOMER DEBT COLLECTION & PARTIAL PAYMENT)

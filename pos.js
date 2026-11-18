@@ -5950,6 +5950,12 @@ async function submitStaffLoginPin() {
     renderHeaderUser();
     closeSwitchUserModal();
 
+    if (typeof StationTutorial !== 'undefined' && !StationTutorial.isDone(targetUser.id)) {
+      setTimeout(() => {
+        StationTutorial.start(1);
+      }, 550);
+    }
+
     if (State.isTerminalLocked) {
       State.isTerminalLocked = false;
       localStorage.removeItem('rr_pos_terminal_locked');
@@ -6526,6 +6532,14 @@ function saveStaffMemberFromModal() {
   updateStationSummaryDrawer();
   soundCtrl.playSuccess();
   closeStaffModal();
+
+  if (!targetId && typeof newStaff !== 'undefined') {
+    setTimeout(() => {
+      if (typeof StationTutorial !== 'undefined' && !StationTutorial.isDone(newStaff.id)) {
+        StationTutorial.start(1);
+      }
+    }, 600);
+  }
 }
 
 function deleteStaffProfile(staffId) {
@@ -6834,7 +6848,10 @@ function closeStationSetupWizardModal() {
   modal.classList.remove('show');
   setTimeout(() => {
     modal.style.display = 'none';
-  }, 200);
+    if (typeof StationTutorial !== 'undefined' && !StationTutorial.isDone()) {
+      StationTutorial.start(1);
+    }
+  }, 250);
 }
 
 async function saveStationSetupWizard() {
@@ -11512,52 +11529,112 @@ if (typeof window !== 'undefined') {
 // ==========================================================================
 const StationTutorial = {
   currentStep: 1,
-  totalSteps: 5,
+  totalSteps: 8,
   steps: [
     {
+      view: 'pos',
       targetId: 'cardPurified',
       fallbackSelector: '.products-cards-grid',
-      title: 'Step 1: Choose Product',
-      desc: 'Tap 1 Gallon Purified Refill (₱35) to swap an existing carboy, or choose New Gallon Jug + Water (₱250) for a brand-new container.',
+      title: 'POS: Choose Product & Refill',
+      desc: 'Select 1 Gallon Purified Refill (₱35) to refill an existing carboy, or choose New Gallon Jug + Water (₱250) for a brand-new container.',
       avatar: 'assets/droppy_winking.png',
-      badge: 'Step 1 of 5'
+      badge: 'Step 1 of 8 • POS'
     },
     {
+      view: 'pos',
       targetId: 'quickPresetsStrip',
       fallbackSelector: '#mainNumericKeypad',
-      title: 'Step 2: Presets & Numpad',
-      desc: 'Use 1-tap quick presets (1, 2, 3, 4, 5 Gal) or type any bulk gallons on the numpad. You can also switch the numpad to type cash given!',
+      title: 'POS: Presets & Delivery Mode',
+      desc: 'Use 1-tap fast presets (1, 2, 3, 4, 5 Gal) or type custom volume on the numpad. Switch to Multicab Delivery to dispatch route drivers and loan blue jugs.',
       avatar: 'assets/droppy_happy.png',
-      badge: 'Step 2 of 5'
+      badge: 'Step 2 of 8 • POS'
     },
     {
-      targetId: 'btnChannelWalkin',
-      fallbackSelector: '.order-channel-pills',
-      title: 'Step 3: Walk-In vs Multicab Delivery',
-      desc: 'Keep "Walk-in" for counter refills, or switch to "Multicab" to assign delivery drivers, track blue jugs loaned, and record drops.',
-      avatar: 'assets/droppy_question.png',
-      badge: 'Step 3 of 5'
-    },
-    {
+      view: 'pos',
       targetId: 'quickCashTenderCard',
-      fallbackSelector: '#payToggleWrapper',
-      title: 'Step 4: Cash Tender & Payment',
-      desc: 'Choose Cash or GCash QR. Tap quick bills (₱50, ₱100, ₱200, ₱500) to instantly calculate change, or toggle to Unpaid for utang balances.',
+      fallbackSelector: '#btnSubmitPayment',
+      title: 'POS: Tender & Complete Sale',
+      desc: 'Choose Cash or GCash QR. Tap quick bills to compute exact change, or toggle to Unpaid for utang. Hit "Complete Sale" to finalize and auto-print thermal receipts!',
       avatar: 'assets/droppy_love.png',
-      badge: 'Step 4 of 5'
+      badge: 'Step 3 of 8 • POS'
     },
     {
-      targetId: 'btnSubmitPayment',
-      fallbackSelector: '#btnSubmitPayment',
-      title: 'Step 5: Complete Sale',
-      desc: 'Tap "Complete Sale" (or press Enter on keyboard) to finalize the transaction, record the sale in real time, and auto-print the thermal receipt!',
+      view: 'orders',
+      targetId: 'ordersSegmentedFilter',
+      fallbackSelector: '#globalSearchInput',
+      title: 'Orders: Live Transaction Log',
+      desc: 'Welcome to the Orders tab! View digital records of all sales in real time. Filter by Walk-in, Pending utang, or Multicab delivery, and search by receipt number.',
       avatar: 'assets/droppy_happy.png',
-      badge: 'Step 5 of 5'
+      badge: 'Step 4 of 8 • Orders Tab'
+    },
+    {
+      view: 'orders',
+      targetId: 'cardCashCollected',
+      fallbackSelector: '#storedOrdersContainer',
+      title: 'Orders: Cash & Bayad Utang',
+      desc: 'Track in-drawer cash collected and driver receivables in real time. In the orders table, reprint 58mm receipts with 1 tap or collect pending utang (Bayad Utang)!',
+      avatar: 'assets/droppy_question.png',
+      badge: 'Step 5 of 8 • Orders Tab'
+    },
+    {
+      view: 'reports',
+      targetId: 'deepDiveCalloutBanner',
+      fallbackSelector: '.sparkline-kpi-grid',
+      title: 'Reports: Sales Analytics & Deep Dive',
+      desc: 'Welcome to Reports! Track 30-day dispensing volume, gross revenue, and uncollected driver balances. Open the Executive Deep Dive for 12-month analytics or export to Excel/CSV!',
+      avatar: 'assets/droppy_happy.png',
+      badge: 'Step 6 of 8 • Reports Tab'
+    },
+    {
+      view: 'settings',
+      targetId: 'settingsStaffList',
+      fallbackSelector: '#btnAddStaffMember',
+      title: 'Settings: Staff Accounts & Security',
+      desc: 'Register cashier staff profiles with secure 4-digit PINs, configure station pricing, customize thermal receipt headers, and set up your GCash QR code.',
+      avatar: 'assets/droppy_winking.png',
+      badge: 'Step 7 of 8 • Settings Tab'
+    },
+    {
+      view: 'profile',
+      targetId: 'profileHeroCard',
+      fallbackSelector: '#btnProfileSwitchStaff',
+      title: 'Profile: Shift Stats & Terminal Lock',
+      desc: 'See active cashier shift sales and time on duty, print official Shift X-Reports, switch operators, or lock the POS terminal when stepping away.',
+      avatar: 'assets/droppy_love.png',
+      badge: 'Step 8 of 8 • Profile Tab'
     }
   ],
 
+  isDone(userId = null) {
+    const uid = userId || State.currentUserId;
+    if (uid) {
+      if (localStorage.getItem('rr_pos_tutorial_v2_done_' + uid) === 'true') return true;
+      const user = Array.isArray(State.staff) ? State.staff.find(s => s.id === uid) : null;
+      if (user && user.tutorialV2Done === true) return true;
+      return false;
+    }
+    return localStorage.getItem('rr_pos_tutorial_v2_done') === 'true';
+  },
+
+  markDone(userId = null) {
+    const uid = userId || State.currentUserId;
+    if (uid) {
+      try {
+        localStorage.setItem('rr_pos_tutorial_v2_done_' + uid, 'true');
+        const user = Array.isArray(State.staff) ? State.staff.find(s => s.id === uid) : null;
+        if (user) {
+          user.tutorialV2Done = true;
+          saveStaff();
+        }
+      } catch (e) {}
+    }
+    try {
+      localStorage.setItem('rr_pos_tutorial_v2_done', 'true');
+      localStorage.setItem('rr_pos_tutorial_done', 'true');
+    } catch (e) {}
+  },
+
   start(step = 1) {
-    if (typeof switchView === 'function') switchView('pos');
     this.currentStep = step;
     const overlay = document.getElementById('stationTutorialOverlay');
     if (!overlay) return;
@@ -11577,13 +11654,19 @@ const StationTutorial = {
     const stepData = this.steps[this.currentStep - 1];
     if (!stepData) return;
 
+    // Cross-tab switching: ensure corresponding view is active
+    if (stepData.view && State.activeView !== stepData.view) {
+      if (typeof switchView === 'function') {
+        switchView(stepData.view);
+      }
+    }
+
     const badgeEl = document.getElementById('tutorialStepBadge');
     const titleEl = document.getElementById('tutorialStepTitle');
     const descEl = document.getElementById('tutorialStepDesc');
     const imgEl = document.getElementById('tutorialDroppyImg');
     const backBtn = document.getElementById('btnTutorialBack');
     const nextBtn = document.getElementById('btnTutorialNext');
-    const dots = document.querySelectorAll('.tutorial-dot');
 
     if (badgeEl) badgeEl.textContent = stepData.badge;
     if (titleEl) titleEl.textContent = stepData.title;
@@ -11605,14 +11688,35 @@ const StationTutorial = {
         : '<span>Next →</span>';
     }
 
-    dots.forEach((dot, idx) => {
-      dot.classList.toggle('active', idx === (this.currentStep - 1));
-    });
+    this.renderDots();
 
+    // Multi-phase repositioning ensures smooth layout transition across tab changes
     this.reposition();
-    // Re-verify position after smooth scrolling finishes on Android & iPad touch devices
-    setTimeout(() => this.reposition(), 120);
-    setTimeout(() => this.reposition(), 320);
+    requestAnimationFrame(() => this.reposition());
+    setTimeout(() => this.reposition(), 90);
+    setTimeout(() => this.reposition(), 240);
+    setTimeout(() => this.reposition(), 420);
+  },
+
+  renderDots() {
+    const dotsWrap = document.getElementById('tutorialDots');
+    if (!dotsWrap) return;
+    let html = '';
+    for (let i = 1; i <= this.totalSteps; i++) {
+      html += `<span class="tutorial-dot ${i === this.currentStep ? 'active' : ''}" data-step="${i}" title="Step ${i} of ${this.totalSteps}"></span>`;
+    }
+    dotsWrap.innerHTML = html;
+
+    dotsWrap.querySelectorAll('.tutorial-dot').forEach(dot => {
+      dot.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const s = parseInt(dot.getAttribute('data-step'), 10);
+        if (s && s !== this.currentStep) {
+          soundCtrl.playTap();
+          this.renderStep(s);
+        }
+      });
+    });
   },
 
   reposition() {
@@ -11634,11 +11738,14 @@ const StationTutorial = {
     const vw = window.innerWidth;
     const vh = window.innerHeight;
 
-    if (!target) {
+    // Check if target is visible and rendered
+    const isVisible = target && (target.offsetWidth > 0 || target.offsetHeight > 0 || target.getClientRects().length > 0);
+
+    if (!target || !isVisible) {
       spotlight.style.top = '50%';
       spotlight.style.left = '50%';
-      spotlight.style.width = '260px';
-      spotlight.style.height = '160px';
+      spotlight.style.width = '280px';
+      spotlight.style.height = '180px';
       spotlight.style.transform = 'translate(-50%, -50%)';
 
       card.style.position = 'fixed';
@@ -11648,13 +11755,12 @@ const StationTutorial = {
       return;
     }
 
-    // Auto-scroll target into view if outside the visible viewport
+    // Auto-scroll target into view if outside visible viewport
     const rawRect = target.getBoundingClientRect();
     if (rawRect.top < 60 || rawRect.bottom > vh - 60) {
       target.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
     }
 
-    // Measure viewport coordinates
     const rect = target.getBoundingClientRect();
     const pad = 8;
     const spotTop = Math.max(0, rect.top - pad);
@@ -11692,12 +11798,11 @@ const StationTutorial = {
     card.classList.remove('dock-top', 'dock-bottom');
     card.classList.add('tablet-card');
 
-    const cardWidth = Math.min(380, Math.max(300, vw - 32));
+    const cardWidth = Math.min(390, Math.max(300, vw - 32));
     card.style.width = cardWidth + 'px';
     card.style.position = 'fixed';
     card.style.transform = '';
 
-    // Measure card height accurately (guarantee room for header, body, and footer)
     const cardHeight = Math.max(card.offsetHeight || 0, 250);
     const margin = 14;
     const spaceAbove = rect.top - margin;
@@ -11707,32 +11812,26 @@ const StationTutorial = {
 
     let cardLeft, cardTop;
 
-    // Prefer placing ABOVE when target is in bottom half of screen (e.g. presets strip, checkout button)
     if (rect.top > vh * 0.52 && spaceAbove >= cardHeight) {
       cardTop = rect.top - cardHeight - margin;
       cardLeft = rect.left;
     } else if (spaceBelow >= cardHeight) {
-      // Prefer placing BELOW when room exists (e.g. product cards at top)
       cardTop = rect.bottom + margin;
       cardLeft = rect.left;
     } else if (spaceRight >= cardWidth) {
-      // Place to the RIGHT of target
       cardLeft = rect.right + margin;
       cardTop = rect.top;
     } else if (spaceLeft >= cardWidth) {
-      // Place to the LEFT of target
       cardLeft = rect.left - cardWidth - margin;
       cardTop = rect.top;
     } else {
-      // Fallback: place above if more space above than below, else below
       cardTop = (spaceAbove > spaceBelow)
         ? Math.max(16, rect.top - cardHeight - margin)
         : Math.min(vh - cardHeight - 16, rect.bottom + margin);
       cardLeft = rect.left;
     }
 
-    // STRICT FAIL-SAFE VIEWPORT CLAMPING
-    // Guarantees card and all footer buttons (Next, Back, Skip) NEVER clip off any screen edge!
+    // Strict Fail-Safe Viewport Clamping
     cardLeft = Math.max(16, Math.min(cardLeft, vw - cardWidth - 16));
     cardTop = Math.max(16, Math.min(cardTop, vh - cardHeight - 16));
 
@@ -11746,7 +11845,8 @@ const StationTutorial = {
       this.renderStep(this.currentStep + 1);
     } else {
       this.close();
-      showToast("🎉 You're ready to dispense! Tap Droppy anytime for help.");
+      if (typeof switchView === 'function') switchView('pos');
+      showToast("🎉 You're ready to dispense! Tap Droppy or ? anytime for help.");
       soundCtrl.playSuccess();
     }
   },
@@ -11761,6 +11861,7 @@ const StationTutorial = {
   skip() {
     soundCtrl.playTap();
     this.close();
+    if (typeof switchView === 'function') switchView('pos');
     if (typeof showToast === 'function') {
       showToast('Tutorial skipped. You can restart it anytime from Settings or the top bar!');
     }
@@ -11778,9 +11879,7 @@ const StationTutorial = {
       window.removeEventListener('resize', this._boundReposition);
       window.removeEventListener('scroll', this._boundReposition, true);
     }
-    try {
-      localStorage.setItem('rr_pos_tutorial_done', 'true');
-    } catch (e) {}
+    this.markDone();
   }
 };
 
@@ -11804,9 +11903,16 @@ function initStationTutorialEvents() {
   if (btnResetFlag) {
     btnResetFlag.addEventListener('click', () => {
       try {
+        localStorage.removeItem('rr_pos_tutorial_v2_done');
         localStorage.removeItem('rr_pos_tutorial_done');
+        if (State.currentUserId) {
+          localStorage.removeItem('rr_pos_tutorial_v2_done_' + State.currentUserId);
+          const u = Array.isArray(State.staff) ? State.staff.find(s => s.id === State.currentUserId) : null;
+          if (u) { u.tutorialV2Done = false; saveStaff(); }
+        }
         soundCtrl.playSuccess();
-        showToast('🔄 Tutorial prompt reset. It will show on next login / reload.');
+        showToast('🔄 Tutorial prompt reset. Starting tutorial now...');
+        setTimeout(() => StationTutorial.start(1), 300);
       } catch (e) {}
     });
   }
@@ -11892,7 +11998,7 @@ function initStationTutorialEvents() {
 
   // Auto-pulse tutorial buttons if tutorial not yet completed
   try {
-    if (!localStorage.getItem('rr_pos_tutorial_done')) {
+    if (!StationTutorial.isDone()) {
       const btnHeader = document.getElementById('btnStartStationTour');
       if (btnHeader) btnHeader.classList.add('glow-pulse');
       const btnBanner = document.getElementById('btnDroppyBannerTour');
@@ -11900,10 +12006,10 @@ function initStationTutorialEvents() {
     }
   } catch (e) {}
 
-  // First time auto-launch
+  // First time auto-launch: make sure tutorial is the first step they ever do before doing anything
   setTimeout(() => {
     try {
-      if (!localStorage.getItem('rr_pos_tutorial_done')) {
+      if (!StationTutorial.isDone()) {
         const wizardModal = document.getElementById('stationSetupWizardModal');
         const isWizardShowing = wizardModal && wizardModal.classList.contains('show');
         if (!isWizardShowing) {
@@ -11911,5 +12017,5 @@ function initStationTutorialEvents() {
         }
       }
     } catch (e) {}
-  }, 1200);
+  }, 1000);
 }

@@ -15209,6 +15209,7 @@ body:not(.light-mode) .droppy-fun-tip-btn {
   border-radius: 50%;
   background: var(--border-subtle);
   transition: all 0.2s ease;
+  cursor: pointer;
 }
 
 .tutorial-dot.active {
