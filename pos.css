@@ -1388,9 +1388,10 @@ body:not(.light-mode) .droppy-speech-bubble-box::before {
 .droppy-bubble-header {
   display: flex;
   align-items: center;
-  justify-content: flex-start;
+  justify-content: space-between;
   gap: 8px;
   margin-bottom: 5px;
+  flex-wrap: nowrap;
 }
 
 .droppy-bubble-title {
@@ -15191,16 +15192,25 @@ body:not(.light-mode) .droppy-fun-tip-btn {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 10px;
+  gap: 8px;
   margin-top: 14px;
   padding-top: 12px;
   border-top: 1px solid var(--border-subtle);
+  flex-wrap: nowrap;
+}
+
+.tutorial-footer-actions-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
 }
 
 .tutorial-dots {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 5px;
+  flex-shrink: 0;
 }
 
 .tutorial-dot {
@@ -15213,7 +15223,7 @@ body:not(.light-mode) .droppy-fun-tip-btn {
 }
 
 .tutorial-dot.active {
-  width: 18px;
+  width: 16px;
   border-radius: 4px;
   background: var(--color-primary);
 }
@@ -15224,9 +15234,11 @@ body:not(.light-mode) .droppy-fun-tip-btn {
   color: var(--text-muted);
   font-size: 0.82rem;
   font-weight: 700;
-  padding: 8px 14px;
+  padding: 8px 12px;
   border-radius: var(--radius-md);
   cursor: pointer;
+  white-space: nowrap !important;
+  flex-shrink: 0;
   transition: all 0.15s ease;
 }
 
@@ -15239,16 +15251,27 @@ body:not(.light-mode) .droppy-fun-tip-btn {
   background: var(--color-primary);
   border: none;
   color: #ffffff;
-  font-size: 0.85rem;
+  font-size: 0.84rem;
   font-weight: 800;
-  padding: 8px 18px;
+  padding: 8px 15px;
   border-radius: var(--radius-md);
   cursor: pointer;
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   gap: 6px;
+  white-space: nowrap !important;
+  flex-shrink: 0;
+  line-height: 1.2;
   transition: all 0.15s ease;
   box-shadow: 0 4px 12px rgba(2, 132, 199, 0.35);
+}
+
+.btn-tutorial-next span {
+  white-space: nowrap !important;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
 }
 
 .btn-tutorial-next:hover {
@@ -15278,24 +15301,31 @@ body:not(.light-mode) .droppy-fun-tip-btn {
     top: auto !important;
   }
   .btn-tutorial-next {
-    min-height: 44px;
-    padding: 10px 18px;
-    font-size: 0.9rem;
+    min-height: 42px;
+    padding: 8px 14px;
+    font-size: 0.86rem;
+    white-space: nowrap !important;
+    flex-shrink: 0;
   }
   .btn-tutorial-back {
-    min-height: 44px;
-    padding: 10px 14px;
-    font-size: 0.85rem;
+    min-height: 42px;
+    padding: 8px 12px;
+    font-size: 0.82rem;
+    white-space: nowrap !important;
+    flex-shrink: 0;
   }
   .btn-tutorial-skip-header {
     min-height: 38px;
     padding: 6px 14px;
     font-size: 0.78rem;
+    white-space: nowrap !important;
   }
   .btn-tutorial-skip-footer {
-    min-height: 44px;
-    padding: 10px 12px;
-    font-size: 0.85rem;
+    min-height: 42px;
+    padding: 8px 10px;
+    font-size: 0.82rem;
+    white-space: nowrap !important;
+    flex-shrink: 0;
   }
 }
 
@@ -15309,14 +15339,18 @@ body:not(.light-mode) .droppy-fun-tip-btn {
     box-shadow: 0 20px 50px rgba(0, 0, 0, 0.55) !important;
   }
   .btn-tutorial-next {
-    min-height: 44px;
-    padding: 10px 20px;
-    font-size: 0.88rem;
+    min-height: 42px;
+    padding: 8px 16px;
+    font-size: 0.86rem;
+    white-space: nowrap !important;
+    flex-shrink: 0;
   }
   .btn-tutorial-back {
-    min-height: 44px;
-    padding: 10px 16px;
-    font-size: 0.85rem;
+    min-height: 42px;
+    padding: 8px 14px;
+    font-size: 0.82rem;
+    white-space: nowrap !important;
+    flex-shrink: 0;
   }
 }
 
@@ -15360,16 +15394,28 @@ body:not(.light-mode) .header-tour-pill-btn:hover {
   border: none;
   color: #ffffff;
   border-radius: var(--radius-full);
-  padding: 4px 12px;
+  padding: 4px 11px;
   font-size: 0.72rem;
   font-weight: 700;
   cursor: pointer;
   transition: all 0.2s ease;
   box-shadow: 0 2px 8px rgba(2, 132, 199, 0.3);
   margin-left: auto;
+  white-space: nowrap !important;
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  line-height: 1.25;
 }
+
+.btn-banner-tour-launch span {
+  white-space: nowrap !important;
+}
+
 .btn-banner-tour-launch:hover {
-  transform: scale(1.05);
+  transform: scale(1.04);
   box-shadow: 0 4px 14px rgba(2, 132, 199, 0.45);
 }
 

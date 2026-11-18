@@ -11684,7 +11684,7 @@ const StationTutorial = {
 
     if (nextBtn) {
       nextBtn.innerHTML = this.currentStep === this.totalSteps
-        ? '<span>Let\'s Dispense! 💧</span>'
+        ? '<span>Get Started 💧</span>'
         : '<span>Next →</span>';
     }
 
